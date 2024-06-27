@@ -56,7 +56,7 @@ AvailableLabware = {
     "DeepWell": 96,
     "2R Vial": 24, # 4 x 6
     "8R Vial": 12, # 3 x 4
-    "CustomVialHolder": 30
+    "CustomVialHolder": 30 # 5 x 6
 
 }
 
@@ -81,7 +81,7 @@ LabwarePlates = ["DeepWell", "2R Vial", "8R Vial"]
 LABWARE_INFO = {
     "Eppendorf": [0.2, 1.5],
     "Falcon15": [0.8, 15],
-    "100mL_reservoir": [2, 100] # fill the rest and actually do the calculations............................ ask nicolas / liliana
+    "100mL_reservoir": [2, 100] # fill the rest and actually do the calculations............................ measure myself with tecan for all tips, place biggest value obtained, most likely for the smaller tips
 }
 
 
@@ -96,7 +96,7 @@ def import_excel_dotblot(file_path: str):
 
     Returns
     ----------
-    Tuple (sample, coating_protein, pos_ctr) data,
+    Tuple (sample, coating_protein, pos_ctr, neg_ctr) data,
     or ``None`` if error occurs when importing file.
     """
     # file_path = r"L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot_automation_dilution_template_final.xlsx"
@@ -104,6 +104,7 @@ def import_excel_dotblot(file_path: str):
     sample_dilution_data = {}
     coating_protein_dilution_data = {}
     pos_control_dilution_data = {}
+    neg_control_dilution_data = {}
 
     # file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx;*.xls")])
 
@@ -114,7 +115,9 @@ def import_excel_dotblot(file_path: str):
         return None
 
     data = data.iloc[:, 1:9] # ignore first column and all after 8
-    data = data.drop(data.columns[4], axis=1) # remove column (because it is empty, just used for excel formatting)
+    data = data.drop(data.columns[4], axis=1) # remove column (because it is empty, just used for excel visual formatting)
+
+    data.loc[len(data)] = [np.nan] * len(data.columns) # add extra row at the end with NaN values, so that subsequent for loops can end correctly
 
     # remove the units (inside parenthesis) from the column names
     for column in data.columns:
@@ -124,7 +127,7 @@ def import_excel_dotblot(file_path: str):
             new_column_name = column[:index].strip()
             data.rename(columns={column: new_column_name}, inplace=True)
 
-    # ignore rows with no dilution data
+    # sample dilution - ignore rows with no dilution data
     for index, row in data.iterrows():
         if pd.isna(row["Initial concentration"]): # if a NaN value is found
             sample_dilution_data = data.iloc[:index, :] # remove all rows after the first NaN is found in "Initial Concentration" column
@@ -144,8 +147,13 @@ def import_excel_dotblot(file_path: str):
     # else:
     #     return -1  
 
+    # negative control dilution data is in row 24 after initial read
+    for index, row in data.iloc[24:28,:].iterrows():
+        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+            neg_control_dilution_data = data.iloc[24:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
+            break
 
-    return sample_dilution_data, coating_protein_dilution_data, pos_control_dilution_data
+    return sample_dilution_data, coating_protein_dilution_data, pos_control_dilution_data, neg_control_dilution_data
 
 
 def import_excel_general_dilution(file_path):
@@ -221,6 +229,7 @@ def pos_2_str(name: str, pos):
     """
 
     if not isinstance(pos, int):
+        # print(f"pos2str is not an int: found {pos} with type {type(pos)}")
         if len(pos) == 1:
             pos = pos[0]
 
@@ -516,7 +525,7 @@ def generate_methods_and_products(json_path: str):
     return (RAW_ASSAYS_DATA, METHODS_LIST, PRODUCTS_DICT)
     
 
-def get_assay_indices(raw_data: list, method: str, product: str):
+def get_assay_indices(raw_data: list, method: str, product: str) -> list:
     """
     Returns all indexes in ``raw_data`` that match the specified method and product type. 
 
