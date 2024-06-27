@@ -1,0 +1,15 @@
+{
+    "assays": [
+        {
+            "method": "dotblot",
+            "product": "pd1",
+            "tmd": "TV-TMD-12345"
+        },
+        {
+            "method": "dotblot"
+        },
+        {
+            "method": "dotblot"
+        }
+    ]
+}

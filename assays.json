@@ -1,0 +1,92 @@
+{"assays":
+    [
+        {
+            "method": "Dotblot",
+            "product": "pd1",
+            "tmd": "TV-TMD-35372",
+            "title": "Test Method for Determining the Identity of JNJ80948543 using the Dot Blot Assay",
+            "step_types": 
+                [
+                    {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                    {"step_type": "Wait timer", "wait_timer": 60},
+                    {"step_type": "Vacuum"}, 
+                    {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
+                    {"step_type": "Wait timer", "wait_timer": 480}, 
+                    {"step_type": "Vacuum"}, 
+                    {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, 
+                    {"step_type": "Wait timer", "wait_timer": 480}, 
+                    {"step_type": "Vacuum"}, 
+                    {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, 
+                    {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, 
+                    {"step_type": "Wait timer", "wait_timer": 600}, 
+                    {"step_type": "Vacuum"}, 
+                    {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, 
+                    {"step_type": "Wait timer", "wait_timer": 480}, 
+                    {"step_type": "Vacuum"}, 
+                    {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                    {"step_type": "Wait timer", "wait_timer": 60}, 
+                    {"step_type": "Vacuum"},  
+                    {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                    {"step_type": "Wait timer", "wait_timer": 60}, 
+                    {"step_type": "Vacuum"},  
+                    {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                    {"step_type": "Wait timer", "wait_timer": 60}, 
+                    {"step_type": "Vacuum"}
+                ]
+            },
+            {
+                "method": "Dotblot",
+                "product": "pd1",
+                "tmd": "test tmd",
+                "title": "Test Method blablal",
+                "step_types": 
+                    [
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 60},
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
+                        {"step_type": "Wait timer", "wait_timer": 480}, 
+                        {"step_type": "Vacuum"},  
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 60}, 
+                        {"step_type": "Vacuum"}
+                    ]
+                },
+            {
+                "method": "FIPA",
+                "product": "product3",
+                "tmd": "test tmd fipa",
+                "title": "Test Method blablal",
+                "step_types": 
+                    [
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 60},
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
+                        {"step_type": "Wait timer", "wait_timer": 480}, 
+                        {"step_type": "Vacuum"},  
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 60}, 
+                        {"step_type": "Vacuum"}
+                    ]
+                },
+            {
+                "method": "Dotblot",
+                "product": "CD79",
+                "tmd": "test tmd cd79",
+                "title": "Test Method blablal",
+                "step_types": 
+                    [
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 60},
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
+                        {"step_type": "Wait timer", "wait_timer": 480}, 
+                        {"step_type": "Vacuum"},  
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 60}, 
+                        {"step_type": "Vacuum"}
+                    ]
+            }
+    ]
+}
