@@ -2,9 +2,9 @@
     [
         {
             "method": "Dotblot",
-            "product": "pd1",
-            "tmd": "TV-TMD-35372",
-            "title": "Test Method for Determining the Identity of JNJ80948543 using the Dot Blot Assay",
+            "product": "CD79bxCD20xCD3",
+            "tmd": "TV-TMD-35372 v1.0",
+            "title": "Test Method for Determining the Identity of JNJ-80948543 using the Dot Blot Assay",
             "step_types": 
                 [
                     {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
@@ -36,9 +36,9 @@
             },
             {
                 "method": "Dotblot",
-                "product": "pd1",
-                "tmd": "test tmd",
-                "title": "Test Method blablal",
+                "product": "CD33xV\u03b39\u03b42",
+                "tmd": "TV-TMD-38396 v1.0",
+                "title": "Test Method for Determining the Identity of JNJ-89853413 using the Dot Blot Assay",
                 "step_types": 
                     [
                         {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
@@ -46,47 +46,63 @@
                         {"step_type": "Vacuum"}, 
                         {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
                         {"step_type": "Wait timer", "wait_timer": 480}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, 
+                        {"step_type": "Wait timer", "wait_timer": 480}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, 
+                        {"step_type": "Wait timer", "wait_timer": 600}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, 
+                        {"step_type": "Wait timer", "wait_timer": 480}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 60}, 
+                        {"step_type": "Vacuum"},  
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 60}, 
                         {"step_type": "Vacuum"},  
                         {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
                         {"step_type": "Wait timer", "wait_timer": 60}, 
                         {"step_type": "Vacuum"}
                     ]
-                },
+            },
             {
                 "method": "FIPA",
-                "product": "product3",
-                "tmd": "test tmd fipa",
-                "title": "Test Method blablal",
-                "step_types": 
-                    [
-                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
-                        {"step_type": "Wait timer", "wait_timer": 60},
-                        {"step_type": "Vacuum"}, 
-                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
-                        {"step_type": "Wait timer", "wait_timer": 480}, 
-                        {"step_type": "Vacuum"},  
-                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
-                        {"step_type": "Wait timer", "wait_timer": 60}, 
-                        {"step_type": "Vacuum"}
-                    ]
-                },
+                "product": "CNTO4424",
+                "tmd": "TV-TMD-32376 v1.0",
+                "title": "Fluorescence Intensity Protein Aggregation Assay (FIPA) for the analysis of protein aggregates in JNJ-61186372 (CNTO4424) samples"
+            },
             {
-                "method": "Dotblot",
-                "product": "CD79",
-                "tmd": "test tmd cd79",
-                "title": "Test Method blablal",
-                "step_types": 
-                    [
-                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
-                        {"step_type": "Wait timer", "wait_timer": 60},
-                        {"step_type": "Vacuum"}, 
-                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
-                        {"step_type": "Wait timer", "wait_timer": 480}, 
-                        {"step_type": "Vacuum"},  
-                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
-                        {"step_type": "Wait timer", "wait_timer": 60}, 
-                        {"step_type": "Vacuum"}
-                    ]
+                "method": "DLS",
+                "product": "product???",
+                "tmd": "TV-TEC-166007 v1.0",
+                "title": "Dynamic Light Scattering (DLS) for the analysis of particle sizes"
+            },
+            {
+                "method": "nDSF",
+                "product": "product??",
+                "tmd": "TV-TEC-112062 v1.0",
+                "title": "Research method for sample characterization using nanoDSF"
+            },
+            {
+                "method": "A280",
+                "product": "anti-CD79bxCD20xCD3",
+                "tmd": "TV-TMD-35361 v1.0",
+                "title": "Determination of Protein Concentration by UV Absorbance at 280 nm (Variable Pathlength) for JNJ-80948543 (anti-CD79bxCD20xCD3)"
+            },
+            {
+                "method": "A280",
+                "product": "GPRC5DxBCMAxCD3",
+                "tmd": "TV-TMD-35306 v1.0",
+                "title": "A280 (VP) Method for Determination of Protein Concentration in JNJ-79635322"
+            },
+            {
+                "method": "test_method",
+                "product": "test_product",
+                "tmd": "test_tmd",
+                "title": "Test_title"
             }
     ]
 }
