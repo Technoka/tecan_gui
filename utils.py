@@ -4,25 +4,7 @@ import numpy as np
 import re
 import os
 import json
-# from enum import Enum
 
-
-
-# class LabWareNames():
-#     """
-#     Labware names as defined in Tecan worktable.
-#     """
-
-#     Falcon15 = "Falcon15"
-#     Falcon50 = "Falcon50"
-#     Eppendorf = "Eppendorf"
-#     DeepWell = "96 Deep Well 2ml[001]"
-#     _2R_Holder = "2R Vial Holder"
-#     _8R_Holder = "8R Vial Holder"
-#     CustomVialHolder = "Custom_vial_holder[001]"
-
-#     AssayBuffer = "100ml_1"
-#     DPBS = "100ml_2"
 
 # Labware names as defined in Tecan worktable
 LabwareNames = {
@@ -32,8 +14,6 @@ LabwareNames = {
     "DeepWell": "96 Deep Well 2ml[001]",
     "2R Vial": "2R Vial holder[001]",
     "8R Vial": "8R Vial holder[001]",
-    # "2R_Holder": "2R Vial Holder",
-    # "8R_Holder": "8R Vial Holder",
     "CustomVialHolder": "Custom_vial_holder[001]",
     "AssayBuffer": "100ml_1",
     "DPBS": "100ml_1",
@@ -62,19 +42,6 @@ AvailableLabware = {
 
 # Collection of labwares that are plates/wells
 LabwarePlates = ["DeepWell", "2R Vial", "8R Vial"]
-
-# class AvailableLabware():
-#     """
-#     Available tubes/wells per labware type as defined in Tecan worktable physically.
-#     """
-
-#     Falcon15 = 48
-#     Falcon50 = 20
-#     Eppendorf = 48
-#     DeepWell = 96
-#     _2R_Vials = 24 # 4 x 6
-#     _8R_Vials = 12 # 3 x 4
-#     CustomVialHolder = 30
 
 
 # labware name: dead_volume, max_volume (in mL)

@@ -610,8 +610,6 @@ class DotblotMethod():
         self.pos_ctr_lw_name = pos_2_str("Eppendorf", pos_control_eppendorf_positions) # set position of positive ctr diluted sample
         print("pos dilutions done")
         
-        # fake negative control so that the positions of eppendorf tubes and subsequent deep well plates are right and there are no repeated positions
-        # self.next_eppendorf_pos()
         neg_control_eppendorf_positions = self.negative_control_dilutions()
         print(f"negative ctr eppendorf pos: {neg_control_eppendorf_positions}")
         self.neg_ctr_lw_name = pos_2_str("Eppendorf", neg_control_eppendorf_positions) # set position of negative ctr diluted sample
@@ -654,14 +652,8 @@ class DotblotMethod():
 
         # Sample
         self.main_sample_labware_type = external.optionmenu_1.get()
-        # self.main_sample_dil_destination = external.optionmenu_1d.get() # deprecated
         self.n_samples_main_dilution = int(external.entry_slider2.get())
         self.samples_initial_volume_transfer = external.entry_slider3.get()
-
-        # Coating protein
-        # self.coating_protein_vial_type = external.optionmenu_vials.get()
-        # self.n_samples_coating_protein = external.entry_slider.get()
-        # self.coating_protein_buffer = external.optionmenu_2.get()
 
         # Positive control
         self.pos_control_dilution_data = external.pos_control_dilution_data
@@ -680,32 +672,6 @@ class DotblotMethod():
 
         # Pump steps
         self.pump_steps_data = external.pump_steps_data
-        # self.pump_steps_data = [
-        #  {'step_type': 'Transfer volume to wells', 'volume_amount': '200', 'liquid_type': 'DPBS'}, 
-        #  {'step_type': 'Wait timer', 'wait_timer': 1}, {'step_type': 'Vacuum'}, 
-        #  {'step_type': 'Transfer volume to wells', 'volume_amount': '100', 'liquid_type': 'Coating protein'}, 
-        #  {'step_type': 'Wait timer', 'wait_timer': 8}, 
-        #  {'step_type': 'Vacuum'}, 
-        #  {'step_type': 'Transfer volume to wells', 'volume_amount': '200', 'liquid_type': 'Blocking buffer'}, 
-        #  {'step_type': 'Wait timer', 'wait_timer': 8}, 
-        #  {'step_type': 'Vacuum'}, 
-        #  {'step_type': 'Transfer volume to wells', 'volume_amount': '100', 'liquid_type': 'Pos/Neg control'}, 
-        #  {'step_type': 'Transfer volume to wells', 'volume_amount': '100', 'liquid_type': 'Samples'}, 
-        #  {'step_type': 'Wait timer', 'wait_timer': 10}, 
-        #  {'step_type': 'Vacuum'}, 
-        #  {'step_type': 'Transfer volume to wells', 'volume_amount': '100', 'liquid_type': 'Conjugate'}, 
-        #  {'step_type': 'Wait timer', 'wait_timer': 8}, 
-        #  {'step_type': 'Vacuum'}, 
-        #  {'step_type': 'Transfer volume to wells', 'volume_amount': '200', 'liquid_type': 'DPBS'}, 
-        #  {'step_type': 'Wait timer', 'wait_timer': 1}, 
-        #  {'step_type': 'Vacuum'},  
-        #  {'step_type': 'Transfer volume to wells', 'volume_amount': '200', 'liquid_type': 'DPBS'}, 
-        #  {'step_type': 'Wait timer', 'wait_timer': 1}, 
-        #  {'step_type': 'Vacuum'},  
-        #  {'step_type': 'Transfer volume to wells', 'volume_amount': '200', 'liquid_type': 'DPBS'}, 
-        #  {'step_type': 'Wait timer', 'wait_timer': 1}, 
-        #  {'step_type': 'Vacuum'}
-        #  ]
 
         # Labware of reagents
         self.coat_prot_lw_name = "def_coat_prot" # Coating protein labware
@@ -714,7 +680,3 @@ class DotblotMethod():
         self.neg_ctr_lw_name = "def_neg_ctr" # Negative control labware
         self.conjugate_lw_name = "def_conjugate" # Conjugate labware
         self.dpbs_lw_name = "def_dpbs" # DPBS labware
-
-        # Extra options
-        # self.final_dilutions_in_eppendorf = external.check_final_eppendorf.get()
-
