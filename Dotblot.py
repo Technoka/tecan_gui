@@ -55,13 +55,13 @@ class DotblotMethod():
         # self.pos_control_vial_type = 0 # type of vial used (1-7)
         self.pos_control_vial_posY = "" # A,B,C,D,E position of pos contorl vial inside of custom holder
         self.pos_control_vial_posX = "" # 1,2,3,4,5,6 position of pos contorl vial inside of custom holder
-        self.pos_control_buffer = "" # name of pos control buffer (assay or DPBS)
+        self.pos_control_buffer = "AssayBuffer" # name of pos control buffer (assay or DPBS)
 
         # Negative control parameters
         self.n_neg_control_steps = 0 # number of positive control dilution steps to achieve final concentration
         self.neg_control_vial_posY = "" # A,B,C,D,E position of neg contorl vial inside of custom holder
         self.neg_control_vial_posX = "" # 1,2,3,4,5,6 position of neg contorl vial inside of custom holder
-        self.neg_control_buffer = "" # name of neg control buffer (assay or DPBS)
+        self.neg_control_buffer = "AssayBuffer" # name of neg control buffer (assay or DPBS)
 
         # Labware names
         self.coat_prot_lw_name = "def_coat_prot" # Coating protein labware
@@ -76,6 +76,9 @@ class DotblotMethod():
         self.pump_steps_data = {}
         self.n_wells_pump_labware = 96 # number of wells in labware inside pump vacuum area
         self.pump_lw_well_pos = {} # pump labware well positions of different ctr and samples
+
+        # Total volumes needed for the method
+        self.total_volumes = {}
 
 
     def next_eppendorf_pos(self):
@@ -104,7 +107,7 @@ class DotblotMethod():
             return -1
         
 
-    def positive_control_dilutions(self, mix: bool = True):
+    def positive_control_dilutions(self):
         """
         Performs the dilutions to get the positive control final concentration.
 
@@ -120,11 +123,8 @@ class DotblotMethod():
         
         csv_number = 1 # to name generated files sequentially
         initial_pos = 1 # position of the first vial of the pos control
-        buffer_labware_name = "100ml_1" # Name of Labware in TECAN for the Assay buffer
+        buffer_labware_name = LabwareNames[self.pos_control_buffer] # Name of Labware in TECAN for the Assay buffer
         eppendorf_positions = [] # to store final eppendorf positions
-
-        if self.pos_control_buffer == "DPBS":
-            buffer_labware_name = "100ml_2" # Name of Labware in TECAN containing the DPBS buffer
 
         # Define custom vial holder labware position depending on the vial position
         if self.pos_control_vial_posX == "A":
@@ -203,30 +203,27 @@ class DotblotMethod():
         """
         
         csv_number = 1 # to name generated files sequentially
-        initial_pos = 1 # position of the first vial of the pos control
-        buffer_labware_name = "100ml_1" # Name of Labware in TECAN for the Assay buffer
+        # initial_pos = 1 # position of the first vial of the pos control
+        buffer_labware_name = LabwareNames[self.neg_control_buffer] # Name of Labware in TECAN for the Assay buffer
         eppendorf_positions = [] # to store final eppendorf positions
 
-        if self.neg_control_buffer == "DPBS":
-            buffer_labware_name = "100ml_2" # Name of Labware in TECAN containing the DPBS buffer
+        # # Define custom vial holder labware position depending on the vial position
+        # if self.neg_control_vial_posX == "A":
+        #     initial_pos = 1
+        # elif self.neg_control_vial_posX == "B":
+        #     initial_pos = 2
+        # elif self.neg_control_vial_posX == "C":
+        #     initial_pos = 3
+        # elif self.neg_control_vial_posX == "D":
+        #     initial_pos = 4
+        # elif self.neg_control_vial_posX == "E":
+        #     initial_pos = 5
 
-        # Define custom vial holder labware position depending on the vial position
-        if self.neg_control_vial_posX == "A":
-            initial_pos = 1
-        elif self.neg_control_vial_posX == "B":
-            initial_pos = 2
-        elif self.neg_control_vial_posX == "C":
-            initial_pos = 3
-        elif self.neg_control_vial_posX == "D":
-            initial_pos = 4
-        elif self.neg_control_vial_posX == "E":
-            initial_pos = 5
-
-        initial_pos = initial_pos + (int(self.neg_control_vial_posY) - 1) * 5 # add X position
+        # initial_pos = initial_pos + (int(self.neg_control_vial_posY) - 1) * 5 # add X position
         
-        # sample_lab_source = self.custom_holder_name # initial source of pos control sample
-        sample_lab_source = LabwareNames["CustomVialHolder"] # initial source of pos control sample
-        sample_lab_well = initial_pos
+        # sample_lab_source = self.custom_holder_name # initial source of neg control sample
+        sample_lab_source = LabwareNames["8R Vial"] # initial source of neg control sample
+        sample_lab_well = 1 # hard coded for now, so ALWAYS place negative control vial in first position (top left) of 8R holder
 
         for i in range(self.n_neg_control_steps):
             csv_data_sample = [] # list to store CSV data
@@ -276,6 +273,7 @@ class DotblotMethod():
         
         return eppendorf_positions    
 
+
     def sample_dilutions(self):
         """
         Performs the dilutions to get the sample final concentration.
@@ -290,6 +288,7 @@ class DotblotMethod():
         ----------
             CSV files containing instructions for the Tecan.
         """
+        print("las eppendorf pos: ", self.last_eppendorf_pos)
 
         csv_data_init = []
         csv_number = 0 # # to name generated files sequentially
@@ -300,11 +299,15 @@ class DotblotMethod():
         # Initial transfer of sample to deep wells, so that 
         # print("before initial")
         # print("self.main_sample_labware_type:", self.main_sample_labware_type)
-        print("labdest:", LabDest)
-        print("destwell:", DestWell)
+        # print("labdest:", LabDest)
+        # print("destwell:", DestWell)
         for j in range(1, self.n_samples_main_dilution + 1):
+            if self.main_sample_labware_type == "Eppendorf":
+                LabSource = pos_2_str(self.main_sample_labware_type, self.last_eppendorf_pos)
+                self.next_eppendorf_pos()
+            else:
+                LabSource = pos_2_str(self.main_sample_labware_type, j)
 
-            LabSource = pos_2_str(self.main_sample_labware_type, j)
             csv_data_init.append(
             {
                 'LabSource': LabSource,
@@ -320,7 +323,7 @@ class DotblotMethod():
         pd.DataFrame(csv_data_init).to_csv(path, index=False, header=False)
         csv_number = csv_number + 1
 
-        print("before long csv")
+        # print("before long csv")
         for i in range(self.n_sample_dilution_steps):
             csv_data_sample = []
             csv_data_buffer = []
@@ -328,6 +331,7 @@ class DotblotMethod():
             LabSource, SourceWell = LabDest, DestWell # source of next step is destination of previous one
 
             if i + 1 == self.n_sample_dilution_steps: # if this is the final dilution step
+                print("sample last eppensorf pos: ", self.last_eppendorf_pos)
                 LabDest, DestWell = dilution_position_def("Eppendorf", self.last_eppendorf_pos, (self.n_samples_main_dilution * (i+1) + 1))
             else:
                 LabDest, DestWell = dilution_position_def("DeepWell", self.last_deep_well_pos, (self.n_samples_main_dilution * (i+1) + 1))
@@ -345,7 +349,7 @@ class DotblotMethod():
                 
                 csv_data_buffer.append(
                 {
-                    'LabSource': '100ml_1',
+                    'LabSource': LabwareNames["AssayBuffer"],
                     'SourceWell': int(1),
                     'LabDest': LabDest[j],
                     'DestWell':  DestWell[j],
@@ -535,11 +539,11 @@ class DotblotMethod():
 
 
         sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
-        print("sample wells:", sample_wells)
+        # print("sample wells:", sample_wells)
         all_wells = self.pump_lw_well_pos["pos_ctr_pos"] + self.pump_lw_well_pos["neg_ctr_pos"] + sample_wells # position of all wells to be used
         
-        print("pos_ctr_pos:", self.pump_lw_well_pos["pos_ctr_pos"])
-        print("neg_ctr_pos:", self.pump_lw_well_pos["neg_ctr_pos"])
+        # print("pos_ctr_pos:", self.pump_lw_well_pos["pos_ctr_pos"])
+        # print("neg_ctr_pos:", self.pump_lw_well_pos["neg_ctr_pos"])
 
         if _type == "All wells": # transfer to all wells
             for well in all_wells:
@@ -573,8 +577,8 @@ class DotblotMethod():
             for well in self.pump_lw_well_pos["pos_ctr_pos"]: # Positive control
                 csv_data.append(
                 {
-                    # 'LabSource': self.pos_ctr_lw_name,
-                    'LabSource': LabwareNames["PosControl"],
+                    'LabSource': self.pos_ctr_lw_name,
+                    # 'LabSource': LabwareNames["PosControl"],
                     'SourceWell': 1,
                     'LabDest': dest_labware,
                     'DestWell': well,
@@ -584,18 +588,69 @@ class DotblotMethod():
             for well in self.pump_lw_well_pos["neg_ctr_pos"]: # Negative control
                 csv_data.append(
                 {
-                    # 'LabSource': self.neg_ctr_lw_name,
-                    'LabSource': LabwareNames["NegControl"],
+                    'LabSource': self.neg_ctr_lw_name,
+                    # 'LabSource': LabwareNames["NegControl"],
                     'SourceWell': 1,
                     'LabDest': dest_labware,
                     'DestWell': well,
                     'Volume': volume
                 })
 
-        print("before csv generating")
+        # print("before csv generating")
         # Generate CSV file
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".csv"
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
+
+        print("transfer volume instruction ", csv_number, "done")
+
+    def calculate_total_volumes(self):
+        """
+        Calculates the total volumes needed for each reagent.
+
+        TODO 
+        ---
+        mk
+        """
+
+        # empty dictionary that will contain keys for total
+        total_volume = {}
+
+        for step in self.pump_steps_data:
+            if step["step_type"] == "Transfer volume to wells":
+                if step["liquid_type"] not in total_volume:
+                    total_volume[step["liquid_type"]] = 0 # create key
+                
+                total_volume[step["liquid_type"]] = total_volume[step["liquid_type"]] + float(step["volume_amount"])/1000 # because volume amount is in uL and we want it in mL
+
+        # del(total_volume["Pos/Neg control"]) # remove this key because it is not needed
+        total_volume["Pos_ctr"] = total_volume.pop("Pos/Neg control") # change name of key
+        total_volume["Neg_ctr"] = total_volume["Pos_ctr"] # copy the value into a new key
+
+        # multiply by number of samples
+        for key in total_volume:
+            total_volume[key] *= self.n_samples_main_dilution
+            total_volume[key] *= 3 # because each sample is triplicated (placed in 3 wells)
+            total_volume[key] = round(total_volume[key], 2)
+
+        # print("sample vol:", self.pos_control_dilution_data["Sample volume"])
+        # pos_ctr_sample_vol = round(self.pos_control_dilution_data["Sample volume"].sum(), 1)
+        # neg_ctr_sample_vol = round(self.neg_control_dilution_data["Sample volume"].sum(), 1)
+        # buffer_vol = round(self.pos_control_dilution_data, ["Assay buffer volume"].sum(), 2) + round(self.neg_control_dilution_data["Assay buffer volume"].sum(), 2)
+        pos_ctr_sample_vol = round(sum(self.pos_control_dilution_data["Sample volume"]), 1)
+        neg_ctr_sample_vol = round(sum(self.neg_control_dilution_data["Sample volume"]), 1)
+        # print("type:", type(sum(self.pos_control_dilution_data, ["Assay buffer volume"]), 2))
+        buffer_vol = round(sum(self.pos_control_dilution_data["Assay buffer volume"]), 2) + round(sum(self.neg_control_dilution_data["Assay buffer volume"]), 2) + round(sum(self.sample_dilution_data["Assay buffer volume"] * self.n_samples_main_dilution), 2)
+        
+        total_volume["Pos_ctr"] = total_volume["Pos_ctr"] + pos_ctr_sample_vol
+        total_volume["Neg_ctr"] = total_volume["Neg_ctr"] + neg_ctr_sample_vol
+        
+        buffer_type = "Assay buffer" # pos/neg ctr are diluted always with assay buffer
+        total_volume[buffer_type] = buffer_vol/1000
+
+        # total_volume["Samples"] = self.sample_dilution_data["Sample volume"][0] # the real amount of sample vol needed for the dilutions
+
+        self.total_volumes = total_volume
+
 
 
     def dotblot(self):
@@ -615,6 +670,11 @@ class DotblotMethod():
         self.neg_ctr_lw_name = pos_2_str("Eppendorf", neg_control_eppendorf_positions) # set position of negative ctr diluted sample
         print("neg dilutions done")
 
+        # If initial undiluted samples are placed in Eppendorfs 3 to x, so we skip those positions
+        # if self.main_sample_labware_type == "Eppendorf":
+        #     for i in range(self.n_samples_main_dilution): # for every sample
+        #         self.next_eppendorf_pos()
+
         self.sample_eppendorf_positions = self.sample_dilutions()
         print("sample dilutions done")
 
@@ -624,7 +684,7 @@ class DotblotMethod():
 
         # Call method in utils file
         pattern = r"3\. Pump steps - Transfer (\d+)\.csv"
-        convert_all_csv_files_in_directory(self.csv_files_path, pattern)
+        convert_all_csv_files_in_directory(self.csv_files_path, pattern) # to reuse tips
         print("generated all GWL files")
 
         return pos_control_eppendorf_positions, neg_control_eppendorf_positions, self.sample_eppendorf_positions
@@ -653,22 +713,27 @@ class DotblotMethod():
         # Sample
         self.main_sample_labware_type = external.optionmenu_1.get()
         self.n_samples_main_dilution = int(external.entry_slider2.get())
-        self.samples_initial_volume_transfer = external.entry_slider3.get()
+        # self.samples_initial_volume_transfer = external.entry_slider3.get()
+        # self.samples_initial_volume_transfer = self.sample_dilution_data["Sample volume"][0] * 10 # value normally between 10uL, so transfer around 100uL, which is more than
+        self.samples_initial_volume_transfer = 100 # hard coded for nicolas's test on thu. 4/7
 
         # Positive control
         self.pos_control_dilution_data = external.pos_control_dilution_data
         self.n_pos_control_steps = len(self.pos_control_dilution_data["Assay buffer volume"])
         self.pos_control_vial_posX = external.pos_ctr_X_pos.get()
         self.pos_control_vial_posY = external.pos_ctr_Y_pos.get()
-        self.pos_control_buffer = external.pos_ctr_buffer.get()
-        print("after posc torntol asignation")
+        # self.pos_control_buffer = external.pos_ctr_buffer.get()
+        # self.pos_control_buffer = "Assay buffer"
+        # print("after posc torntol asignation")
         
+        # Negative control
         self.neg_control_dilution_data = external.neg_control_dilution_data
         self.n_neg_control_steps = len(self.neg_control_dilution_data["Assay buffer volume"])
-        self.neg_control_vial_posX = external.neg_ctr_X_pos.get()
-        self.neg_control_vial_posY = external.neg_ctr_Y_pos.get()
-        self.neg_control_buffer = external.neg_ctr_buffer.get()
-        print("AFTER neg external assingnations")
+        # self.neg_control_vial_posX = external.neg_ctr_X_pos.get()
+        # self.neg_control_vial_posY = external.neg_ctr_Y_pos.get()
+        # self.neg_control_buffer = external.neg_ctr_buffer.get()
+        # self.neg_control_buffer = "Assay buffer"
+        # print("AFTER neg external assingnations")
 
         # Pump steps
         self.pump_steps_data = external.pump_steps_data
