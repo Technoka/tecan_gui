@@ -15,13 +15,13 @@ LabwareNames = {
     "2R Vial": "2R Vial holder[001]",
     "8R Vial": "8R Vial holder[001]",
     "CustomVialHolder": "Custom_vial_holder[001]",
-    "AssayBuffer": "100ml_1",
-    "DPBS": "100ml_1",
-    "BlockingBuffer": "100ml_2",
+    "AssayBuffer": "100ml_3",
+    "DPBS": "100ml_2",
+    "BlockingBuffer": "100ml_1",
     "Conjugate": "100ml_4",
-    "CoatingProtein": "Falcon15[003]",
-    "PosControl": "Falcon15[001]",
-    "NegControl": "Falcon15[002]",
+    "CoatingProtein": "100ml_5",
+    # "PosControl": "Falcon15[001]",
+    # "NegControl": "Falcon15[002]",
     "100mL reservoir": "100ml" # the [00x] needs to be added later
 
 }
@@ -44,11 +44,15 @@ AvailableLabware = {
 LabwarePlates = ["DeepWell", "2R Vial", "8R Vial"]
 
 
+ # fill the rest and actually do the calculations............................ measure myself with tecan for all tips, place biggest value obtained, most likely for the smaller tips
 # labware name: dead_volume, max_volume (in mL)
 LABWARE_INFO = {
     "Eppendorf": [0.2, 1.5],
     "Falcon15": [0.8, 15],
-    "100mL_reservoir": [2, 100] # fill the rest and actually do the calculations............................ measure myself with tecan for all tips, place biggest value obtained, most likely for the smaller tips
+    # "Falcon50": [5, 50],
+    # "2R Vial": [0.1, 2],
+    # "8R Vial": [0.3, 8],
+    "100mL_reservoir": [2, 100]
 }
 
 
@@ -549,27 +553,47 @@ def divide_string_into_lines(input_string: str, X: int):
     return result
 
 
-def find_best_container(reagents_vol_dict: dict, labware_dict: dict):
+def find_best_container(reagents: dict | float | int):
     """
     Assigns the best labware type for each reagent considering the volume needed.
+
     """
 
-    result = {}
-    
-    for item, volume_needed in reagents_vol_dict.items():
+
+    if isinstance(reagents, (float | int)):
+        volume_needed = reagents
         best_container = None
         best_sum = float('inf')
-        
-        for labware, (dead_vol, max_vol) in labware_dict.items():
+
+        for labware, (dead_vol, max_vol) in LABWARE_INFO.items():
             if volume_needed <= max_vol - dead_vol:
                 current_sum = max_vol - dead_vol
                 if current_sum < best_sum:
                     best_sum = current_sum
                     best_container = labware
-        
+
         if best_container:
-            result[item] = best_container
+            return best_container
         else:
-            result[item] = "VOLUME TOO BIG"
-    
-    return result
+            return "VOLUME TOO BIG"
+
+    if isinstance(reagents, dict):
+        result = {}
+        
+        for item, volume_needed in reagents.items():
+            best_container = None
+            best_sum = float('inf')
+            
+            for labware, (dead_vol, max_vol) in LABWARE_INFO.items():
+                if volume_needed <= max_vol - dead_vol:
+                    current_sum = max_vol - dead_vol
+                    if current_sum < best_sum:
+                        best_sum = current_sum
+                        best_container = labware
+            
+            if best_container:
+                result[item] = best_container
+            else:
+                result[item] = "VOLUME TOO BIG"
+        
+        return result
