@@ -715,7 +715,7 @@ class DotblotMethod():
         self.n_samples_main_dilution = int(external.entry_slider2.get())
         # self.samples_initial_volume_transfer = external.entry_slider3.get()
         # self.samples_initial_volume_transfer = self.sample_dilution_data["Sample volume"][0] * 10 # value normally between 10uL, so transfer around 100uL, which is more than
-        self.samples_initial_volume_transfer = 100 # hard coded for nicolas's test on thu. 4/7
+        self.samples_initial_volume_transfer = 50 # hard coded for nicolas's test on thu. 4/7
 
         # Positive control
         self.pos_control_dilution_data = external.pos_control_dilution_data
