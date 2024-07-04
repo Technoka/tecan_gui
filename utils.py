@@ -252,7 +252,7 @@ def dilution_position_def(labware_name: str, initial_pos: int, nsamples: int):
 
 
 
-def get_deep_well_pos(pos: int):
+def get_deep_well_pos(pos: int, plate_type:int = 96):
     """
     Receives a position for a Deep Well sample and returns the triplet well positions associated with it.
 
@@ -260,6 +260,8 @@ def get_deep_well_pos(pos: int):
     ----------
     ``pos``: int
         Position for the whole sample triplet.
+    ``plate_type``: int
+        Type of plate (96 or 384). Defaults to 96.
 
     Returns
     ----------
@@ -269,22 +271,38 @@ def get_deep_well_pos(pos: int):
     ----------
     >>> get_deep_well_pos(1)
     [1, 9, 17]
-    >>> get_deep_well_pos(3)
+    >>> get_deep_well_pos(3, 96)
     [3, 11, 19]
     >>> get_deep_well_pos(9)
     [25, 33, 41]
+    >>> get_deep_well_pos(1, 384)
+    [1, 17, 33]
+    >>> get_deep_well_pos(3, 384)
+    [3, 19, 35]
+    >>> get_deep_well_pos(9, 384)
+    [9, 25, 41]
     
     """
 
+    if plate_type not in [96, 384]:
+        raise ValueError("Invalid plate type. Must be either 96 or 384.")
+
+    if plate_type == 96:
+        wells_per_block = 24
+        wells_per_row = 8
+    elif plate_type == 384:
+        wells_per_block = 48
+        wells_per_row = 16
+
     # each block has 24 wells, and therefore fits 8 samples in vertical order
-    block = int((pos-1) / 8) # floor operation
-    row = pos % 8
+    block = int((pos-1) / wells_per_row) # floor operation
+    row = pos % wells_per_row
     if row == 0:
-        row = 8
+        row = wells_per_row
 
-    init_pos = block * 24 + row
+    init_pos = block * wells_per_block + row
 
-    return [init_pos, init_pos+8, init_pos+16]
+    return [init_pos, init_pos+wells_per_row, init_pos + 2 * wells_per_row]
 
 
 def flatten(matrix):
