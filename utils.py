@@ -252,9 +252,9 @@ def dilution_position_def(labware_name: str, initial_pos: int, nsamples: int):
 
 
 
-def get_deep_well_pos(pos: int, plate_type:int = 96):
+def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "vertical"):
     """
-    Receives a position for a Deep Well sample and returns the triplet well positions associated with it.
+    Receives a position for a well-plate sample and returns the triplet well positions associated with it.
 
     Parameters
     ----------
@@ -262,6 +262,8 @@ def get_deep_well_pos(pos: int, plate_type:int = 96):
         Position for the whole sample triplet.
     ``plate_type``: int
         Type of plate (96 or 384). Defaults to 96.
+    ``sample_direction``: str
+        Direction of the sample (either 'vertical' or 'horizontal'). Defaults to 'vertical'.
 
     Returns
     ----------
@@ -279,30 +281,59 @@ def get_deep_well_pos(pos: int, plate_type:int = 96):
     [1, 17, 33]
     >>> get_deep_well_pos(3, 384)
     [3, 19, 35]
-    >>> get_deep_well_pos(9, 384)
-    [9, 25, 41]
+    >>> get_deep_well_pos(3, 384, 'horizontal')
+    [97, 113, 129]
     
     """
 
     if plate_type not in [96, 384]:
         raise ValueError("Invalid plate type. Must be either 96 or 384.")
+    
+    if sample_direction not in ['vertical', 'horizontal']:
+        raise ValueError("Invalid direction. Must be either 'vertical' or 'horizontal'.")
 
     if plate_type == 96:
+        if pos < 1 or pos > 128:
+            return ValueError("Invalid position. Must be between [1-32].")
+        
         wells_per_block = 24
-        wells_per_row = 8
+        wells_per_col = 8
+        wells_per_row = 12
+
     elif plate_type == 384:
+        if pos < 1 or pos > 128:
+            return ValueError("Invalid position. Must be between [1-128].")
         wells_per_block = 48
-        wells_per_row = 16
+        wells_per_col = 16
+        wells_per_row = 24
 
     # each block has 24 wells, and therefore fits 8 samples in vertical order
-    block = int((pos-1) / wells_per_row) # floor operation
-    row = pos % wells_per_row
-    if row == 0:
-        row = wells_per_row
+    if sample_direction == "vertical":
+        block = int((pos-1) / wells_per_col) # floor operation
+        row = pos % wells_per_col
+        if row == 0:
+            row = wells_per_col
 
-    init_pos = block * wells_per_block + row
+        init_pos = int( block * wells_per_block + row )
 
-    return [init_pos, init_pos+wells_per_row, init_pos + 2 * wells_per_row]
+    else:
+        row = int((pos-1) / (wells_per_row/3)) + 1
+        block = (pos % (wells_per_row/3))
+        if block == 0:
+            block = wells_per_row/3
+
+        init_pos = int( (block-1) * wells_per_block + row )
+    
+    # print(f"pos: {pos}, block: {block}, row: {row}")
+
+    # if direction == 'vertical':
+    return [init_pos,
+            init_pos + wells_per_col,
+            init_pos + 2 * wells_per_col]
+    # elif sample_direction == 'horizontal':
+    #     return [init_pos,
+    #             init_pos + 1,
+    #             init_pos + 2]
 
 
 def flatten(matrix):
