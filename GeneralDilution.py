@@ -34,7 +34,7 @@ class GeneralDilution():
         self.sample_lw_origin = "" # where to perform main sample dilutions (deep welleppendorf)
         self.sample_lw_dest = "" # 
         self.sample_int_dil_destination = "DeepWell" # All intermediate dilutions will be made in Deep Wells, and then final results will be transfered to Eppendorf tubes
-        self.samples_initial_volume_transfer = 300 # At the beginning, transfer once this amount of volume (uL) of the samples to the wells, so that for later steps, all the volumes of the samples can be taken from here with smaller tips rather than changing tip all the time.
+        self.samples_initial_volume_transfer = 100 # At the beginning, transfer once this amount of volume (uL) of the samples to the wells, so that for later steps, all the volumes of the samples can be taken from here with smaller tips rather than changing tip all the time.
         self.sample_dest_positions = 0 # positions of Eppendorf tubes where the diluted samples end up
 
         # Labware names
@@ -195,24 +195,25 @@ class GeneralDilution():
         LabSource, SourceWell = self.dilution_position_def(self.sample_lw_origin, 1, self.n_samples)
         LabDest, DestWell = self.dilution_position_def(self.sample_int_dil_destination, self.used_labware_pos["DeepWell"] + 1, self.n_samples)
 
-        # Initial transfer of sample to deep wells, to do intermediate dilutions
-        for j in range(0, self.n_samples):
+            # Initial transfer of sample to deep wells, to do intermediate dilutions
+        if self.samples_initial_volume_transfer != 0:
+            for j in range(0, self.n_samples):
 
-            # LabSource = self.pos_2_str(self.sample_lw_origin, j+1)
-            csv_data_init.append(
-            {
-                'LabSource': LabSource[j],
-                'SourceWell': SourceWell[j],
-                'LabDest': LabDest[j],
-                'DestWell': DestWell[j],
-                'Volume': float(self.samples_initial_volume_transfer)
-            }
-            )
-            self.next_labware_pos("DeepWell") # to keep the position updated
-            
-        path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number) + ".csv"
-        pd.DataFrame(csv_data_init).to_csv(path, index=False, header=False)
-        csv_number = csv_number + 1
+                # LabSource = self.pos_2_str(self.sample_lw_origin, j+1)
+                csv_data_init.append(
+                {
+                    'LabSource': LabSource[j],
+                    'SourceWell': SourceWell[j],
+                    'LabDest': LabDest[j],
+                    'DestWell': DestWell[j],
+                    'Volume': float(self.samples_initial_volume_transfer)
+                }
+                )
+                self.next_labware_pos("DeepWell") # to keep the position updated
+                
+            path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number) + ".csv"
+            pd.DataFrame(csv_data_init).to_csv(path, index=False, header=False)
+            csv_number = csv_number + 1
         
         for i in range(self.n_sample_dilution_steps):
             csv_data_sample = []
