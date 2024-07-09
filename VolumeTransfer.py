@@ -23,7 +23,7 @@ class VolumeTransfer():
 
         # Volume transfer parameters
         self.n_samples = 0 # amount of samples for the sample transfer
-        self.n_sample_dilution_steps = 0 # number of sample dilution steps to achieve final concentration
+        # self.n_sample_dilution_steps = 0 # number of sample dilution steps to achieve final concentration
         self.sample_lw_origin = "" # origin labware of samples
         self.sample_lw_dest = "" # destination labware of samples
         self.sample_dest_positions = 0 # positions of Eppendorf tubes where the diluted samples end up
