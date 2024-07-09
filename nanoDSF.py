@@ -10,7 +10,7 @@ from utils import * # file with helper methods
 
 class nanoDSFMethod():
     """
-    Produces CSV files with all the steps to carry out the Dot Blot method in the TECAN.
+    Produces CSV files with all the steps to carry out the nano DSF method in the TECAN.
     """
 
     def __init__(self):
@@ -170,6 +170,6 @@ class nanoDSFMethod():
         self.used_labware_pos = dict.fromkeys(self.used_labware_pos, 0) # reset dict
 
         # General
-        self.n_samples = 1 # amount of samples for the sample transfer
-        self.sample_volume_per_well = 20 # volume (uL) to transfer to each well
-        self.sample_lw_origin = "???" # origin labware of samples
+        self.n_samples = external.nDSF_n_samples.get() # amount of samples for the sample transfer
+        self.sample_volume_per_well = external.nDSF_volume.get() # volume (uL) to transfer to each well
+        self.sample_lw_origin = external.nDSF_lw_origin.get() # origin labware of samples
