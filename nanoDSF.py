@@ -16,6 +16,7 @@ class nanoDSFMethod():
     def __init__(self):
         # General parameters
         self.files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\7. nanoDSF' # network path where all the files will be saved in.
+        self.gwl_file_name = r"\sample_transfer"
         self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions 
 
         # Sample transfer parameters
@@ -105,7 +106,7 @@ class nanoDSFMethod():
 
         # LabDest, DestWell = dilution_position_def("DeepWell", self.next_deep_well_pos(), 1) # define destination labware as deep well
 
-        output_file_path = self.files_path + r"\test_gen" + ".gwl"
+        output_file_path = self.files_path + self.gwl_file_name + ".gwl"
 
         with open(output_file_path, 'w') as output_file:
             # Read all lines from the input file
