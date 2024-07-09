@@ -408,8 +408,8 @@ class DotblotMethod():
         # for i in range(1, self.n_samples_main_dilution + 1):
         #     sample_pos.append(get_deep_well_pos(i + diff))
 
-        for sample in self.sample_eppendorf_positions:
-            sample_pos.append(get_deep_well_pos(sample))
+        for i, sample in enumerate(self.sample_eppendorf_positions):
+            sample_pos.append(get_deep_well_pos(i + 3)) # i starts at 0. We add 2 positions because 1 is pos.ctr and 2 is neg.ctr
 
         final_pos = {"pos_ctr_pos": pos_ctr_pos,
                      "neg_ctr_pos": neg_ctr_pos,
