@@ -12,6 +12,7 @@ LabwareNames = {
     "Falcon50": "Falcon50",
     "Eppendorf": "Eppendorf",
     "DeepWell": "96 Deep Well 2ml[001]",
+    "384_Well": "384 Well[001]",
     "2R Vial": "2R Vial holder[001]",
     "8R Vial": "8R Vial holder[001]",
     "CustomVialHolder": "Custom_vial_holder[001]",
@@ -41,7 +42,7 @@ AvailableLabware = {
 }
 
 # Collection of labwares that are plates/wells
-LabwarePlates = ["DeepWell", "2R Vial", "8R Vial"]
+LabwarePlates = ["DeepWell", "384_Well", "2R Vial", "8R Vial"]
 
 
  # fill the rest and actually do the calculations............................ measure myself with tecan for all tips, place biggest value obtained, most likely for the smaller tips
