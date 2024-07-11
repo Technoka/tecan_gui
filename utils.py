@@ -21,9 +21,12 @@ LabwareNames = {
     "BlockingBuffer": "100ml_1",
     "Conjugate": "100ml_4",
     "CoatingProtein": "100ml_5",
+    "Dye": "100ml_6",
     # "PosControl": "Falcon15[001]",
     # "NegControl": "Falcon15[002]",
-    "100mL reservoir": "100ml" # the [00x] needs to be added later
+    "100mL reservoir": "100ml", # the [00x] needs to be added later
+    "soloVPE cuvettes": "solo VPE ???",
+    "GeneralBuffer": "100ml_1" # for every method that uses a buffer of any kind, this will be the position
 
 }
 
@@ -42,19 +45,37 @@ AvailableLabware = {
 }
 
 # Collection of labwares that are plates/wells
-LabwarePlates = ["DeepWell", "384_Well", "2R Vial", "8R Vial"]
+LabwarePlates = ["DeepWell", 
+                 "384_Well", 
+                 "2R Vial", 
+                 "8R Vial",
+                 "soloVPE cuvettes"]
 
 
  # fill the rest and actually do the calculations............................ measure myself with tecan for all tips, place biggest value obtained, most likely for the smaller tips
 # labware name: dead_volume, max_volume (in mL)
-LABWARE_INFO = {
-    "Eppendorf": [0.2, 1.5],
-    "Falcon15": [0.8, 15],
+LABWARE_VOLUMES = {
+# #             dead vol, max_vol
+    "Eppendorf": [0.035, 1.5],
+    "Falcon15": [0.6, 15],
     # "Falcon50": [5, 50],
     # "2R Vial": [0.1, 2],
     # "8R Vial": [0.3, 8],
-    "100mL_reservoir": [2, 100]
+    "100mL_reservoir": [3, 100]
 }
+
+# Dead volume of labware, info in https://confluence.jnj.com/display/VBHI/Dead+volume+of+labware+in+Tecan
+# cols = ["Eppendorf", "Falcon15", "100mL_reservoir"]
+
+# Define the values for each category
+# dead volume values in uL, max volume value in mL
+data = {
+    "Eppendorf": [np.nan, 25, np.nan, 1.5], # 10uL, 200uL, 1000uL, labware_max_volume
+    "Falcon15": [np.nan, 600, 35, 15],
+    "100mL_reservoir": [np.nan, np.nan, 2000, 100]
+}
+
+LABWARE_DEAD_VOLUMES = pd.DataFrame(data, index=["10uL", "200uL", "1000uL", "max_volume"], columns=data.keys())
 
 
 def import_excel_dotblot(file_path: str):
@@ -250,7 +271,6 @@ def dilution_position_def(labware_name: str, initial_pos: int, nsamples: int):
             Pos = np.append(Pos, int(1)) # this type of labware only has one position, so it is fixed to 1.
 
     return Label, Pos.astype(int)
-
 
 
 def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "vertical"):
@@ -502,6 +522,7 @@ def convert_all_csv_files_in_directory(path: str, pattern: str):
             # Convert the file
             convert_csv_to_gwl(input_file_path, output_file_path)
 
+
 def generate_methods_and_products(json_path: str):
     """
     Generate list of methods and products found in the JSON file.
@@ -615,7 +636,7 @@ def find_best_container(reagents: dict | float | int):
         best_container = None
         best_sum = float('inf')
 
-        for labware, (dead_vol, max_vol) in LABWARE_INFO.items():
+        for labware, (dead_vol, max_vol) in LABWARE_VOLUMES.items():
             if volume_needed <= max_vol - dead_vol:
                 current_sum = max_vol - dead_vol
                 if current_sum < best_sum:
@@ -634,7 +655,7 @@ def find_best_container(reagents: dict | float | int):
             best_container = None
             best_sum = float('inf')
             
-            for labware, (dead_vol, max_vol) in LABWARE_INFO.items():
+            for labware, (dead_vol, max_vol) in LABWARE_VOLUMES.items():
                 if volume_needed <= max_vol - dead_vol:
                     current_sum = max_vol - dead_vol
                     if current_sum < best_sum:
