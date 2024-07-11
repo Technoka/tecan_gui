@@ -652,6 +652,47 @@ class DotblotMethod():
         self.total_volumes = total_volume
 
 
+    def generate_dye_and_wash_files(self):
+        """
+        
+        """
+
+        # Dye part
+        csv_data = []
+
+        sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
+        all_wells = self.pump_lw_well_pos["pos_ctr_pos"] + self.pump_lw_well_pos["neg_ctr_pos"] + sample_wells # position of all wells to be used
+        
+        for well in all_wells:
+            csv_data.append(
+            {
+                'LabSource': LabwareNames["Dye"],
+                'SourceWell': 1,
+                'LabDest': self.pump_lw_name,
+                'DestWell': well,
+                'Volume': 100
+            }) 
+
+        
+        path = self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.csv"
+        pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
+
+        # Wash with DPBS part
+        csv_data = []
+        for well in all_wells:
+            csv_data.append(
+            {
+                'LabSource': LabwareNames["DPBS"],
+                'SourceWell': 1,
+                'LabDest': self.pump_lw_name,
+                'DestWell': well,
+                'Volume': 200
+            }) 
+
+        
+        path = self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.csv"
+        pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
+
 
     def dotblot(self):
         """
@@ -680,7 +721,8 @@ class DotblotMethod():
 
         self.generate_pump_step_instruction_files()
 
-        # self.generate_gwl_files() # to reuse tip
+        self.generate_dye_and_wash_files()
+        print("Dye and wash files generated.")
 
         # Call method in utils file
         pattern = r"3\. Pump steps - Transfer (\d+)\.csv"
