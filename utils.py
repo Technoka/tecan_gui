@@ -287,6 +287,8 @@ def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "ve
         Type of plate (96 or 384). Defaults to 96.
     ``sample_direction``: str
         Direction of the sample (either 'vertical' or 'horizontal'). Defaults to 'vertical'.
+    ``sample_transfer``: str
+        Number of the sample transfers (either 'single' or 'triplicate'). Defaults to 'triplicate'.
 
     Returns
     ----------
