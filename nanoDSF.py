@@ -22,6 +22,7 @@ class nanoDSFMethod():
         # Sample transfer parameters
         self.n_samples = 0 # amount of samples for the sample transfer
         self.sample_volume_per_well = 20 # volume (uL) to transfer to each well
+        self.sample_triplicates = False
         self.sample_lw_origin = "" # origin labware of samples
         self.sample_lw_dest = "384 Well" # destination labware of samples
         self.sample_dest_positions = [0] # positions of 384 plate where the diluted samples end up
@@ -84,12 +85,16 @@ class nanoDSFMethod():
         sample_pos = []
 
         for sample in [i for i in range(1, self.n_samples+1)]: # create list from 1 to number of samples
-            sample_pos.append(get_deep_well_pos(sample, 384, sample_direction="horizontal"))
+            if self.sample_triplicates:
+                sample_pos.append(get_deep_well_pos(sample, 384, sample_direction="horizontal"))
+            
+            else:
+                sample_pos.append(get_deep_well_pos(sample, 384, sample_direction="horizontal", sample_transfer="single"))
 
         # final_pos = flatten(sample_pos)
 
         self.sample_dest_positions = sample_pos # update variable
-
+ 
         return sample_pos
 
 
@@ -122,17 +127,23 @@ class nanoDSFMethod():
                 Volume = self.sample_volume_per_well
                 
                 # Create the three lines for the output
-                a_line = f"A;{LabSource[sample]};;;{SourceWell[sample]};;{Volume*3};;;;\n" # 3x volume to save time
-                d_line_1 = f"D;{LabDest[0]};;;{DestWell[0]};;{Volume};;;;\n"
-                d_line_2 = f"D;{LabDest[0]};;;{DestWell[1]};;{Volume};;;;\n"
-                d_line_3 = f"D;{LabDest[0]};;;{DestWell[2]};;{Volume};;;;\n"
+                if self.sample_triplicates:
+                    a_line = f"A;{LabSource[sample]};;;{SourceWell[sample]};;{Volume*3};;;;\n" # 3x volume to save time
+                    d_line_1 = f"D;{LabDest[0]};;;{DestWell[0]};;{Volume};;;;\n"
+                    d_line_2 = f"D;{LabDest[0]};;;{DestWell[1]};;{Volume};;;;\n"
+                    d_line_3 = f"D;{LabDest[0]};;;{DestWell[2]};;{Volume};;;;\n"
+                else:
+                    a_line = f"A;{LabSource[sample]};;;{SourceWell[sample]};;{Volume};;;;\n"
+                    d_line_1 = f"D;{LabDest[0]};;;{DestWell};;{Volume};;;;\n"
+
                 w_line = "W;\n" if change_tip else "F;\n" # use F to flush tip remaining contents, W to change tips instead of changing tip
                 
                 # Append the lines to the output lines list
                 output_lines.append(a_line)
                 output_lines.append(d_line_1)
-                output_lines.append(d_line_2)
-                output_lines.append(d_line_3)
+                if self.sample_triplicates: # if triplicates do 2 more
+                    output_lines.append(d_line_2)
+                    output_lines.append(d_line_3)
                 output_lines.append(w_line)
 
             output_file.writelines(output_lines)
@@ -154,7 +165,7 @@ class nanoDSFMethod():
         self.generate_gwl_file()
         print("Generated GWL file.")
 
-        return 0
+        return
 
         
     def set_all_parameters(self, external):
@@ -174,3 +185,5 @@ class nanoDSFMethod():
         self.n_samples = external.nDSF_n_samples.get() # amount of samples for the sample transfer
         self.sample_volume_per_well = external.nDSF_volume.get() # volume (uL) to transfer to each well
         self.sample_lw_origin = external.nDSF_lw_origin.get() # origin labware of samples
+        self.sample_triplicates = True if external.nDSF_sample_triplicates.get() == "Triplicate transfer" else False
+        

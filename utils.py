@@ -11,6 +11,7 @@ LabwareNames = {
     "Falcon15": "Falcon15",
     "Falcon50": "Falcon50",
     "Eppendorf": "Eppendorf",
+    "FakeFalcon15": "FakeFalcon15",
     "DeepWell": "96 Deep Well 2ml[001]",
     "384_Well": "384 Well[001]",
     "2R Vial": "2R Vial holder[001]",
@@ -37,6 +38,7 @@ AvailableLabware = {
     "Falcon15": 48,
     "Falcon50": 20,
     "Eppendorf": 48,
+    "FakeFalcon15": 16,
     "DeepWell": 96,
     "2R Vial": 24, # 4 x 6
     "8R Vial": 12, # 3 x 4
@@ -273,7 +275,7 @@ def dilution_position_def(labware_name: str, initial_pos: int, nsamples: int):
     return Label, Pos.astype(int)
 
 
-def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "vertical"):
+def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "vertical", sample_transfer:str = "triplicate"):
     """
     Receives a position for a well-plate sample and returns the triplet well positions associated with it.
 
@@ -312,6 +314,9 @@ def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "ve
     
     if sample_direction not in ['vertical', 'horizontal']:
         raise ValueError("Invalid direction. Must be either 'vertical' or 'horizontal'.")
+    
+    if sample_transfer not in ['single', 'triplicate']:
+        raise ValueError("Invalid transfer type. Must be either 'single' or 'triplicate'.")
 
     if plate_type == 96:
         if pos < 1 or pos > 128:
@@ -330,31 +335,43 @@ def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "ve
 
     # each block has 24 wells, and therefore fits 8 samples in vertical order
     if sample_direction == "vertical":
-        block = int((pos-1) / wells_per_col) # floor operation
-        row = pos % wells_per_col
-        if row == 0:
-            row = wells_per_col
+        if sample_transfer == "triplicate":
+            block = int((pos-1) / wells_per_col) # floor operation
+            row = pos % wells_per_col
+            if row == 0:
+                row = wells_per_col
 
-        init_pos = int( block * wells_per_block + row )
+            init_pos = int( block * wells_per_block + row )
+        
+        else:
+            return pos
 
     else:
-        row = int((pos-1) / (wells_per_row/3)) + 1
-        block = (pos % (wells_per_row/3))
-        if block == 0:
-            block = wells_per_row/3
+        if sample_transfer == "triplicate":
+            row = int((pos-1) / (wells_per_row/3)) + 1
+            block = (pos % (wells_per_row/3))
+            if block == 0:
+                block = wells_per_row/3
 
-        init_pos = int( (block-1) * wells_per_block + row )
-    
-    # print(f"pos: {pos}, block: {block}, row: {row}")
+            init_pos = int( (block-1) * wells_per_block + row )
 
-    # if direction == 'vertical':
+        else:
+            row = int(pos / wells_per_row)
+            col = pos % wells_per_row
+            if col == 0:
+                col = 24
+
+            init_pos = row + (col-1) * wells_per_col + 1
+
+            if init_pos == 385:
+                init_pos = 384
+
+            return init_pos
+
     return [init_pos,
             init_pos + wells_per_col,
             init_pos + 2 * wells_per_col]
-    # elif sample_direction == 'horizontal':
-    #     return [init_pos,
-    #             init_pos + 1,
-    #             init_pos + 2]
+    
 
 
 def flatten(matrix):
