@@ -87,16 +87,10 @@
                 "title": "Research method for sample characterization using nanoDSF"
             },
             {
-                "method": "A280",
+                "method": "A280 (soloVPE)",
                 "product": "anti-CD79bxCD20xCD3",
                 "tmd": "TV-TMD-35361 v1.0",
                 "title": "Determination of Protein Concentration by UV Absorbance at 280 nm (Variable Pathlength) for JNJ-80948543 (anti-CD79bxCD20xCD3)"
-            },
-            {
-                "method": "A280",
-                "product": "GPRC5DxBCMAxCD3",
-                "tmd": "TV-TMD-35306 v1.0",
-                "title": "A280 (VP) Method for Determination of Protein Concentration in JNJ-79635322"
             },
             {
                 "method": "test_method",
