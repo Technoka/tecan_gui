@@ -66,8 +66,8 @@ LABWARE_VOLUMES = {
     "100mL_reservoir": [3, 100]
 }
 
+
 # Dead volume of labware, info in https://confluence.jnj.com/display/VBHI/Dead+volume+of+labware+in+Tecan
-# cols = ["Eppendorf", "Falcon15", "100mL_reservoir"]
 
 # Define the values for each category
 # dead volume values in uL, max volume value in mL
@@ -94,7 +94,7 @@ def import_excel_dotblot(file_path: str):
     Tuple (sample, coating_protein, pos_ctr, neg_ctr) data,
     or ``None`` if error occurs when importing file.
     """
-    # file_path = r"L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot_automation_dilution_template_final.xlsx"
+    # file_path = r"L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot automation dilution data.xlsx"
 
     sample_dilution_data = {}
     coating_protein_dilution_data = {}
@@ -146,6 +146,87 @@ def import_excel_dotblot(file_path: str):
     for index, row in data.iloc[24:28,:].iterrows():
         if pd.isna(row["Initial concentration"]): # if a NaN value is found
             neg_control_dilution_data = data.iloc[24:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
+            break
+
+    return sample_dilution_data, coating_protein_dilution_data, pos_control_dilution_data, neg_control_dilution_data
+
+
+def import_excel_dotblot_2_coating(file_path: str):
+    """
+    Parses Excel file containing dilution data (with 2 coating proteins) for Dotblot.
+
+    Parameters
+    ----------
+    ``file_path``: str
+        Path of excel file to parse.
+
+    Returns
+    ----------
+    Tuple (sample, coating_protein, pos_ctr, neg_ctr) data,
+    or ``None`` if error occurs when importing file.
+    """
+    # file_path = r"L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot automation dilution data.xlsx"
+
+    sample_dilution_data = [{}, {}]
+    coating_protein_dilution_data = [{}, {}]
+    pos_control_dilution_data = [{}, {}]
+    neg_control_dilution_data = [{}, {}]
+
+    # file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx;*.xls")])
+
+    # if file_path:
+    data = pd.read_excel(file_path, header=5) # read excel file and ignore 5 first rows
+    # check if read excel file is the correct one by checking hidden message in specific cell
+    if data.columns[0] != "spain is awesome":
+        return None
+
+    data = data.iloc[:, 1:9] # ignore first column and all after 8
+    data = data.drop(data.columns[4], axis=1) # remove column (because it is empty, just used for excel visual formatting)
+
+    data.loc[len(data)] = [np.nan] * len(data.columns) # add extra row at the end with NaN values, so that subsequent for loops can end correctly
+
+    # remove the units (inside parenthesis) from the column names
+    for column in data.columns:
+        index = column.find('(') # find the index of the first "(" symbol
+        if index != -1: # if a "(" symbol is found
+            # rename the column by removing all text after the "(" symbol
+            new_column_name = column[:index].strip()
+            data.rename(columns={column: new_column_name}, inplace=True)
+
+    # sample dilution 1 - ignore rows with no dilution data
+    for index, row in data.iterrows():
+        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+            sample_dilution_data[0] = data.iloc[:index, :] # remove all rows after the first NaN is found in "Initial Concentration" column
+            break
+
+     # sample dilution 2 data is in row 10 after initial read
+    for index, row in data.iloc[10:17,:].iterrows():
+        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+            sample_dilution_data[1] = data.iloc[10:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
+            break
+
+    # positive control dilution 1 data is in row 15 after initial read
+    for index, row in data.iloc[20:24,:].iterrows():
+        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+            pos_control_dilution_data[0] = data.iloc[20:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
+            break
+
+    # positive control dilution 2 data is in row 15 after initial read
+    for index, row in data.iloc[27:31,:].iterrows():
+        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+            pos_control_dilution_data[1] = data.iloc[27:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
+            break
+
+    # negative control dilution data is in row 24 after initial read
+    for index, row in data.iloc[34:38,:].iterrows():
+        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+            neg_control_dilution_data[0] = data.iloc[34:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
+            break
+
+    # negative control dilution data is in row 24 after initial read
+    for index, row in data.iloc[41:45,:].iterrows():
+        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+            neg_control_dilution_data[1] = data.iloc[41:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
     return sample_dilution_data, coating_protein_dilution_data, pos_control_dilution_data, neg_control_dilution_data
