@@ -13,23 +13,28 @@ class DotblotMethod():
     Produces CSV files with all the steps to carry out the Dot Blot method in the TECAN.
     """
 
-    def __init__(self):
+    def __init__(self, debug=False):
         # General parameters
-        self.csv_files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\3. DotBlot' # network path where all the CSV files will be saved in.
+        self.DEBUG = debug
+
+        self.csv_files_path = r"C:\Users\DPerez36\OneDrive - JNJ\Documents\git repos\method outputs\dotblot" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\3. DotBlot' # network path where all the CSV files will be saved in.
+
         self.last_eppendorf_pos = 1 # position of the last Eppendorf tube used. Useful so that methods don't use same tube twice.
         self.last_deep_well_pos = 1 # position of the last Deep well position used. Useful so that methods don't use same well twice.
 
+        self.has_2_coatings = False # if method has 2 coating proteins, then all dilutions are doubled (1 for each) and process is more difficult
+
         # CSV file names
         self.pos_control_csv_name = r"\1. Positive control - "
-        self.neg_control_csv_name = r"\1. Negative control - "
-        self.sample_dilutions_csv_name = r"\2. Sample dilutions - "
-        self.pump_steps_csv_name = r"\3. Pump steps - "
+        self.neg_control_csv_name = r"\2. Negative control - "
+        self.sample_dilutions_csv_name = r"\3. Sample dilutions - "
+        self.pump_steps_csv_name = r"\4. Pump steps - "
 
         # dictionaries to store all dilution values
-        self.sample_dilution_data = {}
-        self.coating_protein_dilution_data = {}
-        self.pos_control_dilution_data = {}
-        self.neg_control_dilution_data = {}
+        self.sample_dilution_data = [{}]
+        self.coating_protein_dilution_data = [{}]
+        self.pos_control_dilution_data = [{}]
+        self.neg_control_dilution_data = [{}]
 
         self.custom_holder_name = "Custom_vial_holder[001]" # name of the 3D printed custom holder in the TECAN software.
 
@@ -56,18 +61,20 @@ class DotblotMethod():
         self.pos_control_vial_posY = "" # A,B,C,D,E position of pos contorl vial inside of custom holder
         self.pos_control_vial_posX = "" # 1,2,3,4,5,6 position of pos contorl vial inside of custom holder
         self.pos_control_buffer = "AssayBuffer" # name of pos control buffer (assay or DPBS)
+        self.pos_control_eppendorf_positions = []
 
         # Negative control parameters
         self.n_neg_control_steps = 0 # number of positive control dilution steps to achieve final concentration
         self.neg_control_vial_posY = "" # A,B,C,D,E position of neg contorl vial inside of custom holder
         self.neg_control_vial_posX = "" # 1,2,3,4,5,6 position of neg contorl vial inside of custom holder
         self.neg_control_buffer = "AssayBuffer" # name of neg control buffer (assay or DPBS)
+        self.neg_control_eppendorf_positions = []
 
         # Labware names
         self.coat_prot_lw_name = "def_coat_prot" # Coating protein labware
         self.blocking_buffer_lw_name = "def_blocking" # Blocking Buffer labware
-        self.pos_ctr_lw_name = "def_pos_ctr" # Positive control labware
-        self.neg_ctr_lw_name = "def_neg_ctr" # Negative control labware
+        self.pos_ctr_diluted_lw_name = "def_pos_ctr" # Positive control labware
+        self.neg_ctr_diluted_lw_name = "def_neg_ctr" # Negative control labware
         self.conjugate_lw_name = "def_conjugate" # Conjugate labware
         self.dpbs_lw_name = "def_dpbs" # DPBS labware
         self.pump_lw_name = "dotblot_appr_standalone" # Pump vacuum labware
@@ -121,7 +128,6 @@ class DotblotMethod():
             CSV files containing instructions for the Tecan.
         """
         
-        csv_number = 1 # to name generated files sequentially
         initial_pos = 1 # position of the first vial of the pos control
         buffer_labware_name = LabwareNames[self.pos_control_buffer] # Name of Labware in TECAN for the Assay buffer
         eppendorf_positions = [] # to store final eppendorf positions
@@ -140,57 +146,62 @@ class DotblotMethod():
 
         initial_pos = initial_pos + (int(self.pos_control_vial_posY) - 1) * 5 # add X position
         
-        # sample_lab_source = self.custom_holder_name # initial source of pos control sample
-        sample_lab_source = LabwareNames["CustomVialHolder"] # initial source of pos control sample
-        sample_lab_well = initial_pos
+        for k in range(len(self.pos_control_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
 
-        for i in range(self.n_pos_control_steps):
-            csv_data_sample = [] # list to store CSV data
-            csv_data_buffer = [] # list to store CSV data
+            csv_number = 1 # to name generated files sequentially
+            # sample_lab_source = self.custom_holder_name # initial source of pos control sample
+            sample_lab_source = LabwareNames["CustomVialHolder"] # initial source of pos control sample
+            sample_lab_well = initial_pos
 
-            if i + 1 == self.n_pos_control_steps: # if this is the final dilution step
-                eppendorf_positions.append(self.last_eppendorf_pos)
-                # LabDest, DestWell = self.dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
-                LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
-            else:
-                # LabDest, DestWell = self.dilution_position_def("Deep Well", self.next_deep_well_pos(), 1) # define destination labware as deep well
-                LabDest, DestWell = dilution_position_def("DeepWell", self.next_deep_well_pos(), 1) # define destination labware as deep well
+            for i in range(self.n_pos_control_steps):
+                csv_data_sample = [] # list to store CSV data
+                csv_data_buffer = [] # list to store CSV data
 
-            csv_data_sample.append( # move pos control to dest well
-            {
-                'LabSource': sample_lab_source,
-                'SourceWell': sample_lab_well,
-                'LabDest': LabDest[0],
-                'DestWell': DestWell[0],
-                'Volume': float(self.pos_control_dilution_data["Sample volume"][i])
-            })
+                if i + 1 == self.n_pos_control_steps: # if this is the final dilution step
+                    eppendorf_positions.append(self.last_eppendorf_pos)
+                    # LabDest, DestWell = self.dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
+                    LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
+                else:
+                    # LabDest, DestWell = self.dilution_position_def("Deep Well", self.next_deep_well_pos(), 1) # define destination labware as deep well
+                    LabDest, DestWell = dilution_position_def("DeepWell", self.next_deep_well_pos(), 1) # define destination labware as deep well
 
-            csv_data_buffer.append( # move buffer to destination well
-            {
-                'LabSource': buffer_labware_name,
-                'SourceWell': int(1), # buffer only has 1 big well
-                'LabDest': LabDest[0],
-                'DestWell': DestWell[0],
-                'Volume': float(self.pos_control_dilution_data["Assay buffer volume"][i])
-            })
+                csv_data_sample.append( # move pos control to dest well
+                {
+                    'LabSource': sample_lab_source,
+                    'SourceWell': sample_lab_well,
+                    'LabDest': LabDest[0],
+                    'DestWell': DestWell[0],
+                    'Volume': float(self.pos_control_dilution_data[k]["Sample volume"][i])
+                })
+
+                csv_data_buffer.append( # move buffer to destination well
+                {
+                    'LabSource': buffer_labware_name,
+                    'SourceWell': int(1), # buffer only has 1 big well
+                    'LabDest': LabDest[0],
+                    'DestWell': DestWell[0],
+                    'Volume': float(self.pos_control_dilution_data[k]["Assay buffer volume"][i])
+                })
+            
+
+                sample_lab_source, sample_lab_well = LabDest[0], DestWell[0] # source of next step is destination of previous one
+
+                # generate CSV files (we separate them so that in the buffer one we can use liquid class for mixing)
+                path = self.csv_files_path + self.pos_control_csv_name + f" {k+1} - " + str(csv_number) + ".csv" # path for sample 
+                pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False) # create dataframe and then CSV file
+                path = self.csv_files_path + self.pos_control_csv_name + f" {k+1} - " + str(csv_number + 1) + ".csv" # path for buffer
+                pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False) # create dataframe and then CSV file
+                csv_number = csv_number + 2
+
+            # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
+            for i in range(csv_number, 6 + 1):
+                path = self.csv_files_path + self.pos_control_csv_name + f" {k+1} - " + str(csv_number) + ".csv"
+                pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
+                csv_number = csv_number + 1
         
-
-            sample_lab_source, sample_lab_well = LabDest[0], DestWell[0] # source of next step is destination of previous one
-
-            # generate CSV files (we separate them so that in the buffer one we can use liquid class for mixing)
-            path = self.csv_files_path + self.pos_control_csv_name + str(csv_number) + ".csv" # path for sample 
-            pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False) # create dataframe and then CSV file
-            path = self.csv_files_path + self.pos_control_csv_name + str(csv_number + 1) + ".csv" # path for buffer
-            pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False) # create dataframe and then CSV file
-            csv_number = csv_number + 2
-
-        # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
-        for i in range(csv_number, 6 + 1):
-            path = self.csv_files_path + self.pos_control_csv_name + str(csv_number) + ".csv"
-            pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
-            csv_number = csv_number + 1
-        
-        return eppendorf_positions
+        # divide "eppendorf_positions" into sublists of 1 item
+        return [eppendorf_positions[i:i + 1] for i in range(0, len(eppendorf_positions), 1)]
+    
 
 
     def negative_control_dilutions(self):
@@ -202,77 +213,63 @@ class DotblotMethod():
             CSV files containing instructions for the Tecan.
         """
         
-        csv_number = 1 # to name generated files sequentially
         # initial_pos = 1 # position of the first vial of the pos control
         buffer_labware_name = LabwareNames[self.neg_control_buffer] # Name of Labware in TECAN for the Assay buffer
         eppendorf_positions = [] # to store final eppendorf positions
 
-        # # Define custom vial holder labware position depending on the vial position
-        # if self.neg_control_vial_posX == "A":
-        #     initial_pos = 1
-        # elif self.neg_control_vial_posX == "B":
-        #     initial_pos = 2
-        # elif self.neg_control_vial_posX == "C":
-        #     initial_pos = 3
-        # elif self.neg_control_vial_posX == "D":
-        #     initial_pos = 4
-        # elif self.neg_control_vial_posX == "E":
-        #     initial_pos = 5
+        for k in range(len(self.pos_control_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
 
-        # initial_pos = initial_pos + (int(self.neg_control_vial_posY) - 1) * 5 # add X position
+            csv_number = 1 # to name generated files sequentially
+            # sample_lab_source = self.custom_holder_name # initial source of neg control sample
+            sample_lab_source = LabwareNames["8R Vial"] # initial source of neg control sample
+            sample_lab_well = 1 # hard coded for now, so ALWAYS place negative control vial in first position (top left) of 8R holder
+
+            for i in range(self.n_neg_control_steps):
+                csv_data_sample = [] # list to store CSV data
+                csv_data_buffer = [] # list to store CSV data
+
+                if i + 1 == self.n_neg_control_steps: # if this is the final dilution step
+                    eppendorf_positions.append(self.last_eppendorf_pos)
+                    LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
+                else:
+                    LabDest, DestWell = dilution_position_def("DeepWell", self.next_deep_well_pos(), 1) # define destination labware as deep well
+
+                csv_data_sample.append( # move pos control to dest well
+                {
+                    'LabSource': sample_lab_source,
+                    'SourceWell': sample_lab_well,
+                    'LabDest': LabDest[0],
+                    'DestWell': DestWell[0],
+                    'Volume': float(self.neg_control_dilution_data[k]["Sample volume"][i])
+                })
+
+                csv_data_buffer.append( # move buffer to destination well
+                {
+                    'LabSource': buffer_labware_name,
+                    'SourceWell': int(1), # buffer only has 1 big well
+                    'LabDest': LabDest[0],
+                    'DestWell': DestWell[0],
+                    'Volume': float(self.neg_control_dilution_data[k]["Assay buffer volume"][i])
+                })
+            
+                sample_lab_source, sample_lab_well = LabDest[0], DestWell[0] # source of next step is destination of previous one
+
+                # generate CSV files (we separate them so that in the buffer one we can use liquid class for mixing)
+                path = self.csv_files_path + self.neg_control_csv_name + f" {k+1} - " + str(csv_number) + ".csv" # path for sample 
+                pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False) # create dataframe and then CSV file
+                path = self.csv_files_path + self.neg_control_csv_name + f" {k+1} - " + str(csv_number + 1) + ".csv" # path for buffer
+                pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False) # create dataframe and then CSV file
+                csv_number = csv_number + 2
+
+            # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
+            for i in range(csv_number, 6 + 1):
+                path = self.csv_files_path + self.pos_control_csv_name + f" {k+1} - " + str(csv_number) + ".csv"
+                pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
+                csv_number = csv_number + 1
         
-        # sample_lab_source = self.custom_holder_name # initial source of neg control sample
-        sample_lab_source = LabwareNames["8R Vial"] # initial source of neg control sample
-        sample_lab_well = 1 # hard coded for now, so ALWAYS place negative control vial in first position (top left) of 8R holder
-
-        for i in range(self.n_neg_control_steps):
-            csv_data_sample = [] # list to store CSV data
-            csv_data_buffer = [] # list to store CSV data
-
-            if i + 1 == self.n_neg_control_steps: # if this is the final dilution step
-                eppendorf_positions.append(self.last_eppendorf_pos)
-                # LabDest, DestWell = self.dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
-                LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
-            else:
-                # LabDest, DestWell = self.dilution_position_def("Deep Well", self.next_deep_well_pos(), 1) # define destination labware as deep well
-                LabDest, DestWell = dilution_position_def("DeepWell", self.next_deep_well_pos(), 1) # define destination labware as deep well
-
-            csv_data_sample.append( # move pos control to dest well
-            {
-                'LabSource': sample_lab_source,
-                'SourceWell': sample_lab_well,
-                'LabDest': LabDest[0],
-                'DestWell': DestWell[0],
-                'Volume': float(self.neg_control_dilution_data["Sample volume"][i])
-            })
-
-            csv_data_buffer.append( # move buffer to destination well
-            {
-                'LabSource': buffer_labware_name,
-                'SourceWell': int(1), # buffer only has 1 big well
-                'LabDest': LabDest[0],
-                'DestWell': DestWell[0],
-                'Volume': float(self.neg_control_dilution_data["Assay buffer volume"][i])
-            })
-        
-
-            sample_lab_source, sample_lab_well = LabDest[0], DestWell[0] # source of next step is destination of previous one
-
-            # generate CSV files (we separate them so that in the buffer one we can use liquid class for mixing)
-            path = self.csv_files_path + self.neg_control_csv_name + str(csv_number) + ".csv" # path for sample 
-            pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False) # create dataframe and then CSV file
-            path = self.csv_files_path + self.neg_control_csv_name + str(csv_number + 1) + ".csv" # path for buffer
-            pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False) # create dataframe and then CSV file
-            csv_number = csv_number + 2
-
-        # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
-        for i in range(csv_number, 6 + 1):
-            path = self.csv_files_path + self.pos_control_csv_name + str(csv_number) + ".csv"
-            pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
-            csv_number = csv_number + 1
-        
-        return eppendorf_positions    
-
+        # divide "eppendorf_positions" into sublists of 1 item
+        return [eppendorf_positions[i:i + 1] for i in range(0, len(eppendorf_positions), 1)]
+    
 
     def sample_dilutions(self):
         """
@@ -288,94 +285,95 @@ class DotblotMethod():
         ----------
             CSV files containing instructions for the Tecan.
         """
-        print("las eppendorf pos: ", self.last_eppendorf_pos)
 
-        csv_data_init = []
-        csv_number = 0 # # to name generated files sequentially
         eppendorf_positions = [] # list to store positions of eppendorf positions used for the final dilution
+
+        # calculate inital sample epp. positions because it is the same for both dilution groups
+        initial_sample_eppendorf_positions = []
+        for i in range(1, self.n_samples_main_dilution + 1):
+            initial_sample_eppendorf_positions.append(self.next_eppendorf_pos())
         
-        LabDest, DestWell = dilution_position_def(self.main_sample_dil_destination, self.last_deep_well_pos, self.n_samples_main_dilution)
+        for k in range(len(self.sample_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
+            csv_number = 0 # to name generated files sequentially
+            csv_data_init = []
 
-        # Initial transfer of sample to deep wells, so that 
-        # print("before initial")
-        # print("self.main_sample_labware_type:", self.main_sample_labware_type)
-        # print("labdest:", LabDest)
-        # print("destwell:", DestWell)
-        for j in range(1, self.n_samples_main_dilution + 1):
-            if self.main_sample_labware_type == "Eppendorf":
-                LabSource = pos_2_str(self.main_sample_labware_type, self.last_eppendorf_pos)
-                self.next_eppendorf_pos()
-            else:
-                LabSource = pos_2_str(self.main_sample_labware_type, j)
+            LabDest, DestWell = dilution_position_def(self.main_sample_dil_destination, self.last_deep_well_pos, self.n_samples_main_dilution)
 
-            csv_data_init.append(
-            {
-                'LabSource': LabSource,
-                'SourceWell': int(1),
-                'LabDest': LabDest[j-1],
-                'DestWell': DestWell[j-1],
-                'Volume': float(self.samples_initial_volume_transfer)
-            }
-            )
-            self.next_deep_well_pos() # to keep the position updated
-            
-        path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number) + ".csv"
-        pd.DataFrame(csv_data_init).to_csv(path, index=False, header=False)
-        csv_number = csv_number + 1
-
-        # print("before long csv")
-        for i in range(self.n_sample_dilution_steps):
-            csv_data_sample = []
-            csv_data_buffer = []
-
-            LabSource, SourceWell = LabDest, DestWell # source of next step is destination of previous one
-
-            if i + 1 == self.n_sample_dilution_steps: # if this is the final dilution step
-                print("sample last eppensorf pos: ", self.last_eppendorf_pos)
-                LabDest, DestWell = dilution_position_def("Eppendorf", self.last_eppendorf_pos, (self.n_samples_main_dilution * (i+1) + 1))
-            else:
-                LabDest, DestWell = dilution_position_def("DeepWell", self.last_deep_well_pos, (self.n_samples_main_dilution * (i+1) + 1))
-
-            for j in range(self.n_samples_main_dilution):
-                csv_data_sample.append(
-                {
-                    'LabSource': LabSource[j],
-                    'SourceWell': SourceWell[j],
-                    'LabDest': LabDest[j],
-                    'DestWell': DestWell[j],
-                    'Volume': float(self.sample_dilution_data["Sample volume"][i])
-                }
-                )
-                
-                csv_data_buffer.append(
-                {
-                    'LabSource': LabwareNames["AssayBuffer"],
-                    'SourceWell': int(1),
-                    'LabDest': LabDest[j],
-                    'DestWell':  DestWell[j],
-                    'Volume': float(self.sample_dilution_data["Assay buffer volume"][i])
-                }
-                )
-                if i + 1 == self.n_sample_dilution_steps: # if this is the last dilution step
-                    eppendorf_positions.append(self.last_eppendorf_pos)
-                    self.next_eppendorf_pos()
+            # Initial transfer of sample to deep wells, so that smaller tips can reach
+            for j in range(1, self.n_samples_main_dilution + 1):
+                if self.main_sample_labware_type == "Eppendorf":
+                    LabSource = pos_2_str(self.main_sample_labware_type, initial_sample_eppendorf_positions[j-1])
+                    # self.next_eppendorf_pos()
                 else:
-                    self.next_deep_well_pos()
+                    LabSource = pos_2_str(self.main_sample_labware_type, j)
 
-            path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number) + ".csv"
-            pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
-            path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number + 1) + ".csv"
-            pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
-            csv_number = csv_number + 2
-
-        # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
-        for i in range(csv_number, 6 + 1):
-            path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number) + ".csv"
-            pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
+                csv_data_init.append(
+                {
+                    'LabSource': LabSource,
+                    'SourceWell': int(1),
+                    'LabDest': LabDest[j-1],
+                    'DestWell': DestWell[j-1],
+                    'Volume': float(self.samples_initial_volume_transfer)
+                }
+                )
+                self.next_deep_well_pos() # to keep the position updated
+                
+            path = self.csv_files_path + self.sample_dilutions_csv_name + f" {k+1} - " + str(csv_number) + ".csv"
+            pd.DataFrame(csv_data_init).to_csv(path, index=False, header=False)
             csv_number = csv_number + 1
 
+            # print("before long csv")
+            for i in range(self.n_sample_dilution_steps):
+                csv_data_sample = []
+                csv_data_buffer = []
 
-        return eppendorf_positions
+                LabSource, SourceWell = LabDest, DestWell # source of next step is destination of previous one
+
+                if i + 1 == self.n_sample_dilution_steps: # if this is the final dilution step
+                    LabDest, DestWell = dilution_position_def("Eppendorf", self.last_eppendorf_pos, (self.n_samples_main_dilution * (i+1) + 1))
+                else:
+                    LabDest, DestWell = dilution_position_def("DeepWell", self.last_deep_well_pos, (self.n_samples_main_dilution * (i+1) + 1))
+
+                for j in range(self.n_samples_main_dilution):
+                    csv_data_sample.append(
+                    {
+                        'LabSource': LabSource[j],
+                        'SourceWell': SourceWell[j],
+                        'LabDest': LabDest[j],
+                        'DestWell': DestWell[j],
+                        'Volume': float(self.sample_dilution_data[k]["Sample volume"][i])
+                    }
+                    )
+                    
+                    csv_data_buffer.append(
+                    {
+                        'LabSource': LabwareNames["AssayBuffer"],
+                        'SourceWell': int(1),
+                        'LabDest': LabDest[j],
+                        'DestWell':  DestWell[j],
+                        'Volume': float(self.sample_dilution_data[k]["Assay buffer volume"][i])
+                    }
+                    )
+                    if i + 1 == self.n_sample_dilution_steps: # if this is the last dilution step
+                        eppendorf_positions.append(self.last_eppendorf_pos)
+                        self.next_eppendorf_pos()
+                    else:
+                        self.next_deep_well_pos()
+
+                path = self.csv_files_path + self.sample_dilutions_csv_name + f" {k+1} - " + str(csv_number) + ".csv"
+                pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
+                path = self.csv_files_path + self.sample_dilutions_csv_name + f" {k+1} - " + str(csv_number + 1) + ".csv"
+                pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
+                csv_number = csv_number + 2
+
+            # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
+            for i in range(csv_number, 6 + 1):
+                path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number) + ".csv"
+                pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
+                csv_number = csv_number + 1
+
+        # divide "eppendorf_positions" into sublists every n_samples, to handle it better in later steps
+        return [eppendorf_positions[i:i + self.n_samples_main_dilution] for i in range(0, len(eppendorf_positions), self.n_samples_main_dilution)]
     
 
     def calculate_pump_labware_positions(self):
@@ -395,27 +393,43 @@ class DotblotMethod():
         'sample_pos': [[3, 11, 19], [4, 12, 20], [5, 13, 21], [6, 14, 22]]}
 
         """
+
+        pos_ctr_pos = []
+        neg_ctr_pos = []
         
-        pos_ctr_pos = get_deep_well_pos(1) # always in first place
-        neg_ctr_pos = get_deep_well_pos(2) # always in second place
-        sample_pos = []
+        if len(self.pos_control_dilution_data) == 1:
+            pos_ctr_pos.append(get_deep_well_pos(1)) # always in first place
+            neg_ctr_pos.append(get_deep_well_pos(2)) # always in second place
+            sample_pos = [[]]
 
-        # self.sample_eppendorf_positions = [5,6,11,12,15,16,17,18,21,22,27,28,31,32] # setup manually by force
-        # diff = 3 - self.sample_eppendorf_positions[0] # diference between first sample pos and number 3, because pos 1 is for positive_control, and pos 2 for negative control, so samples start in pos 3
-        # print("diff is ", diff)
-        print("sample eppendorf pos:", self.sample_eppendorf_positions)
+        elif len(self.pos_control_dilution_data) == 2:
+            pos_ctr_pos.append(get_deep_well_pos(1)) # always in first place
+            pos_ctr_pos.append(get_deep_well_pos(9)) # always in first place,   second row
+            neg_ctr_pos.append(get_deep_well_pos(2)) # always in second place
+            neg_ctr_pos.append(get_deep_well_pos(10)) # always in second place, second row
+            sample_pos = [[], []]
 
-        # for i in range(1, self.n_samples_main_dilution + 1):
-        #     sample_pos.append(get_deep_well_pos(i + diff))
+        else:
+            raise ValueError(f"Positive control data must be of length 1 or 2, not {len(self.pos_control_dilution_data)}")
 
-        for i, sample in enumerate(self.sample_eppendorf_positions):
-            sample_pos.append(get_deep_well_pos(i + 3)) # i starts at 0. We add 2 positions because 1 is pos.ctr and 2 is neg.ctr
+
+        # First coating protein side
+        samples_per_block = 8 # fixed. number of triplicate vertical spaces in a 96 well plate.
+
+        for k, sample_group in enumerate(self.sample_eppendorf_positions):
+            for i, sample in enumerate(sample_group):
+                if i < 6: # if in first triplicate block
+                    sample_pos[k].append(get_deep_well_pos(i + 3 + k*samples_per_block)) # i starts at 0. We add 2 positions because 1 is pos.ctr and 2 is neg.ctr
+                else:
+                    sample_pos[k].append(get_deep_well_pos(i + 3 + (k+1)*samples_per_block))
 
         final_pos = {"pos_ctr_pos": pos_ctr_pos,
                      "neg_ctr_pos": neg_ctr_pos,
                      "samples_pos": sample_pos}
 
         self.pump_lw_well_pos =  final_pos
+
+        return final_pos
 
 
     def generate_pump_step_instruction_files(self):
@@ -538,13 +552,12 @@ class DotblotMethod():
             LabSource = LabwareNames["Conjugate"]
 
 
-        sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
-        # print("sample wells:", sample_wells)
-        all_wells = self.pump_lw_well_pos["pos_ctr_pos"] + self.pump_lw_well_pos["neg_ctr_pos"] + sample_wells # position of all wells to be used
-        
-        # print("pos_ctr_pos:", self.pump_lw_well_pos["pos_ctr_pos"])
-        # print("neg_ctr_pos:", self.pump_lw_well_pos["neg_ctr_pos"])
+        # sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
+        sample_wells = np.ndarray.flatten(np.array(self.pump_lw_well_pos["samples_pos"])).tolist()
 
+        # print("sample wells:", sample_wells)
+        all_wells = flatten(self.pump_lw_well_pos["pos_ctr_pos"]) + flatten(self.pump_lw_well_pos["neg_ctr_pos"]) + sample_wells # position of all wells to be used
+        
         if _type == "All wells": # transfer to all wells
             for well in all_wells:
                 csv_data.append(
@@ -557,44 +570,45 @@ class DotblotMethod():
                 })        
         elif _type == "Only samples": # transfer samples from Eppendorf to wells
             
-            # reset positions where samples are, in this case forced to be there ones
-            # self.sample_eppendorf_positions = [1,2,1,2,1,2,2,1,2,1,2,1,2,1] # pos 1 is positive ctr, pos 2 is neg ctr
+            for j, sample_group in enumerate(self.sample_eppendorf_positions):
+                LabSource, SourceWell = dilution_position_def("Eppendorf", sample_group[0], len(sample_group))
 
-            LabSource, SourceWell = dilution_position_def("Eppendorf", self.sample_eppendorf_positions[0], len(self.sample_eppendorf_positions))
-
-            for i, sample_eppendorf_pos in enumerate(self.sample_eppendorf_positions):
-                for well in self.pump_lw_well_pos["samples_pos"][i]:
-                    csv_data.append(
-                    {
-                        'LabSource': LabSource[i],
-                        'SourceWell': SourceWell[i],
-                        'LabDest': dest_labware,
-                        'DestWell': well,
-                        'Volume': 100
-                    })
+                for i, sample in enumerate(sample_group):
+                    for well in self.pump_lw_well_pos["samples_pos"][j][i]:
+                        csv_data.append(
+                        {
+                            'LabSource': LabSource[i],
+                            'SourceWell': SourceWell[i],
+                            'LabDest': dest_labware,
+                            'DestWell': well,
+                            'Volume': 100
+                        })
 
         elif _type == "pos/neg":
-            for well in self.pump_lw_well_pos["pos_ctr_pos"]: # Positive control
-                csv_data.append(
-                {
-                    'LabSource': self.pos_ctr_lw_name,
-                    # 'LabSource': LabwareNames["PosControl"],
-                    'SourceWell': 1,
-                    'LabDest': dest_labware,
-                    'DestWell': well,
-                    'Volume': volume
-                })
+            for j, sample_group in enumerate(self.pos_control_eppendorf_positions):
+                LabSource, SourceWell = dilution_position_def("Eppendorf", sample_group[0], len(sample_group))
 
-            for well in self.pump_lw_well_pos["neg_ctr_pos"]: # Negative control
-                csv_data.append(
-                {
-                    'LabSource': self.neg_ctr_lw_name,
-                    # 'LabSource': LabwareNames["NegControl"],
-                    'SourceWell': 1,
-                    'LabDest': dest_labware,
-                    'DestWell': well,
-                    'Volume': volume
-                })
+                for well in self.pump_lw_well_pos["pos_ctr_pos"][j]: # Positive control
+                    csv_data.append(
+                    {
+                        'LabSource': self.pos_ctr_diluted_lw_name[j],
+                        # 'LabSource': LabwareNames["PosControl"],
+                        'SourceWell': 1,
+                        'LabDest': dest_labware,
+                        'DestWell': well,
+                        'Volume': volume
+                    })
+
+                for well in self.pump_lw_well_pos["neg_ctr_pos"][j]: # Negative control
+                    csv_data.append(
+                    {
+                        'LabSource': self.neg_ctr_diluted_lw_name[j],
+                        # 'LabSource': LabwareNames["NegControl"],
+                        'SourceWell': 1,
+                        'LabDest': dest_labware,
+                        'DestWell': well,
+                        'Volume': volume
+                    })
 
         # print("before csv generating")
         # Generate CSV file
@@ -702,22 +716,16 @@ class DotblotMethod():
         Executes all stages of the Dot Blot method step by step and generates CSV files for them.
         """
 
-        pos_control_eppendorf_positions = self.positive_control_dilutions()
-        self.pos_ctr_lw_name = pos_2_str("Eppendorf", pos_control_eppendorf_positions) # set position of positive ctr diluted sample
-        print("pos dilutions done")
+        self.pos_control_eppendorf_positions = self.positive_control_dilutions()
+        self.pos_ctr_diluted_lw_name = [pos_2_str("Eppendorf", self.pos_control_eppendorf_positions[i]) for i in range(len(self.pos_control_eppendorf_positions))] # set position of positive ctr diluted sample
+        print(f"pos dilutions done: {self.pos_control_eppendorf_positions}")
         
-        neg_control_eppendorf_positions = self.negative_control_dilutions()
-        print(f"negative ctr eppendorf pos: {neg_control_eppendorf_positions}")
-        self.neg_ctr_lw_name = pos_2_str("Eppendorf", neg_control_eppendorf_positions) # set position of negative ctr diluted sample
-        print("neg dilutions done")
-
-        # If initial undiluted samples are placed in Eppendorfs 3 to x, so we skip those positions
-        # if self.main_sample_labware_type == "Eppendorf":
-        #     for i in range(self.n_samples_main_dilution): # for every sample
-        #         self.next_eppendorf_pos()
+        self.neg_control_eppendorf_positions = self.negative_control_dilutions()
+        self.neg_ctr_diluted_lw_name = [pos_2_str("Eppendorf", self.neg_control_eppendorf_positions[i]) for i in range(len(self.neg_control_eppendorf_positions))] # set position of positive ctr diluted sample
+        print(f"negative ctr eppendorf pos: {self.neg_control_eppendorf_positions}")
 
         self.sample_eppendorf_positions = self.sample_dilutions()
-        print("sample dilutions done")
+        print("sample eppendorf pos:", self.sample_eppendorf_positions)
 
         self.generate_pump_step_instruction_files()
 
@@ -729,7 +737,7 @@ class DotblotMethod():
         convert_all_csv_files_in_directory(self.csv_files_path, pattern) # to reuse tips
         print("generated all GWL files")
 
-        return pos_control_eppendorf_positions, neg_control_eppendorf_positions, self.sample_eppendorf_positions
+        return self.pos_control_eppendorf_positions, self.neg_control_eppendorf_positions, self.sample_eppendorf_positions
 
         
     def set_all_parameters(self, external):
@@ -783,7 +791,7 @@ class DotblotMethod():
         # Labware of reagents
         self.coat_prot_lw_name = "def_coat_prot" # Coating protein labware
         self.blocking_buffer_lw_name = "def_blocking" # Blocking Buffer labware
-        self.pos_ctr_lw_name = "def_pos_ctr" # Positive control labware
-        self.neg_ctr_lw_name = "def_neg_ctr" # Negative control labware
+        self.pos_ctr_diluted_lw_name = "def_pos_ctr" # Positive control labware
+        self.neg_ctr_diluted_lw_name = "def_neg_ctr" # Negative control labware
         self.conjugate_lw_name = "def_conjugate" # Conjugate labware
         self.dpbs_lw_name = "def_dpbs" # DPBS labware

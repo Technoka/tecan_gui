@@ -177,7 +177,7 @@ def import_excel_dotblot_2_coating(file_path: str):
     # if file_path:
     data = pd.read_excel(file_path, header=5) # read excel file and ignore 5 first rows
     # check if read excel file is the correct one by checking hidden message in specific cell
-    if data.columns[0] != "spain is awesome":
+    if data.columns[0] != "spain eurocup winner 2024":
         return None
 
     data = data.iloc[:, 1:9] # ignore first column and all after 8
@@ -469,9 +469,12 @@ def flatten(matrix):
     """
     
     flat_list = []
-    for row in matrix:
-        flat_list += row
-    return flat_list
+    try:
+        for row in matrix:
+            flat_list += row
+        return flat_list
+    except TypeError: # if object is not iterable return it as is
+        return matrix
 
 
 def convert_csv_to_gwl(input_file_path, output_file_path, onetime_tip_change=False):
