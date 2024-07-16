@@ -203,7 +203,6 @@ class DotblotMethod():
         return [eppendorf_positions[i:i + 1] for i in range(0, len(eppendorf_positions), 1)]
     
 
-
     def negative_control_dilutions(self):
         """
         Performs the dilutions to get the negative control final concentration.
@@ -400,6 +399,9 @@ class DotblotMethod():
         if len(self.pos_control_dilution_data) == 1:
             pos_ctr_pos.append(get_deep_well_pos(1)) # always in first place
             neg_ctr_pos.append(get_deep_well_pos(2)) # always in second place
+            # hard coded, forced
+            # pos_ctr_pos.append(get_deep_well_pos(9)) # always in first place
+            # neg_ctr_pos.append(get_deep_well_pos(10)) # always in second place
             sample_pos = [[]]
 
         elif len(self.pos_control_dilution_data) == 2:
@@ -423,6 +425,7 @@ class DotblotMethod():
                 else:
                     sample_pos[k].append(get_deep_well_pos(i + 3 + (k+1)*samples_per_block))
 
+        # sample_pos[0].append(get_deep_well_pos(11)) # hard coded, forced
         final_pos = {"pos_ctr_pos": pos_ctr_pos,
                      "neg_ctr_pos": neg_ctr_pos,
                      "samples_pos": sample_pos}
@@ -681,7 +684,7 @@ class DotblotMethod():
 
     def generate_dye_and_wash_files(self):
         """
-        
+        Generates the dye and wash csv and gwl files.
         """
 
         # Dye part
@@ -704,7 +707,7 @@ class DotblotMethod():
         
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.csv"
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
-        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.gwl", onetime_tip_change=True) # generate gwl
+        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.gwl", onetime_tip_change=True) # generate gwl
 
         # Wash with DPBS part
         csv_data = []
