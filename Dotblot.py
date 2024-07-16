@@ -737,7 +737,9 @@ class DotblotMethod():
         print("Dye and wash files generated.")
 
         # Call method in utils file
-        pattern = r"3\. Pump steps - Transfer (\d+)\.csv"
+        pattern = r"4\. Pump steps - Transfer (\d+)\.csv"
+        # pattern = self.pump_steps_csv_name + "Transfer (\d+)\.csv"
+        
         convert_all_csv_files_in_directory(self.csv_files_path, pattern) # to reuse tips
         print("generated all GWL files")
 
