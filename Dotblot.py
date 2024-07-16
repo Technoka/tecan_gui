@@ -567,7 +567,19 @@ class DotblotMethod():
                     'LabDest': dest_labware,
                     'DestWell': well,
                     'Volume': volume
-                })        
+                })
+            if self.has_2_coatings == True and source_labware == "Coating protein":
+                for well in all_wells:
+                    csv_data.append(
+                    {
+                        'LabSource': LabwareNames["CoatingProtein_2"],
+                        'SourceWell': SourceWell,
+                        'LabDest': dest_labware,
+                        'DestWell': well,
+                        'Volume': volume
+                    })
+
+
         elif _type == "Only samples": # transfer samples from Eppendorf to wells
             
             for j, sample_group in enumerate(self.sample_eppendorf_positions):
