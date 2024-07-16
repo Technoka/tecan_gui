@@ -187,15 +187,15 @@ class DotblotMethod():
                 sample_lab_source, sample_lab_well = LabDest[0], DestWell[0] # source of next step is destination of previous one
 
                 # generate CSV files (we separate them so that in the buffer one we can use liquid class for mixing)
-                path = self.csv_files_path + self.pos_control_csv_name + f" {k+1} - " + str(csv_number) + ".csv" # path for sample 
+                path = self.csv_files_path + self.pos_control_csv_name + f"{k+1} - " + str(csv_number) + ".csv" # path for sample 
                 pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False) # create dataframe and then CSV file
-                path = self.csv_files_path + self.pos_control_csv_name + f" {k+1} - " + str(csv_number + 1) + ".csv" # path for buffer
+                path = self.csv_files_path + self.pos_control_csv_name + f"{k+1} - " + str(csv_number + 1) + ".csv" # path for buffer
                 pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False) # create dataframe and then CSV file
                 csv_number = csv_number + 2
 
             # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
             for i in range(csv_number, 6 + 1):
-                path = self.csv_files_path + self.pos_control_csv_name + f" {k+1} - " + str(csv_number) + ".csv"
+                path = self.csv_files_path + self.pos_control_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
                 pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
                 csv_number = csv_number + 1
         
@@ -255,15 +255,15 @@ class DotblotMethod():
                 sample_lab_source, sample_lab_well = LabDest[0], DestWell[0] # source of next step is destination of previous one
 
                 # generate CSV files (we separate them so that in the buffer one we can use liquid class for mixing)
-                path = self.csv_files_path + self.neg_control_csv_name + f" {k+1} - " + str(csv_number) + ".csv" # path for sample 
+                path = self.csv_files_path + self.neg_control_csv_name + f"{k+1} - " + str(csv_number) + ".csv" # path for sample 
                 pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False) # create dataframe and then CSV file
-                path = self.csv_files_path + self.neg_control_csv_name + f" {k+1} - " + str(csv_number + 1) + ".csv" # path for buffer
+                path = self.csv_files_path + self.neg_control_csv_name + f"{k+1} - " + str(csv_number + 1) + ".csv" # path for buffer
                 pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False) # create dataframe and then CSV file
                 csv_number = csv_number + 2
 
             # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
             for i in range(csv_number, 6 + 1):
-                path = self.csv_files_path + self.pos_control_csv_name + f" {k+1} - " + str(csv_number) + ".csv"
+                path = self.csv_files_path + self.pos_control_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
                 pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
                 csv_number = csv_number + 1
         
@@ -318,7 +318,7 @@ class DotblotMethod():
                 )
                 self.next_deep_well_pos() # to keep the position updated
                 
-            path = self.csv_files_path + self.sample_dilutions_csv_name + f" {k+1} - " + str(csv_number) + ".csv"
+            path = self.csv_files_path + self.sample_dilutions_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
             pd.DataFrame(csv_data_init).to_csv(path, index=False, header=False)
             csv_number = csv_number + 1
 
@@ -360,9 +360,9 @@ class DotblotMethod():
                     else:
                         self.next_deep_well_pos()
 
-                path = self.csv_files_path + self.sample_dilutions_csv_name + f" {k+1} - " + str(csv_number) + ".csv"
+                path = self.csv_files_path + self.sample_dilutions_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
                 pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
-                path = self.csv_files_path + self.sample_dilutions_csv_name + f" {k+1} - " + str(csv_number + 1) + ".csv"
+                path = self.csv_files_path + self.sample_dilutions_csv_name + f"{k+1} - " + str(csv_number + 1) + ".csv"
                 pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
                 csv_number = csv_number + 2
 
@@ -650,10 +650,10 @@ class DotblotMethod():
         # pos_ctr_sample_vol = round(self.pos_control_dilution_data["Sample volume"].sum(), 1)
         # neg_ctr_sample_vol = round(self.neg_control_dilution_data["Sample volume"].sum(), 1)
         # buffer_vol = round(self.pos_control_dilution_data, ["Assay buffer volume"].sum(), 2) + round(self.neg_control_dilution_data["Assay buffer volume"].sum(), 2)
-        pos_ctr_sample_vol = round(sum(self.pos_control_dilution_data["Sample volume"]), 1)
-        neg_ctr_sample_vol = round(sum(self.neg_control_dilution_data["Sample volume"]), 1)
+        pos_ctr_sample_vol = round(sum(self.pos_control_dilution_data[0]["Sample volume"]), 1)
+        neg_ctr_sample_vol = round(sum(self.neg_control_dilution_data[0]["Sample volume"]), 1)
         # print("type:", type(sum(self.pos_control_dilution_data, ["Assay buffer volume"]), 2))
-        buffer_vol = round(sum(self.pos_control_dilution_data["Assay buffer volume"]), 2) + round(sum(self.neg_control_dilution_data["Assay buffer volume"]), 2) + round(sum(self.sample_dilution_data["Assay buffer volume"] * self.n_samples_main_dilution), 2)
+        buffer_vol = round(sum(self.pos_control_dilution_data[0]["Assay buffer volume"]), 2) + round(sum(self.neg_control_dilution_data[0]["Assay buffer volume"]), 2) + round(sum(self.sample_dilution_data[0]["Assay buffer volume"] * self.n_samples_main_dilution), 2)
         
         total_volume["Pos_ctr"] = total_volume["Pos_ctr"] + pos_ctr_sample_vol
         total_volume["Neg_ctr"] = total_volume["Neg_ctr"] + neg_ctr_sample_vol
@@ -674,9 +674,10 @@ class DotblotMethod():
         # Dye part
         csv_data = []
 
-        sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
-        all_wells = self.pump_lw_well_pos["pos_ctr_pos"] + self.pump_lw_well_pos["neg_ctr_pos"] + sample_wells # position of all wells to be used
-        
+        # sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
+        # all_wells = self.pump_lw_well_pos["pos_ctr_pos"] + self.pump_lw_well_pos["neg_ctr_pos"] + sample_wells # position of all wells to be used
+        all_wells = np.arange(1,97).tolist() # list from 1 to 96
+
         for well in all_wells:
             csv_data.append(
             {
@@ -757,8 +758,8 @@ class DotblotMethod():
         # General
         self.sample_dilution_data = external.sample_dilution_data
         self.coating_protein_dilution_data = external.coating_protein_dilution_data
-        self.n_sample_dilution_steps = len(self.sample_dilution_data["Assay buffer volume"])
-        self.n_coating_protein_steps = len(self.coating_protein_dilution_data["Assay buffer volume"])
+        self.n_sample_dilution_steps = len(self.sample_dilution_data[0]["Assay buffer volume"])
+        self.n_coating_protein_steps = len(self.coating_protein_dilution_data[0]["Assay buffer volume"])
 
         # Sample
         self.main_sample_labware_type = external.optionmenu_1.get()
@@ -769,21 +770,13 @@ class DotblotMethod():
 
         # Positive control
         self.pos_control_dilution_data = external.pos_control_dilution_data
-        self.n_pos_control_steps = len(self.pos_control_dilution_data["Assay buffer volume"])
+        self.n_pos_control_steps = len(self.pos_control_dilution_data[0]["Assay buffer volume"])
         self.pos_control_vial_posX = external.pos_ctr_X_pos.get()
         self.pos_control_vial_posY = external.pos_ctr_Y_pos.get()
-        # self.pos_control_buffer = external.pos_ctr_buffer.get()
-        # self.pos_control_buffer = "Assay buffer"
-        # print("after posc torntol asignation")
         
         # Negative control
         self.neg_control_dilution_data = external.neg_control_dilution_data
-        self.n_neg_control_steps = len(self.neg_control_dilution_data["Assay buffer volume"])
-        # self.neg_control_vial_posX = external.neg_ctr_X_pos.get()
-        # self.neg_control_vial_posY = external.neg_ctr_Y_pos.get()
-        # self.neg_control_buffer = external.neg_ctr_buffer.get()
-        # self.neg_control_buffer = "Assay buffer"
-        # print("AFTER neg external assingnations")
+        self.n_neg_control_steps = len(self.neg_control_dilution_data[0]["Assay buffer volume"])
 
         # Pump steps
         self.pump_steps_data = external.pump_steps_data
