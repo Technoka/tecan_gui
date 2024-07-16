@@ -287,10 +287,11 @@ class DotblotMethod():
 
         eppendorf_positions = [] # list to store positions of eppendorf positions used for the final dilution
 
-        # calculate inital sample epp. positions because it is the same for both dilution groups
-        initial_sample_eppendorf_positions = []
+        # calculate initial sample epp. positions because it is the same for both dilution groups
+        initial_sample_positions = []
         for i in range(1, self.n_samples_main_dilution + 1):
-            initial_sample_eppendorf_positions.append(self.next_eppendorf_pos())
+            if self.main_sample_labware_type == "Eppendorf":
+                initial_sample_positions.append(self.next_eppendorf_pos())                
         
         for k in range(len(self.sample_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
             csv_number = 0 # to name generated files sequentially
@@ -301,15 +302,15 @@ class DotblotMethod():
             # Initial transfer of sample to deep wells, so that smaller tips can reach
             for j in range(1, self.n_samples_main_dilution + 1):
                 if self.main_sample_labware_type == "Eppendorf":
-                    LabSource = pos_2_str(self.main_sample_labware_type, initial_sample_eppendorf_positions[j-1])
+                    LabSource = pos_2_str(self.main_sample_labware_type, initial_sample_positions[j-1])
                     # self.next_eppendorf_pos()
                 else:
-                    LabSource = pos_2_str(self.main_sample_labware_type, j)
+                    LabSource = pos_2_str(self.main_sample_labware_type, j) # sample always comes in a labware with 1 hole (falcon, fakeFalcon, eppendorf, ...) if not we would use dilution_pos_def instead of pos2str
 
                 csv_data_init.append(
                 {
                     'LabSource': LabSource,
-                    'SourceWell': int(1),
+                    'SourceWell': int(1), # sample always comes in a labware with 1 hole (falcon, fakeFalcon, eppendorf, ...)
                     'LabDest': LabDest[j-1],
                     'DestWell': DestWell[j-1],
                     'Volume': float(self.samples_initial_volume_transfer)
@@ -707,7 +708,7 @@ class DotblotMethod():
         
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.csv"
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
-        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.gwl", onetime_tip_change=True) # generate gwl
+        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.gwl") # generate gwl
 
         # Wash with DPBS part
         csv_data = []
@@ -724,7 +725,7 @@ class DotblotMethod():
         
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.csv"
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
-        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.gwl", onetime_tip_change=True) # generate gwl
+        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.gwl") # generate gwl
 
 
     def dotblot(self):
