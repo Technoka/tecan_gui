@@ -617,6 +617,7 @@ class DotblotMethod():
 
         print("transfer volume instruction ", csv_number, "done")
 
+
     def calculate_total_volumes(self):
         """
         Calculates the total volumes needed for each reagent.
@@ -691,6 +692,7 @@ class DotblotMethod():
         
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.csv"
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
+        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.gwl", onetime_tip_change=True) # generate gwl
 
         # Wash with DPBS part
         csv_data = []
@@ -707,6 +709,7 @@ class DotblotMethod():
         
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.csv"
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
+        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.gwl", onetime_tip_change=True) # generate gwl
 
 
     def dotblot(self):
@@ -759,7 +762,7 @@ class DotblotMethod():
         self.sample_dilution_data = external.sample_dilution_data
         self.coating_protein_dilution_data = external.coating_protein_dilution_data
         self.n_sample_dilution_steps = len(self.sample_dilution_data[0]["Assay buffer volume"])
-        self.n_coating_protein_steps = len(self.coating_protein_dilution_data[0]["Assay buffer volume"])
+        # self.n_coating_protein_steps = len(self.coating_protein_dilution_data[0]["Assay buffer volume"])
 
         # Sample
         self.main_sample_labware_type = external.optionmenu_1.get()

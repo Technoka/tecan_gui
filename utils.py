@@ -148,7 +148,7 @@ def import_excel_dotblot(file_path: str):
             neg_control_dilution_data = data.iloc[24:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
-    return sample_dilution_data, coating_protein_dilution_data, pos_control_dilution_data, neg_control_dilution_data
+    return [sample_dilution_data], [coating_protein_dilution_data], [pos_control_dilution_data], [neg_control_dilution_data]
 
 
 def import_excel_dotblot_2_coating(file_path: str):
@@ -165,7 +165,7 @@ def import_excel_dotblot_2_coating(file_path: str):
     Tuple (sample, coating_protein, pos_ctr, neg_ctr) data,
     or ``None`` if error occurs when importing file.
     """
-    # file_path = r"L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot automation dilution data.xlsx"
+    # file_path = r"L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot automation dilution data - 2 coating.xlsx"
 
     sample_dilution_data = [{}, {}]
     coating_protein_dilution_data = [{}, {}]

@@ -5,6 +5,7 @@
             "product": "CD79bxCD20xCD3",
             "tmd": "TV-TMD-35372 v1.3",
             "title": "Test Method for Determining the Identity of JNJ-80948543 using the Dot Blot Assay",
+            "has_2_coating_proteins": "True",
             "step_types": 
                 [
                     {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
@@ -39,6 +40,41 @@
                 "product": "CD33xV\u03b39\u03b42",
                 "tmd": "TV-TMD-38396 v1.0",
                 "title": "Test Method for Determining the Identity of JNJ-89853413 using the Dot Blot Assay",
+                "step_types": 
+                    [
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1},
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
+                        {"step_type": "Wait timer", "wait_timer": 8}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, 
+                        {"step_type": "Wait timer", "wait_timer": 8}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, 
+                        {"step_type": "Wait timer", "wait_timer": 10}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, 
+                        {"step_type": "Wait timer", "wait_timer": 8}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"},  
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"},  
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"}
+                    ]
+            },
+            {
+                "method": "Dotblot",
+                "product": "CNTO 4424",
+                "tmd": "TV-TMD-15652 v3.0",
+                "title": "JNJ-61186372 Dot Blot Identification Assay Test Method",
+                "has_2_coating_proteins": "True",
                 "step_types": 
                     [
                         {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
