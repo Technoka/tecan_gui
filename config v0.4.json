@@ -1,0 +1,85 @@
+{
+ "version": "auto-py-to-exe-configuration_v1",
+ "pyinstallerOptions": [
+  {
+   "optionDest": "noconfirm",
+   "value": true
+  },
+  {
+   "optionDest": "filenames",
+   "value": "C:/Users/DPerez36/OneDrive - JNJ/Documents/git repos/tecan_gui/app.py"
+  },
+  {
+   "optionDest": "onefile",
+   "value": true
+  },
+  {
+   "optionDest": "console",
+   "value": false
+  },
+  {
+   "optionDest": "clean_build",
+   "value": false
+  },
+  {
+   "optionDest": "strip",
+   "value": false
+  },
+  {
+   "optionDest": "noupx",
+   "value": false
+  },
+  {
+   "optionDest": "disable_windowed_traceback",
+   "value": false
+  },
+  {
+   "optionDest": "uac_admin",
+   "value": false
+  },
+  {
+   "optionDest": "uac_uiaccess",
+   "value": false
+  },
+  {
+   "optionDest": "argv_emulation",
+   "value": false
+  },
+  {
+   "optionDest": "bootloader_ignore_signals",
+   "value": false
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/DPerez36/OneDrive - JNJ/Documents/git repos/tecan_gui/A280.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/DPerez36/OneDrive - JNJ/Documents/git repos/tecan_gui/assays.json;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/DPerez36/OneDrive - JNJ/Documents/git repos/tecan_gui/Dotblot.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/DPerez36/OneDrive - JNJ/Documents/git repos/tecan_gui/GeneralDilution.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/DPerez36/OneDrive - JNJ/Documents/git repos/tecan_gui/nanoDSF.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/DPerez36/OneDrive - JNJ/Documents/git repos/tecan_gui/utils.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/DPerez36/OneDrive - JNJ/Documents/git repos/tecan_gui/VolumeTransfer.py;."
+  }
+ ],
+ "nonPyinstallerOptions": {
+  "increaseRecursionLimit": true,
+  "manualArguments": ""
+ }
+}
