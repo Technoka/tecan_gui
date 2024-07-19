@@ -204,5 +204,5 @@ class A280Method():
 
         # General
         self.n_samples = external.a280_n_samples.get() # amount of samples for the sample transfer
-        self.sample_concentration = external.a280_concentration.get() # volume (uL) to transfer to each well
+        self.sample_concentration = int(external.a280_concentration.get()) # volume (uL) to transfer to each well
         self.sample_lw_origin = external.a280_lw_origin.get() # origin labware of samples
