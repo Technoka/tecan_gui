@@ -129,6 +129,12 @@
                 "title": "Determination of Protein Concentration by UV Absorbance at 280 nm (Variable Pathlength) for JNJ-80948543 (anti-CD79bxCD20xCD3)"
             },
             {
+                "method": "SEC-HPLC",
+                "product": "CNTO 4424",
+                "tmd": "TV-TMD-30962 v5.0",
+                "title": "Size Exclusion HPLC Test Method for Purity Determination of JNJ-61186372 (CNTO 4424)"
+            },
+            {
                 "method": "test_method",
                 "product": "test_product",
                 "tmd": "test_tmd",
