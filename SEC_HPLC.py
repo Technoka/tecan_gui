@@ -16,7 +16,8 @@ class sec_HPLCMethod():
     def __init__(self):
         # General parameters
         self.files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\9. SEC-HPLC' # network path where all the files will be saved in.
-        self.gwl_file_name = r"\sample_transfer"
+        self.sample_dilution_filename = r"\sample_dilution - "
+        self.sample_transfer_filename = r"\sample_transfer - "
         self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions 
 
         self.has_detectability_standard = False # only some products have it
@@ -28,6 +29,9 @@ class sec_HPLCMethod():
         self.sample_lw_origin = "" # origin labware of samples
         self.sample_lw_dest = "" # destination labware of samples
         self.sample_dest_positions = [0] # positions of 384 plate where the diluted samples end up
+        
+        # Buffer parameters
+        self.buffer_lw_origin = "100ml_1" # origin labware of buffer, hard coded for now
 
 
     def next_labware_pos(self, labware_name:str):
@@ -86,7 +90,7 @@ class sec_HPLCMethod():
         if self.sample_initial_concentration > 10:
              new_values = [True, 10, 20]
         elif self.sample_initial_concentration == 10:
-             new_values = [False, 0, 0]
+             new_values = [False, 10, 20]
         elif self.sample_initial_concentration > 4 and self.sample_initial_concentration < 10:
              new_values = [True, 4, 50]
         elif self.sample_initial_concentration > 2 and self.sample_initial_concentration < 4:
@@ -112,12 +116,88 @@ class sec_HPLCMethod():
 
     def sample_dilution(self, sample_dilution_data):
         """
-        Only called if samples need to be diluted. Generates the CSV files for the dilution.
+        Only called if samples need to be diluted. Generates the CSV files for the dilution and transfer (done in same step since there is only 1 dilution step).
         """
 
-        
+        csv_number = 1 # # to name generated files sequentially
+        csv_data_sample = []
+        csv_data_buffer = []
 
-        pass
+        sample_volume = sample_dilution_data["injection_volume"]
+        total_volume = self.sample_initial_concentration * sample_volume / sample_dilution_data["final_concentration"]
+        buffer_volume = total_volume - sample_volume
+
+        LabDest, DestWell = dilution_position_def(self.sample_lw_dest, self.next_labware_pos(self.sample_lw_dest), self.n_samples)
+
+        # sample to dest labware
+        LabSource, SourceWell = dilution_position_def(self.sample_lw_origin, 1, self.n_samples) # samples are always placed in positions 1..n_samples
+        for j in range(self.n_samples):
+            csv_data_sample.append(
+            {
+                'LabSource': LabSource[j],
+                'SourceWell': SourceWell[j],
+                'LabDest': LabDest[j],
+                'DestWell': DestWell[j],
+                'Volume': sample_volume
+            })
+
+            self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
+        
+        # buffer to dest labware
+        for j in range(self.n_samples):
+            csv_data_buffer.append(
+            {
+                'LabSource': self.buffer_lw_origin,
+                'SourceWell': 1,
+                'LabDest': LabDest[j],
+                'DestWell': DestWell[j],
+                'Volume': buffer_volume
+            })
+
+            self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
+
+
+        path = self.files_path + self.sample_dilution_filename + str(csv_number) + ".csv"
+        pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
+        path = self.files_path + self.sample_dilution_filename + str(csv_number + 1) + ".csv"
+        pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
+        csv_number += 2
+
+        return DestWell
+
+
+    def sample_transfer(self, sample_dilution_data):
+        """
+        Transfer samples to vials.
+        """
+
+        LabSource, SourceWell = dilution_position_def(self.sample_lw_origin, 1, self.n_samples) # samples are always placed in positions 1..n_samples
+        print("labsource sample transfer:", LabSource)
+
+        csv_number = 1 # # to name generated files sequentially
+        csv_data_sample = []
+
+        sample_volume_to_transfer = sample_dilution_data["injection_volume"]
+
+        LabDest, DestWell = dilution_position_def(self.sample_lw_dest, 1, self.n_samples) # position starts in 1 because labware has not been used yet
+
+        for j in range(self.n_samples):
+            csv_data_sample.append(
+            {
+                'LabSource': LabSource[j],
+                'SourceWell': SourceWell[j],
+                'LabDest': LabDest[j],
+                'DestWell': DestWell[j],
+                'Volume': sample_volume_to_transfer
+            }
+            )
+
+            self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
+
+        path = self.files_path + self.sample_transfer_filename + str(csv_number) + ".csv"
+        pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
+
+        return DestWell
 
 
     def sec_HPLC(self):
@@ -125,16 +205,32 @@ class sec_HPLCMethod():
         Class main method.
         ----------
 
-        Executes all stages of the nanoDSF method step by step and generates CSV files for them.
+        Executes all stages of the Size Exclusion HPLC method step by step and generates CSV files for them.
         """
+
+        logger.info(f"has_detectability_standard: {str(self.has_detectability_standard)}")
+        logger.info("-------------------------------------")
+        logger.info(f"N. of samples: {self.n_samples}")
+        logger.info(f"Samples initial labware: {self.sample_lw_origin}")
+        logger.info(f"Samples destination labware: {self.sample_lw_dest}")
+        logger.info(f"Samples initial concentration: {self.sample_initial_concentration} mg/mL")
+        logger.info("-------------------------------------")
 
         self.count_starting_lw_pos()
 
         sample_dilution_data = self.is_sample_dilution_needed()
         print("Sample dilution data:", sample_dilution_data)
+        logger.info(f"Sample dilution needed: {sample_dilution_data['sample_dilution_needed']}")
 
+        if sample_dilution_data["sample_dilution_needed"] == True:
+            self.sample_dilution(sample_dilution_data)
+            logger.info(f"Sample dilutions and transfer done.")
 
-
+        else:
+            self.sample_transfer(sample_dilution_data)
+            logger.info(f"Sample transfer done.")
+        
+        logger.info(f"Method finished successfully.")
 
         return
 
