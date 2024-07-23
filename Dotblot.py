@@ -154,11 +154,12 @@ class DotblotMethod():
             sample_lab_source = LabwareNames["CustomVialHolder"] # initial source of pos control sample
             sample_lab_well = initial_pos
 
-            for i in range(self.n_pos_control_steps):
+            # for i in range(self.n_pos_control_steps):
+            for i in range(len(self.pos_control_dilution_data[k]["Assay buffer volume"])):
                 csv_data_sample = [] # list to store CSV data
                 csv_data_buffer = [] # list to store CSV data
 
-                if i + 1 == self.n_pos_control_steps: # if this is the final dilution step
+                if i + 1 == len(self.pos_control_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
                     eppendorf_positions.append(self.last_eppendorf_pos)
                     # LabDest, DestWell = self.dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
                     LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
@@ -188,7 +189,7 @@ class DotblotMethod():
                 sample_lab_source, sample_lab_well = LabDest[0], DestWell[0] # source of next step is destination of previous one
 
                 # generate CSV files (we separate them so that in the buffer one we can use liquid class for mixing)
-                path = self.csv_files_path + self.pos_control_csv_name + f"{k+1} - " + str(csv_number) + ".csv" # path for sample 
+                path = self.csv_files_path + self.pos_control_csv_name + f"{k+1} - " + str(csv_number) + ".csv" # path for sample
                 pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False) # create dataframe and then CSV file
                 path = self.csv_files_path + self.pos_control_csv_name + f"{k+1} - " + str(csv_number + 1) + ".csv" # path for buffer
                 pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False) # create dataframe and then CSV file
@@ -224,11 +225,11 @@ class DotblotMethod():
             sample_lab_source = LabwareNames["8R Vial"] # initial source of neg control sample
             sample_lab_well = 1 # hard coded for now, so ALWAYS place negative control vial in first position (top left) of 8R holder
 
-            for i in range(self.n_neg_control_steps):
+            for i in range(len(self.neg_control_dilution_data[k]["Assay buffer volume"])):
                 csv_data_sample = [] # list to store CSV data
                 csv_data_buffer = [] # list to store CSV data
 
-                if i + 1 == self.n_neg_control_steps: # if this is the final dilution step
+                if i + 1 == len(self.neg_control_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
                     eppendorf_positions.append(self.last_eppendorf_pos)
                     LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
                 else:
@@ -263,7 +264,7 @@ class DotblotMethod():
 
             # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
             for i in range(csv_number, 6 + 1):
-                path = self.csv_files_path + self.pos_control_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
+                path = self.csv_files_path + self.neg_control_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
                 pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
                 csv_number = csv_number + 1
         
@@ -324,13 +325,14 @@ class DotblotMethod():
             csv_number = csv_number + 1
 
             # print("before long csv")
-            for i in range(self.n_sample_dilution_steps):
+            # for i in range(self.n_sample_dilution_steps):
+            for i in range(len(self.sample_dilution_data[k]["Assay buffer volume"])):
                 csv_data_sample = []
                 csv_data_buffer = []
 
                 LabSource, SourceWell = LabDest, DestWell # source of next step is destination of previous one
 
-                if i + 1 == self.n_sample_dilution_steps: # if this is the final dilution step
+                if i + 1 == len(self.sample_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
                     LabDest, DestWell = dilution_position_def("Eppendorf", self.last_eppendorf_pos, (self.n_samples_main_dilution * (i+1) + 1))
                 else:
                     LabDest, DestWell = dilution_position_def("DeepWell", self.last_deep_well_pos, (self.n_samples_main_dilution * (i+1) + 1))
@@ -355,7 +357,7 @@ class DotblotMethod():
                         'Volume': float(self.sample_dilution_data[k]["Assay buffer volume"][i])
                     }
                     )
-                    if i + 1 == self.n_sample_dilution_steps: # if this is the last dilution step
+                    if i + 1 == len(self.sample_dilution_data[k]["Assay buffer volume"]): # if this is the last dilution step
                         eppendorf_positions.append(self.last_eppendorf_pos)
                         self.next_eppendorf_pos()
                     else:
@@ -369,7 +371,8 @@ class DotblotMethod():
 
             # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
             for i in range(csv_number, 6 + 1):
-                path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number) + ".csv"
+                # path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number) + ".csv"
+                path = self.csv_files_path + self.sample_dilutions_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
                 pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
                 csv_number = csv_number + 1
 
@@ -823,7 +826,7 @@ class DotblotMethod():
         self.n_samples_main_dilution = int(external.entry_slider2.get())
         # self.samples_initial_volume_transfer = external.entry_slider3.get()
         # self.samples_initial_volume_transfer = self.sample_dilution_data["Sample volume"][0] * 10 # value normally between 10uL, so transfer around 100uL, which is more than
-        self.samples_initial_volume_transfer = 50 # hard coded for nicolas's test on thu. 4/7
+        self.samples_initial_volume_transfer = 20 # hard coded for nicolas's test on thu. 4/7
 
         # Positive control
         self.pos_control_dilution_data = external.pos_control_dilution_data
