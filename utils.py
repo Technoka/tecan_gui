@@ -165,19 +165,19 @@ def import_excel_dotblot(file_path: str):
 
     # sample dilution - ignore rows with no dilution data
     for index, row in data.iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             sample_dilution_data = data.iloc[:index, :] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
     
     # coating protein dilution data is in row 10 after initial read
     for index, row in data.iloc[10:14,:].iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             coating_protein_dilution_data = data.iloc[10:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
     # positive control dilution data is in row 15 after initial read
     for index, row in data.iloc[17:21,:].iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             pos_control_dilution_data = data.iloc[17:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break    
     # else:
@@ -185,7 +185,7 @@ def import_excel_dotblot(file_path: str):
 
     # negative control dilution data is in row 24 after initial read
     for index, row in data.iloc[24:28,:].iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             neg_control_dilution_data = data.iloc[24:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
@@ -236,37 +236,37 @@ def import_excel_dotblot_2_coating(file_path: str):
 
     # sample dilution 1 - ignore rows with no dilution data
     for index, row in data.iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             sample_dilution_data[0] = data.iloc[:index, :] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
      # sample dilution 2 data is in row 10 after initial read
     for index, row in data.iloc[10:17,:].iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             sample_dilution_data[1] = data.iloc[10:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
     # positive control dilution 1 data is in row 15 after initial read
     for index, row in data.iloc[20:24,:].iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             pos_control_dilution_data[0] = data.iloc[20:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
     # positive control dilution 2 data is in row 15 after initial read
     for index, row in data.iloc[27:31,:].iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             pos_control_dilution_data[1] = data.iloc[27:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
     # negative control dilution data is in row 24 after initial read
     for index, row in data.iloc[34:38,:].iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             neg_control_dilution_data[0] = data.iloc[34:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
     # negative control dilution data is in row 24 after initial read
     for index, row in data.iloc[41:45,:].iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             neg_control_dilution_data[1] = data.iloc[41:index,:] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
@@ -313,7 +313,7 @@ def import_excel_general_dilution(file_path):
 
     # ignore rows with no dilution data
     for index, row in data.iterrows():
-        if pd.isna(row["Initial concentration"]): # if a NaN value is found
+        if pd.isna(row["Withdrawn volume"]): # if a NaN value is found
             sample_dilution_data = data.iloc[:index, :] # remove all rows after the first NaN is found in "Initial Concentration" column
             break
 
