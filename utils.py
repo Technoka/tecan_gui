@@ -21,10 +21,19 @@ logger.setLevel(logging.DEBUG)
 
 # logger.addHandler(logger_file_handler)
 
-def new_log_file(current_time):
+def new_log_file():
     """
     Creates a new log file handler for a method to log into it.
     """
+
+    # Remove all handlers, so that each new call only writes to the new log file
+    while logger.handlers:
+        handler = logger.handlers[0]
+        logger.removeHandler(handler)
+        handler.close()
+
+    # name for new log file
+    current_time = datetime.now().strftime('%d-%m-%Y_%H-%M')
 
     log_filename = f"logs/{current_time}.log"
     logger_file_handler = logging.FileHandler(log_filename)  # Log to a file
@@ -32,6 +41,8 @@ def new_log_file(current_time):
     logger_file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
     logger.addHandler(logger_file_handler)
+
+    logger.debug(f"USER: {os.getlogin()}")
 
 
 
