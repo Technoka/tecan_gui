@@ -29,6 +29,7 @@ class DotblotMethod():
         self.neg_control_csv_name = r"\2. Negative control - "
         self.sample_dilutions_csv_name = r"\3. Sample dilutions - "
         self.pump_steps_csv_name = r"\4. Pump steps - "
+        self.config_file_name = r"\config.txt"
 
         # dictionaries to store all dilution values
         self.sample_dilution_data = [{}]
@@ -727,6 +728,22 @@ class DotblotMethod():
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
         convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.gwl") # generate gwl
 
+    def generate_config_file(self):
+        """
+        Generates the config file for the current run.
+        """
+
+        config_parameters = {"has_2_coatings": str(self.has_2_coatings)}
+
+        with open(self.csv_files_path + self.config_file_name, 'w') as file:
+            # Write the keys
+            keys = ";".join(config_parameters.keys())
+            file.write(keys + ";\n")
+            
+            # Write the values
+            values = ";".join(map(str, config_parameters.values()))
+            file.write(values + ";\n")
+
 
     def dotblot(self):
         """
@@ -736,21 +753,37 @@ class DotblotMethod():
         Executes all stages of the Dot Blot method step by step and generates CSV files for them.
         """
 
+        logger.info(f"has_2_coatings: {str(self.has_2_coatings)}")
+        logger.info("-------------------------------------")
+        logger.info(f"N. of samples: {self.n_samples_main_dilution}")
+        logger.info(f"Samples initial labware: {self.main_sample_labware_type}")
+        logger.info(f"Pos. ctr. vial position: {self.pos_control_vial_posX}, {self.pos_control_vial_posY}")
+        logger.info("-------------------------------------")
+
+
+        logger.info("Starting Dotblot method calculations")
+        self.generate_config_file()
+        logger.info("Config file generated.")
+
         self.pos_control_eppendorf_positions = self.positive_control_dilutions()
         self.pos_ctr_diluted_lw_name = [pos_2_str("Eppendorf", self.pos_control_eppendorf_positions[i]) for i in range(len(self.pos_control_eppendorf_positions))] # set position of positive ctr diluted sample
         print(f"pos dilutions done: {self.pos_control_eppendorf_positions}")
+        logger.info(f"Positive control dilutions done. Positions: {self.pos_control_eppendorf_positions}")
         
         self.neg_control_eppendorf_positions = self.negative_control_dilutions()
         self.neg_ctr_diluted_lw_name = [pos_2_str("Eppendorf", self.neg_control_eppendorf_positions[i]) for i in range(len(self.neg_control_eppendorf_positions))] # set position of positive ctr diluted sample
         print(f"negative ctr eppendorf pos: {self.neg_control_eppendorf_positions}")
+        logger.info(f"Negative control dilutions done. Positions: {self.neg_control_eppendorf_positions}")
 
         self.sample_eppendorf_positions = self.sample_dilutions()
         print("sample eppendorf pos:", self.sample_eppendorf_positions)
+        logger.info(f"Sample dilutions done. Positions: {self.sample_eppendorf_positions}")
 
         self.generate_pump_step_instruction_files()
+        logger.info("Pump instruction files generated.")
 
         self.generate_dye_and_wash_files()
-        print("Dye and wash files generated.")
+        logger.info("Dye and wash files generated.")
 
         # Call method in utils file
         pattern = r"4\. Pump steps - Transfer (\d+)\.csv"
@@ -758,7 +791,10 @@ class DotblotMethod():
         
         convert_all_csv_files_in_directory(self.csv_files_path, pattern) # to reuse tips
         print("generated all GWL files")
+        logger.info("All GWL files generated.")
 
+        
+        logger.info("Dotblot method finished successfully.")
         return self.pos_control_eppendorf_positions, self.neg_control_eppendorf_positions, self.sample_eppendorf_positions
 
         
