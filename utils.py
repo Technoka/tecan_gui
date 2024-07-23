@@ -4,6 +4,35 @@ import numpy as np
 import re
 import os
 import json
+import logging
+from datetime import datetime
+
+
+
+# Set up logging configuration
+logger = logging.getLogger("assay_logger")
+logger.setLevel(logging.DEBUG)
+
+# now = datetime.now()
+# log_filename = f"logs/{now.strftime('%d-%m-%Y_%H-%M')}.log"
+# logger_file_handler = logging.FileHandler(log_filename)  # Log to a file
+# logger_file_handler.setLevel(logging.DEBUG)
+# logger_file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+
+# logger.addHandler(logger_file_handler)
+
+def new_log_file(current_time):
+    """
+    Creates a new log file handler for a method to log into it.
+    """
+
+    log_filename = f"logs/{current_time}.log"
+    logger_file_handler = logging.FileHandler(log_filename)  # Log to a file
+    logger_file_handler.setLevel(logging.DEBUG)
+    logger_file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+
+    logger.addHandler(logger_file_handler)
+
 
 
 # Labware names as defined in Tecan worktable
@@ -17,16 +46,17 @@ LabwareNames = {
     "2R Vial": "2R Vial holder[001]",
     "8R Vial": "8R Vial holder[001]",
     "CustomVialHolder": "Custom_vial_holder[001]",
-    "AssayBuffer": "100ml_3",
-    "DPBS": "100ml_2",
     "BlockingBuffer": "100ml_1",
+    "DPBS": "100ml_2",
+    "AssayBuffer": "100ml_3",
     "Conjugate": "100ml_4",
     "CoatingProtein": "100ml_5",
-    "Dye": "100ml_6",
+    "CoatingProtein_2": "100ml_6",
+    "Dye": "100ml_7",
     # "PosControl": "Falcon15[001]",
     # "NegControl": "Falcon15[002]",
     "100mL reservoir": "100ml", # the [00x] needs to be added later
-    "soloVPE cuvettes": "solo VPE ???",
+    "soloVPE cuvettes": "48 Pos 2R Vial Rack[001]",
     "GeneralBuffer": "100ml_1" # for every method that uses a buffer of any kind, this will be the position
 
 }
@@ -456,7 +486,6 @@ def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "ve
             init_pos + 2 * wells_per_col]
     
 
-
 def flatten(matrix):
     """
     Flattens an iterable object.
@@ -593,6 +622,78 @@ def convert_csv_to_gwl(input_file_path, output_file_path, onetime_tip_change=Fal
 
         # Write the lines to the output file
         output_file.writelines(new_output_lines)
+
+
+def generate_complete_96_well_gwl(input_file_path, output_file_path):
+    """
+    Converts all CSV files in the ``path`` directory to GWL.
+
+    Parameters
+    ----------
+    ``input_file_path``: str
+        Path to the input file.
+
+    ``output_file_path``: str
+        Path to the output file.
+
+    ``onetime_tip_change``: bool
+        If True, the extra ``W`` commands will be removed so that only 8 are left, to ensure that all tips are used only once and then reused throughout the script.
+
+    Example
+    --------
+    Input: ``3. Pump steps - Transfer 4.csv:``
+    >>> Falcon15[001],1,dotblot_appr_standalone,1,100
+        Falcon15[001],1,dotblot_appr_standalone,9,100
+
+    Output: ``3. Pump steps - Transfer 4.gwl:``
+    >>> A;Falcon15[001];;;1;;100;;;;
+        D;dotblot_appr_standalone;;;1;;100;;;;
+        F;
+    """
+    
+    NUMBER_OF_PARTS = 5 # number of parts per instruction line in the csv file
+
+    # Open the input file in read mode and output file in write mode
+    with open(input_file_path, 'r') as input_file, open(output_file_path, 'w') as output_file:
+        # Read all lines from the input file
+        lines = input_file.readlines()
+
+        assert len(lines) % 8 == 0 # make sure csv file is a multiple of 8 so that all tips can be used
+        well_positions = [[i for i in range(row, 97, 8)] for row in range(1, 9)] # generate list of lists where each element are the positions in deep well for each tip
+
+        output_lines = []
+        
+        for row in well_positions:
+            well = get_deep_well_pos()
+            # Extract the values
+            lw_origin = "lw_origin"
+            lw_origin_well = 1
+            lw_dest = "dotblot_appr_standalone"
+            lw_dest_well = well
+            volume = 125
+
+            tip_capacity = 900 # tip capacity
+            n_aspirates = tip_capacity // volume
+            
+            # Create the three lines for the output
+            a_line = f"A;{lw_origin};;;{lw_origin_well};;{volume * n_aspirates};;;;\n"
+            output_lines.append(a_line)
+            
+            d_line = f"D;{lw_dest};;;{lw_dest_well};;{volume};;;;\n"
+            w_line = "F;\n" # use F to flush tip remaining contents instead of changing tip, which is actually better for each round
+            
+            # Append the lines to the output lines list
+            for i in range(n_aspirates):
+                output_lines.append(d_line)
+            output_lines.append(w_line)
+    
+        # Replace all "W;" with "F;" except the last "W;"
+        w_indices = [i for i, line in enumerate(output_lines) if line == "W;\n"]
+        for i in w_indices[:-1]:  # Exclude the last "W;"
+            output_lines[i] = "F;\n"
+
+    # Write the lines to the output file
+    output_file.writelines(output_lines)
 
 
 def convert_all_csv_files_in_directory(path: str, pattern: str):
