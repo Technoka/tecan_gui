@@ -567,17 +567,23 @@ class DotblotMethod():
         all_wells = flatten(self.pump_lw_well_pos["pos_ctr_pos"]) + flatten(self.pump_lw_well_pos["neg_ctr_pos"]) + sample_wells # position of all wells to be used
         
         if _type == "All wells": # transfer to all wells
-            for well in all_wells:
-                csv_data.append(
-                {
-                    'LabSource': LabSource,
-                    'SourceWell': SourceWell,
-                    'LabDest': dest_labware,
-                    'DestWell': well,
-                    'Volume': volume
-                })
             if self.has_2_coatings == True and source_labware == "Coating protein":
-                for well in all_wells:
+
+                coating_1_wells = self.pump_lw_well_pos["pos_ctr_pos"][0] + self.pump_lw_well_pos["neg_ctr_pos"][0] + flatten(self.pump_lw_well_pos["samples_pos"][0])
+                coating_2_wells = self.pump_lw_well_pos["pos_ctr_pos"][1] + self.pump_lw_well_pos["neg_ctr_pos"][1] + flatten(self.pump_lw_well_pos["samples_pos"][1])
+                logger.debug(f"coating 1 wells: {coating_1_wells}")
+                logger.debug(f"coating 2 wells: {coating_2_wells}")
+
+                for well in coating_1_wells:
+                    csv_data.append(
+                    {
+                        'LabSource': LabwareNames["CoatingProtein"],
+                        'SourceWell': SourceWell,
+                        'LabDest': dest_labware,
+                        'DestWell': well,
+                        'Volume': volume
+                    })
+                for well in coating_2_wells:
                     csv_data.append(
                     {
                         'LabSource': LabwareNames["CoatingProtein_2"],
@@ -586,6 +592,19 @@ class DotblotMethod():
                         'DestWell': well,
                         'Volume': volume
                     })
+
+
+            else: # if it has only 1 coating or step is not coating protein
+                for well in all_wells:
+                    csv_data.append(
+                    {
+                        'LabSource': LabSource,
+                        'SourceWell': SourceWell,
+                        'LabDest': dest_labware,
+                        'DestWell': well,
+                        'Volume': volume
+                    })
+
 
 
         elif _type == "Only samples": # transfer samples from Eppendorf to wells
@@ -731,6 +750,7 @@ class DotblotMethod():
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
         convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.gwl") # generate gwl
 
+
     def generate_config_file(self):
         """
         Generates the config file for the current run.
@@ -826,7 +846,7 @@ class DotblotMethod():
         self.n_samples_main_dilution = int(external.entry_slider2.get())
         # self.samples_initial_volume_transfer = external.entry_slider3.get()
         # self.samples_initial_volume_transfer = self.sample_dilution_data["Sample volume"][0] * 10 # value normally between 10uL, so transfer around 100uL, which is more than
-        self.samples_initial_volume_transfer = 20 # hard coded for nicolas's test on thu. 4/7
+        self.samples_initial_volume_transfer = 30 # hard coded for nicolas's test on thu. 4/7
 
         # Positive control
         self.pos_control_dilution_data = external.pos_control_dilution_data
