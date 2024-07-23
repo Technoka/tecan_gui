@@ -36,7 +36,7 @@ def new_log_file():
     current_time = datetime.now().strftime('%d-%m-%Y_%H-%M')
 
     log_filename = f"logs/{current_time}.log"
-    logger_file_handler = logging.FileHandler(log_filename)  # Log to a file
+    logger_file_handler = logging.FileHandler(log_filename, encoding="utf-8")  # Log to a file
     logger_file_handler.setLevel(logging.DEBUG)
     logger_file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
