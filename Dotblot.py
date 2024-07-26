@@ -150,9 +150,8 @@ class DotblotMethod():
         for k in range(len(self.pos_control_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
 
             csv_number = 1 # to name generated files sequentially
-            # sample_lab_source = self.custom_holder_name # initial source of pos control sample
-            sample_lab_source = LabwareNames["CustomVialHolder"] # initial source of pos control sample
-            sample_lab_well = initial_pos
+            sample_lab_source = pos_2_str(LabwareNames["Pos_Ctr_Vial"], initial_pos) # initial source of pos control sample
+            sample_lab_well = 1 # labware only has 1 well
 
             # for i in range(self.n_pos_control_steps):
             for i in range(len(self.pos_control_dilution_data[k]["Assay buffer volume"])):
@@ -221,8 +220,7 @@ class DotblotMethod():
         for k in range(len(self.pos_control_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
 
             csv_number = 1 # to name generated files sequentially
-            # sample_lab_source = self.custom_holder_name # initial source of neg control sample
-            sample_lab_source = LabwareNames["8R Vial"] # initial source of neg control sample
+            sample_lab_source = pos_2_str(LabwareNames["8R_Vial neg_ctr"], 1) # initial source of neg control sample, pos fixed to 1 (left upper-most position)
             sample_lab_well = 1 # hard coded for now, so ALWAYS place negative control vial in first position (top left) of 8R holder
 
             for i in range(len(self.neg_control_dilution_data[k]["Assay buffer volume"])):

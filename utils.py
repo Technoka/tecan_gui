@@ -55,8 +55,10 @@ LabwareNames = {
     "DeepWell": "96 Deep Well 2ml[001]",
     "384_Well": "384 Well[001]",
     "2R Vial": "2R Vial holder[001]",
-    "8R Vial": "8R Vial holder[001]",
-    "CustomVialHolder": "Custom_vial_holder[001]",
+    "8R Vial": "8R_Vial",
+    "8R_Vial neg_ctr": "8R_Vial_neg_ctr", # dotblot negative control vial
+    # "CustomVialHolder": "30 Custom_vial_holder[001]",
+    "Pos_Ctr_Vial": "Pos_Ctr_Vial", # dotblot small positive control vial with orange cap
     "BlockingBuffer": "100ml_1",
     "DPBS": "100ml_2",
     "AssayBuffer": "100ml_3",
@@ -91,7 +93,6 @@ AvailableLabware = {
 LabwarePlates = ["DeepWell", 
                  "384_Well", 
                  "2R Vial", 
-                 "8R Vial",
                  "soloVPE cuvettes"]
 
 
