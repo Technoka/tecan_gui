@@ -544,6 +544,9 @@ class DotblotMethod():
         elif source_labware == "Coating protein":
             # LabSource = self.coat_prot_lw_name
             LabSource = LabwareNames["CoatingProtein"]
+        elif source_labware == "Coating protein 2":
+            # LabSource = self.coat_prot_lw_name
+            LabSource = LabwareNames["CoatingProtein_2"]
         elif source_labware == "Blocking buffer":
             # LabSource = self.blocking_buffer_lw_name
             LabSource = LabwareNames["BlockingBuffer"]
@@ -568,10 +571,8 @@ class DotblotMethod():
             if self.has_2_coatings == True and source_labware == "Coating protein":
 
                 coating_1_wells = self.pump_lw_well_pos["pos_ctr_pos"][0] + self.pump_lw_well_pos["neg_ctr_pos"][0] + flatten(self.pump_lw_well_pos["samples_pos"][0])
-                coating_2_wells = self.pump_lw_well_pos["pos_ctr_pos"][1] + self.pump_lw_well_pos["neg_ctr_pos"][1] + flatten(self.pump_lw_well_pos["samples_pos"][1])
                 logger.debug(f"coating 1 wells: {coating_1_wells}")
-                logger.debug(f"coating 2 wells: {coating_2_wells}")
-
+                
                 for well in coating_1_wells:
                     csv_data.append(
                     {
@@ -581,6 +582,11 @@ class DotblotMethod():
                         'DestWell': well,
                         'Volume': volume
                     })
+
+            elif self.has_2_coatings == True and source_labware == "Coating protein 2":
+                coating_2_wells = self.pump_lw_well_pos["pos_ctr_pos"][1] + self.pump_lw_well_pos["neg_ctr_pos"][1] + flatten(self.pump_lw_well_pos["samples_pos"][1])
+                logger.debug(f"coating 2 wells: {coating_2_wells}")
+
                 for well in coating_2_wells:
                     csv_data.append(
                     {
