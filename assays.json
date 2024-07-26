@@ -105,6 +105,41 @@
                     ]
             },
             {
+                "method": "Dotblot",
+                "product": "Test product",
+                "tmd": "No TMD.",
+                "title": "Test Method with really small waiting times for test purposes in Tecan. Has 2 coatings.",
+                "has_2_coating_proteins": "True",
+                "step_types": 
+                    [
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1},
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"},  
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"},  
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"}
+                    ]
+            },
+            {
                 "method": "FIPA",
                 "product": "CNTO4424",
                 "tmd": "TV-TMD-32376 v1.0",
