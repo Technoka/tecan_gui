@@ -801,6 +801,11 @@ class DotblotMethod():
         self.generate_config_file()
         logger.info("Config file generated.")
 
+        # make sure that if run has 2 coatings, it is present as a transfer step in the pump data (extracted from assays.json)
+        if self.has_2_coatings:
+            pump_data_coating_2 = [True if step["step_type"] == "Transfer volume to wells" and step["liquid_type"] == "Coating protein 2" else False for step in self.pump_steps_data]
+            assert True in pump_data_coating_2, "This Dotblot run has 2 coatings, so a transfer option in 'assays.json' with 'Coating protein 2' as liquid_type has to be present."
+
         self.pos_control_eppendorf_positions = self.positive_control_dilutions()
         self.pos_ctr_diluted_lw_name = [pos_2_str("Eppendorf", self.pos_control_eppendorf_positions[i]) for i in range(len(self.pos_control_eppendorf_positions))] # set position of positive ctr diluted sample
         print(f"pos dilutions done: {self.pos_control_eppendorf_positions}")
