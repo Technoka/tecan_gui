@@ -530,7 +530,7 @@ class DotblotMethod():
 
         Outputs
         ----------
-            CSV file containing instructions list for the pump transfer step.
+            GWL file containing instructions list for the pump transfer step.
         """
 
         csv_data = []
@@ -657,6 +657,15 @@ class DotblotMethod():
         # Generate CSV file
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".csv"
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
+
+        # Convert the file from CSV to GWL
+        output_path = f"{path.replace('.csv', '.gwl')}"
+
+        if _type in ["pos/neg", "Only samples"]:
+            convert_csv_to_gwl(path, output_path, reuse_tips=False)
+        else:
+            convert_csv_to_gwl(path, output_path, reuse_tips=True)
+
 
         print("transfer volume instruction ", csv_number, "done")
 
@@ -813,10 +822,10 @@ class DotblotMethod():
         logger.info("Dye and wash files generated.")
 
         # Call method in utils file
-        pattern = r"4\. Pump steps - Transfer (\d+)\.csv"
+        # pattern = r"4\. Pump steps - Transfer (\d+)\.csv"
         # pattern = self.pump_steps_csv_name + "Transfer (\d+)\.csv"
         
-        convert_all_csv_files_in_directory(self.csv_files_path, pattern) # to reuse tips
+        # convert_all_csv_files_in_directory(self.csv_files_path, pattern) # to reuse tips
         print("generated all GWL files")
         logger.info("All GWL files generated.")
 

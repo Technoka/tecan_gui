@@ -518,7 +518,7 @@ def flatten(matrix):
         return matrix
 
 
-def convert_csv_to_gwl(input_file_path, output_file_path, onetime_tip_change=False):
+def convert_csv_to_gwl(input_file_path:str, output_file_path:str, reuse_tips:bool = True, onetime_tip_change=False):
     """
     Converts all CSV files in the ``path`` directory to GWL.
 
@@ -529,6 +529,9 @@ def convert_csv_to_gwl(input_file_path, output_file_path, onetime_tip_change=Fal
 
     ``output_file_path``: str
         Path to the output file.
+        
+    ``reuse_tips``: bool
+        Decide if tips can be reused or are changed after each use.
 
     ``onetime_tip_change``: bool
         If True, the extra ``W`` commands will be removed so that only 8 are left, to ensure that all tips are used only once and then reused throughout the script.
@@ -627,10 +630,11 @@ def convert_csv_to_gwl(input_file_path, output_file_path, onetime_tip_change=Fal
         else:
             new_output_lines = output_lines
 
-        # Replace all "W;" with "F;" except the last "W;"
-        w_indices = [i for i, line in enumerate(new_output_lines) if line == "W;\n"]
-        for i in w_indices:  # Exclude the last "W;"
-            new_output_lines[i] = "F;\n"
+        # Replace all "W;" with "F;"
+        if reuse_tips == True:
+            w_indices = [i for i, line in enumerate(new_output_lines) if line == "W;\n"]
+            for i in w_indices:  # Exclude the last "W;"
+                new_output_lines[i] = "F;\n"
 
         # Write the lines to the output file
         output_file.writelines(new_output_lines)
