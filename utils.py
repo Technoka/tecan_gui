@@ -629,7 +629,7 @@ def convert_csv_to_gwl(input_file_path, output_file_path, onetime_tip_change=Fal
 
         # Replace all "W;" with "F;" except the last "W;"
         w_indices = [i for i, line in enumerate(new_output_lines) if line == "W;\n"]
-        for i in w_indices[:-1]:  # Exclude the last "W;"
+        for i in w_indices:  # Exclude the last "W;"
             new_output_lines[i] = "F;\n"
 
         # Write the lines to the output file
