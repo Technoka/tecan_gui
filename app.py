@@ -5,8 +5,6 @@
 import os
 from pandas import DataFrame
 import numpy as np
-import json
-import re
 
 from tkinter import messagebox
 from tkinter import filedialog
@@ -19,6 +17,7 @@ import helper.utils as utils # file with helper methods
 import helper.Dotblot as Dotblot
 import helper.nanoDSF as nanoDSF
 import helper.A280 as A280
+import helper.SEC_HPLC as SEC_HPLC
 import helper.GeneralDilution as GeneralDilution
 import helper.VolumeTransfer as VolumeTransfer
 
@@ -28,19 +27,21 @@ ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark
 
 paths = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\DotBlot Sample Prep' + "\\" +str(1) +'.csv'
 
-dotblot_dilution_excel_path = 'L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot automation dilution data.xlsx'
+dotblot_dilution_excel_path = 'L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot_automation_dilution_template_final.xlsx'
 general_dilution_excel_path = 'L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/General_dilution_template.xlsx'
 
 dotblot_method = Dotblot.DotblotMethod()
 nDSF_method = nanoDSF.nanoDSFMethod()
 a280_method = A280.A280Method()
+sec_hplc_method = SEC_HPLC.sec_HPLCMethod()
 general_dilution = GeneralDilution.GeneralDilution()
 vol_tr = VolumeTransfer.VolumeTransfer()
 
 
+
 # %%
 # read JSON assay file and generate methods and products lists
-RAW_ASSAYS_DATA, METHODS_LIST, PRODUCTS_DICT = utils.generate_methods_and_products("assays.json")
+RAW_ASSAYS_DATA, METHODS_LIST, PRODUCTS_DICT = utils.generate_methods_and_products("helper/assays.json")
 
 
 class App(ctk.CTk):
@@ -73,7 +74,7 @@ class App(ctk.CTk):
         self.sidebar_frame.grid_rowconfigure(4, weight=1)
         self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="Method Starter", font=ctk.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
-        self.export_csv_button = ctk.CTkButton(self.sidebar_frame, command=self.sidebar_button_event)
+        self.export_csv_button = ctk.CTkButton(self.sidebar_frame, command=self.generate_csv_button_event)
         self.export_csv_button.grid(row=1, column=0, padx=20, pady=10)
         self.appearance_mode_label = ctk.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
         self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(10, 0))
@@ -83,7 +84,7 @@ class App(ctk.CTk):
         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
         self.scaling_optionemenu = ctk.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
         self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
-        self.appearance_mode_label = ctk.CTkLabel(self.sidebar_frame, text="Tecan Interface v0.4", anchor="w", font=ctk.CTkFont(size=8))
+        self.appearance_mode_label = ctk.CTkLabel(self.sidebar_frame, text="Tecan Interface v0.4.5", anchor="w", font=ctk.CTkFont(size=8))
         self.appearance_mode_label.grid(row=9, column=0, padx=20, pady=(10, 0))
 
 
@@ -125,6 +126,8 @@ class App(ctk.CTk):
         self.chosen_tmd = tk.StringVar(value="---")
         self.chosen_title = tk.StringVar(value="---")
 
+        self.confirm_check_assay = tk.BooleanVar(value=False)
+
         self.n_samples = tk.IntVar()
         # self.labware_text = tk.StringVar(value="Import an Excel dilution file\nto see the labware needed\nfor each reagent.\n")
 
@@ -150,7 +153,7 @@ class App(ctk.CTk):
         self.text_blocking_buffer_vol = tk.StringVar(value="?, ? mL needed\n")
         self.vol_blocking_buffer = tk.DoubleVar()
 
-        self.check_dotblot = tk.BooleanVar(value=False)
+        # self.check_dotblot = tk.BooleanVar(value=False)
 
         self.REAGENTS_LABWARE_LIST = ["Falcon15", "Falcon50", "2R Vial", "8R Vial", "Eppendorf", "100mL reservoir"] # list with labware names where reagents can be placed
         self.SAMPLES_LABWARE_LIST = ["Falcon15", "Falcon50", "2R Vial", "8R Vial", "Eppendorf", "FakeFalcon15"] # list with labware names where samples can be placed
@@ -165,16 +168,25 @@ class App(ctk.CTk):
         # nanoDSF
         self.nDSF_n_samples = tk.IntVar(value=1)
         self.nDSF_lw_origin = tk.StringVar(value="---")
-        self.nDSF_volume = tk.IntVar(value=20)
+        self.nDSF_volume = tk.StringVar(value="20")
         self.nDSF_sample_triplicates = tk.StringVar(value="Single transfer")
-        self.check_nDSF = tk.BooleanVar(value=False)
+        # self.check_nDSF = tk.BooleanVar(value=False)
         
         # A280
         self.a280_n_samples = tk.IntVar(value=1)
         self.a280_lw_origin = tk.StringVar(value="---")
-        self.a280_concentration = tk.IntVar(value=100)
-        self.check_a280 = tk.BooleanVar(value=False)
+        self.a280_concentration = tk.StringVar(value="100")
+        # self.check_a280 = tk.BooleanVar(value=False)
+        
+        # SEC-HPLC
+        self.sec_HPLC_n_samples = tk.IntVar(value=1)
+        self.sec_HPLC_lw_origin = tk.StringVar(value="---")
+        self.sec_HPLC_initial_concentration = tk.StringVar(value="100")
+        self.sec_HPLC_lw_dest = tk.StringVar(value="---")
+        # self.check_sec_HPLC = tk.BooleanVar(value=False)
 
+
+# ========================================================================================================================000
 
         # Assay
         self.title_assay = ctk.CTkLabel(self.tabview.tab("Assay"), text="Assay", font=ctk.CTkFont(size=16, weight="bold"))
@@ -235,7 +247,7 @@ class App(ctk.CTk):
         self.label_1d.pack(padx=20, pady=(5, 1))
         self.gd_dil_dest = ctk.CTkOptionMenu(self.tabview.tab("General dilution"), dynamic_resizing=False, values=["Falcon15", "Falcon50", "2R Vial", "8R Vial", "Eppendorf"])
         self.gd_dil_dest.pack(padx=20, pady=(1, 10))
-        self._check_gd = ctk.CTkCheckBox(self.tabview.tab("General dilution"), text="Confirm", variable=self.check_gd)
+        self._check_gd = ctk.CTkCheckBox(self.tabview.tab("General dilution"), text="Confirm", variable=self.confirm_check_assay)
         self._check_gd.pack(padx=0, pady=(20, 10))
 
 
@@ -268,7 +280,7 @@ class App(ctk.CTk):
         self.label_1d.pack(pady=(5, 1))
         self.vt_dest = ctk.CTkOptionMenu(self.tabview.tab("Vol. transfer"), dynamic_resizing=False, values=["Falcon15", "Falcon50", "2R Vial", "8R Vial", "Eppendorf"])
         self.vt_dest.pack(pady=(1, 10))
-        self._check_vt = ctk.CTkCheckBox(self.tabview.tab("Vol. transfer"), text="Confirm", variable=self.check_vt)
+        self._check_vt = ctk.CTkCheckBox(self.tabview.tab("Vol. transfer"), text="Confirm", variable=self.confirm_check_assay)
         self._check_vt.pack(padx=0, pady=(20, 10))
 
 
@@ -306,7 +318,7 @@ class App(ctk.CTk):
             self.title_sample.pack(pady=(1, 6))
             self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Sample type:", width=120, height=25, corner_radius=8)
             self.label_1d.pack(padx=20, pady=(5, 1))
-            self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, values=self.SAMPLES_LABWARE_LIST)
+            self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, values=["Eppendorf", "Falcon15", "FakeFalcon15"])
             self.optionmenu_1.pack(padx=20, pady=(1, 10))
             self.label_slider2 = ctk.CTkLabel(self.assay_method_frame, text="Number of samples: 1", width=120, height=25,corner_radius=8)
             self.label_slider2.pack(padx=20, pady=(1, 1))
@@ -331,42 +343,42 @@ class App(ctk.CTk):
             self.separator.pack(fill='x', pady=(10, 10))
 
             # Labware of reagents
-            self.title_pos_control = ctk.CTkLabel(self.assay_method_frame, text="Labware of reagents", font=ctk.CTkFont(size=16, weight="bold"))
-            self.title_pos_control.pack(pady=(1, 6))
-            self.title_pump_steps = ctk.CTkLabel(self.assay_method_frame, text="Just visual, not \nimplemented in Tecan yet.\n")
-            self.title_pump_steps.pack(pady=(1, 3))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Samples:", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#b8335f")
-            self.label_1d.pack(padx=20, pady=(5, 1))
-            self.label_sample_volume = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_samples_vol, width=120, height=25, corner_radius=8)
-            self.label_sample_volume.pack(padx=20, pady=(5, 10))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Conjugate:", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#b85d33")
-            self.label_1d.pack(padx=20, pady=(5, 1))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_conjugate_vol, width=120, height=25, corner_radius=8)
-            self.label_1d.pack(padx=20, pady=(5, 10))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Coating protein", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#a2b833")
-            self.label_1d.pack(padx=20, pady=(5, 1))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_coating_protein_vol, width=120, height=25, corner_radius=8)
-            self.label_1d.pack(padx=20, pady=(5, 10))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="DPBS", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#33b87e")
-            self.label_1d.pack(padx=20, pady=(5, 1))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_dpbs_vol, width=120, height=25, corner_radius=8)
-            self.label_1d.pack(padx=20, pady=(5, 10))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Assay buffer", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#3350b8")
-            self.label_1d.pack(padx=20, pady=(5, 1))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_assay_buffer_vol, width=120, height=25, corner_radius=8)
-            self.label_1d.pack(padx=20, pady=(5, 10))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Blocking buffer", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#9033b8")
-            self.label_1d.pack(padx=20, pady=(5, 1))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_blocking_buffer_vol, width=120, height=25, corner_radius=8)
-            self.label_1d.pack(padx=20, pady=(5, 10))
-            self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
-            self.separator.pack(fill='x', pady=(10, 10))
+            # self.title_pos_control = ctk.CTkLabel(self.assay_method_frame, text="Labware of reagents", font=ctk.CTkFont(size=16, weight="bold"))
+            # self.title_pos_control.pack(pady=(1, 6))
+            # self.title_pump_steps = ctk.CTkLabel(self.assay_method_frame, text="Just visual, not \nimplemented in Tecan yet.\n")
+            # self.title_pump_steps.pack(pady=(1, 3))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Samples:", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#b8335f")
+            # self.label_1d.pack(padx=20, pady=(5, 1))
+            # self.label_sample_volume = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_samples_vol, width=120, height=25, corner_radius=8)
+            # self.label_sample_volume.pack(padx=20, pady=(5, 10))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Conjugate:", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#b85d33")
+            # self.label_1d.pack(padx=20, pady=(5, 1))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_conjugate_vol, width=120, height=25, corner_radius=8)
+            # self.label_1d.pack(padx=20, pady=(5, 10))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Coating protein", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#a2b833")
+            # self.label_1d.pack(padx=20, pady=(5, 1))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_coating_protein_vol, width=120, height=25, corner_radius=8)
+            # self.label_1d.pack(padx=20, pady=(5, 10))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="DPBS", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#33b87e")
+            # self.label_1d.pack(padx=20, pady=(5, 1))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_dpbs_vol, width=120, height=25, corner_radius=8)
+            # self.label_1d.pack(padx=20, pady=(5, 10))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Assay buffer", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#3350b8")
+            # self.label_1d.pack(padx=20, pady=(5, 1))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_assay_buffer_vol, width=120, height=25, corner_radius=8)
+            # self.label_1d.pack(padx=20, pady=(5, 10))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Blocking buffer", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#9033b8")
+            # self.label_1d.pack(padx=20, pady=(5, 1))
+            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_blocking_buffer_vol, width=120, height=25, corner_radius=8)
+            # self.label_1d.pack(padx=20, pady=(5, 10))
+            # self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
+            # self.separator.pack(fill='x', pady=(10, 10))
 
 
             # Confirm button
             self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
             self.separator.pack(fill='x', pady=(10, 10))
-            self._check_dotblot = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.check_dotblot)
+            self._check_dotblot = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.confirm_check_assay)
             self._check_dotblot.pack(padx=0, pady=(20, 10))
 
 
@@ -393,7 +405,7 @@ class App(ctk.CTk):
             # Confirm button
             self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
             self.separator.pack(fill='x', pady=(10, 10))
-            self._check_nDSF = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.check_nDSF)
+            self._check_nDSF = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.confirm_check_assay)
             self._check_nDSF.pack(padx=0, pady=(20, 10))
 
 
@@ -418,7 +430,35 @@ class App(ctk.CTk):
             # Confirm button
             self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
             self.separator.pack(fill='x', pady=(10, 10))
-            self._check_a280 = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.check_a280)
+            self._check_a280 = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.confirm_check_assay)
+            self._check_a280.pack(padx=0, pady=(20, 10))
+    
+        elif self.chosen_method.get() == "SEC-HPLC":
+
+            self.title_sample = ctk.CTkLabel(self.assay_method_frame, text="Configuration parameters", font=ctk.CTkFont(size=16, weight="bold"))
+            self.title_sample.pack(pady=(1, 6))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Sample origin:", width=120, height=25, corner_radius=8)
+            self.label_1d.pack(pady=(5, 1))
+            self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, variable=self.sec_HPLC_lw_origin, values=["Falcon15", "FakeFalcon15", "Eppendorf"])
+            self.optionmenu_1.pack(pady=(1, 10))
+            self.label_slider_sec_HPLC = ctk.CTkLabel(self.assay_method_frame, text="Number of samples: " + str(self.a280_n_samples.get()), width=120, height=25,corner_radius=8)
+            self.label_slider_sec_HPLC.pack(pady=(1, 1))
+            self.entry_slider2 = ctk.CTkSlider(self.assay_method_frame, from_=1, to=25, number_of_steps=24, command=self.sec_HPLC_sample_slider, variable=self.sec_HPLC_n_samples)
+            self.entry_slider2.set(1) # set initial value
+            self.entry_slider2.pack(pady=(1, 5))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Sample concentration (mg/mL):", width=120, height=25, corner_radius=8)
+            self.label_1d.pack(padx=20, pady=(5, 1))
+            self.volume = ctk.CTkEntry(self.assay_method_frame,placeholder_text="100", validate="all", validatecommand=(self.register(self.validate_input), "%P"), textvariable=self.sec_HPLC_initial_concentration)
+            self.volume.pack(pady=(1, 10))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Sample destination:", width=120, height=25, corner_radius=8)
+            self.label_1d.pack(pady=(5, 1))
+            self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, variable=self.sec_HPLC_lw_dest, values=["Falcon15", "FakeFalcon15", "Eppendorf"])
+            self.optionmenu_1.pack(pady=(1, 10))
+
+            # Confirm button
+            self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
+            self.separator.pack(fill='x', pady=(10, 10))
+            self._check_a280 = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.confirm_check_assay)
             self._check_a280.pack(padx=0, pady=(20, 10))
     
 
@@ -453,8 +493,15 @@ class App(ctk.CTk):
         self.label_assay_code.configure(text="Assay code: " + self.chosen_tmd.get())
         self.label_assay_title.configure(text=title_text)
 
+        self.confirm_check_assay.set(False) # uncheck confirm button
+        
+        # reset read excel data if present
+        if self.is_excel_imported:
+            self.tab_changed() # this method resets the middle frame
+
     
-    def assay_changed(self, event):
+    def assay_changed(self, event): # DEPRECATED
+
         # get index of TMD inside JSON file
         index = 0
         for _index, tmd in enumerate(RAW_ASSAYS_DATA["assays"]):
@@ -473,34 +520,37 @@ class App(ctk.CTk):
     def samples_slider(self, event):
         self.label_slider2.configure(text="Number of samples: " + str(int(self.entry_slider2.get())))
 
-        self.label_sample_volume.configure(text="Eppendorf, 1 mL per sample needed\n" + "n_samples: " + str(self.n_samples.get()))
+        # self.label_sample_volume.configure(text="Eppendorf, 1 mL per sample needed\n" + "n_samples: " + str(self.n_samples.get()))
 
         # update labware reagents calculations
         if self.is_excel_imported == False:
             return
 
-        dotblot_method.set_all_parameters(self)
-        dotblot_method.calculate_total_volumes()
+        # dotblot_method.set_all_parameters(self)
+        # dotblot_method.calculate_total_volumes()
         # dpbs_vol_needed = dotblot_method.total_volumes["DPBS"]
         # container = utils.find_best_container(dpbs_vol_needed)
         # self.vol_dpbs.set(dpbs_vol_needed)
         # self.text_dpbs_vol.set(container + ", " + str(dpbs_vol_needed) + " mL needed\n")
         
-        containers = utils.find_best_container(dotblot_method.total_volumes)
+        # containers = utils.find_best_container(dotblot_method.total_volumes)
         # print(containers)
         
         # self.vol_dpbs.set(dotblot_method.total_volumes["Samples"])
         # self.text_dpbs_vol.set(containers["Samples"] + ", " + int(self.vol_dpbs.get() + " mL needed\n") # samples
-        self.vol_conjugate.set(dotblot_method.total_volumes["Conjugate"])
-        self.text_conjugate_vol.set(containers["Conjugate"] + ", " + str(self.vol_conjugate.get()) + " mL needed\n") # conjugate
-        self.vol_coating_protein.set(dotblot_method.total_volumes["Coating protein"])
-        self.text_coating_protein_vol.set(containers["Coating protein"] + ", " + str(self.vol_coating_protein.get()) + " mL needed\n") # coating protein
-        self.vol_dpbs.set(dotblot_method.total_volumes["DPBS"])
-        self.text_dpbs_vol.set(containers["DPBS"] + ", " + str(self.vol_dpbs.get()) + " mL needed\n") # dpbs
-        self.vol_assay_buffer.set(dotblot_method.total_volumes["Assay buffer"])
-        self.text_assay_buffer_vol.set(containers["Assay buffer"] + ", " + str(self.vol_assay_buffer.get()) + " mL needed\n") # assay buffer
-        self.vol_blocking_buffer.set(dotblot_method.total_volumes["Blocking buffer"])
-        self.text_blocking_buffer_vol.set(containers["Blocking buffer"] + ", " + str(self.vol_blocking_buffer.get()) + " mL needed\n") # blocking buffer
+        # self.vol_conjugate.set(dotblot_method.total_volumes["Conjugate"])
+        # self.text_conjugate_vol.set(containers["Conjugate"] + ", " + str(self.vol_conjugate.get()) + " mL needed\n") # conjugate
+        # self.vol_coating_protein.set(dotblot_method.total_volumes["Coating protein"])
+        # self.text_coating_protein_vol.set(containers["Coating protein"] + ", " + str(self.vol_coating_protein.get()) + " mL needed\n") # coating protein
+        # self.vol_dpbs.set(dotblot_method.total_volumes["DPBS"])
+        # self.text_dpbs_vol.set(containers["DPBS"] + ", " + str(self.vol_dpbs.get()) + " mL needed\n") # dpbs
+        # self.vol_assay_buffer.set(dotblot_method.total_volumes["Assay buffer"])
+        # self.text_assay_buffer_vol.set(containers["Assay buffer"] + ", " + str(self.vol_assay_buffer.get()) + " mL needed\n") # assay buffer
+        # self.vol_blocking_buffer.set(dotblot_method.total_volumes["Blocking buffer"])
+        # self.text_blocking_buffer_vol.set(containers["Blocking buffer"] + ", " + str(self.vol_blocking_buffer.get()) + " mL needed\n") # blocking buffer
+
+    def sec_HPLC_sample_slider(self, event):
+        self.label_slider_sec_HPLC.configure(text="Number of samples: " + str(self.sec_HPLC_n_samples.get()))
 
     def a280_sample_slider(self, event):
         self.label_slider_a280.configure(text="Number of samples: " + str(self.a280_n_samples.get()))
@@ -546,7 +596,7 @@ class App(ctk.CTk):
 
         # if message is specified use that as text
         if custom_message is not None:
-            new_label = ctk.CTkLabel(self.warning_frame, text=custom_message)
+            new_label = ctk.CTkLabel(self.warning_frame, text=custom_message) # ignores code parameter
         else:
             new_label = ctk.CTkLabel(self.warning_frame, text=message_description[code])
 
@@ -555,7 +605,7 @@ class App(ctk.CTk):
         elif type == "error":
             new_label.configure(text_color="red")
         elif type == "info":
-            new_label.configure(text_color="blue")
+            new_label.configure(text_color="green")
 
         new_label.pack(pady=2)
         # add label with corresponding code
@@ -592,6 +642,8 @@ class App(ctk.CTk):
 
     # show relevant information depending on selected tab
     def tab_changed(self):
+        self.confirm_check_assay.set(False)
+
         # reset read excel data if present
         for widget in self.middle_frame.winfo_children(): # destroy all widgets present in frame
             widget.destroy()
@@ -742,7 +794,7 @@ class App(ctk.CTk):
                 for col, value in enumerate(value_list):
                     label = ctk.CTkLabel(self.middle_frame, text=round(float(value), 2))
                     label.grid(row=col+row_number, column=row, sticky="ew")
-            row_number = row_number + number_of_sample_dilutions
+            row_number = row_number + len(self.sample_dilution_data[0])
 
         # add coating protein data title
         # self.middle_frame_description_label = ctk.CTkLabel(self.middle_frame, text="Coating protein data", font=ctk.CTkFont(weight="bold"), corner_radius=8, fg_color="#23918e")
@@ -791,7 +843,7 @@ class App(ctk.CTk):
         self.add_label(5, "info")
 
         # self.labware_text = "" # remove inplace text
-        self.calculate_volumes()
+        # self.calculate_volumes()
 
 
     # select excel file from computer
@@ -867,14 +919,23 @@ class App(ctk.CTk):
             self.add_label(5, "info")
 
 
-    def sidebar_button_event(self):
-        if self.tabview.get() == "Assay":
-            if self.chosen_method.get() == "Dotblot" and self.check_dotblot.get() == True: # if DOTBLOT confirm check is pressed
-                if not self.is_excel_imported:
-                    self.add_label(4, "info")
-                    return
+    def generate_csv_button_event(self):
+        try:
+            if self.confirm_check_assay.get() == False:
+                self.add_label(1, "info")
+                return
+            
+            utils.new_log_file() # pass current time as a string to create the log file with that name
+            utils.logger.info(f"METHOD: {self.chosen_method.get()}")
+            utils.logger.info(f"PRODUCT: {self.chosen_product.get()}")
 
-                try:
+
+            if self.tabview.get() == "Assay":
+                if self.chosen_method.get() == "Dotblot": # if DOTBLOT confirm check is pressed
+                    if not self.is_excel_imported:
+                        self.add_label(4, "info")
+                        return
+                    
                     # self.set_pump_steps_parameters()
                     print("starting dotblot calculations...") if self.DEBUG else 0
 
@@ -891,56 +952,66 @@ class App(ctk.CTk):
     Positive control: " + str(pos_control_eppendorf_positions) + "\n\
     Negative control: " + str(neg_control_eppendorf_positions) + "\n\
     Samples: " + str(sample_eppendorf_positions) + "\n")
-                except Exception as e:
-                    self.add_label(3, "error")
-                    print(e)
-            
-            if self.chosen_method.get() == "nDSF" and self.check_nDSF.get() == True: # nanoDSF
-                # execute nDSF method
+                
 
-                nDSF_method.set_all_parameters(self)
-                nDSF_method.nanoDSF()
-                messagebox.showinfo("Information", "nanoDSF files generated correctly!") # A280
+                if self.chosen_method.get() == "nDSF": # nanoDSF
+                    # execute nDSF method
 
-            if self.chosen_method.get() == "A280" and self.check_a280.get() == True:
-                # execute a280 method
-
-                a280_method.set_all_parameters(self)
-                a280_method.a280()
-                messagebox.showinfo("Information", "A280 files generated correctly!")
+                    nDSF_method.set_all_parameters(self)
+                    nDSF_method.nanoDSF()
+                    messagebox.showinfo("Information", "nanoDSF files generated correctly!") # A280
 
 
+                if self.chosen_method.get() == "A280 (soloVPE)":
+                    # execute a280 method
 
-        elif self.tabview.get() == "General dilution" and self.check_gd.get() == 1: # if GENRAL DILUTION confirm check is pressed
-            if not self.is_excel_imported:
-                self.add_label(4, "info")
+                    a280_method.set_all_parameters(self)
+                    a280_method.a280()
+                    messagebox.showinfo("Information", "A280 files generated correctly!")
+                    
 
-            try:
+                if self.chosen_method.get() == "SEC-HPLC":
+                    # execute a280 method
+
+                    sec_hplc_method.set_all_parameters(self)
+                    sec_hplc_method.sec_HPLC()
+                    messagebox.showinfo("Information", "SEC-HPLC files generated correctly!")
+
+
+            elif self.tabview.get() == "General dilution": # if GENRAL DILUTION confirm check is pressed
+                if not self.is_excel_imported:
+                    self.add_label(4, "info")
+
                 general_dilution.set_all_parameters(self)
                 # print("parameters set")
                 # print(self.sample_dilution_data)
                 sample_dest_positions = general_dilution.general_dilution()
                 
                 messagebox.showinfo("Information", "CSV files generated correctly!\n\n\
-Final positions in " + str(self.gd_dil_dest.get()) + ":\n\
-" + str(sample_dest_positions) + "\n")
-            except Exception as e:
-                self.add_label(3, "error")
-                print(e)
-        elif self.tabview.get() == "Vol. transfer" and self.check_vt.get() == 1: # if VOLUME TRANSFER confirm check is pressed
-            try:
+    Final positions in " + str(self.gd_dil_dest.get()) + ":\n\
+    " + str(sample_dest_positions) + "\n")
+                
+
+            elif self.tabview.get() == "Vol. transfer": # if VOLUME TRANSFER confirm check is pressed
+                
                 vol_tr.set_all_parameters(self)
                 vt_dest_positions = vol_tr.volume_transfer()
                 # sample_dest_positions = "[debug test]"
                 
                 messagebox.showinfo("Information", "CSV files generated correctly!\n\n\
-Final positions in " + str(self.vt_dest.get()) + ":\n\
-" + str(vt_dest_positions) + "\n")
-            except Exception as e:
+    Final positions in " + str(self.vt_dest.get()) + ":\n\
+    " + str(vt_dest_positions) + "\n")
+            else:
+                self.add_label(1, "info")
+
+        except Exception as e:
+            # print(f"e is {e}, and the type is: {str(e)}")
+            if len(str(e)) == 0: # if exception has no message attached, show general error message
                 self.add_label(3, "error")
-                print(e)
-        else:
-            self.add_label(1, "info")
+            else:
+                self.add_label(1, "error",  custom_message= utils.divide_string_into_lines(str(e), 80))
+            print(e)
+            utils.logger.error("Method failed.", exc_info=True)
             
 
 # Run main loop
@@ -950,5 +1021,7 @@ if __name__ == "__main__":
     app.DEBUG = True
 
     app.mainloop()
+rt reload
+reload(utils)
 
 
