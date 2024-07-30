@@ -5,7 +5,7 @@
 
 import pandas as pd
 import numpy as np
-from utils import * # file with helper methods
+from helper.utils import * # file with helper methods
 
 
 class nanoDSFMethod():

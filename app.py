@@ -15,12 +15,12 @@ from tkinter import ttk
 # from PIL import Image, ImageTk
 import customtkinter as ctk
 
-import utils # file with helper methods
-import Dotblot
-import nanoDSF
-import A280
-import GeneralDilution
-import VolumeTransfer
+import helper.utils as utils # file with helper methods
+import helper.Dotblot as Dotblot
+import helper.nanoDSF as nanoDSF
+import helper.A280 as A280
+import helper.GeneralDilution as GeneralDilution
+import helper.VolumeTransfer as VolumeTransfer
 
 ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"

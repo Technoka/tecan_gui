@@ -5,7 +5,7 @@
 
 import pandas as pd
 import numpy as np
-import utils # file with helper methods
+import helper.utils as utils # file with helper methods
 
 
 class GeneralDilution():
