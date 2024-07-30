@@ -27,7 +27,7 @@ ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark
 
 paths = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\DotBlot Sample Prep' + "\\" +str(1) +'.csv'
 
-dotblot_dilution_excel_path = 'L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot_automation_dilution_template_final.xlsx'
+dotblot_dilution_excel_path = 'L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/DotBlot automation dilution data.xlsx'
 general_dilution_excel_path = 'L:/Departements/BTDS_AD/002_AFFS/Lab Automation/09. Tecan/06. DotBlot_automation_DPP/General_dilution_template.xlsx'
 
 dotblot_method = Dotblot.DotblotMethod()
@@ -36,8 +36,6 @@ a280_method = A280.A280Method()
 sec_hplc_method = SEC_HPLC.sec_HPLCMethod()
 general_dilution = GeneralDilution.GeneralDilution()
 vol_tr = VolumeTransfer.VolumeTransfer()
-
-
 
 # %%
 # read JSON assay file and generate methods and products lists
@@ -306,7 +304,7 @@ class App(ctk.CTk):
             self.separator.pack(fill='x')
             self.title_pos_control = ctk.CTkLabel(self.assay_method_frame, text="Dilutions file", font=ctk.CTkFont(size=16, weight="bold"))
             self.title_pos_control.pack(pady=(1, 6))
-            self.open_csv_dilution = ctk.CTkButton(self.assay_method_frame, text="Open and edit Excel", state="normal", command=lambda: os.startfile(dotblot_dilution_excel_path), fg_color="#2ca39b", hover_color="#1bb5ab")
+            self.open_csv_dilution = ctk.CTkButton(self.assay_method_frame, text="Open and edit Excel", state="normal", command=self.open_dotblot_excel_file, fg_color="#2ca39b", hover_color="#1bb5ab")
             self.open_csv_dilution.pack(padx=2, pady=(5, 5))
             self.import_csv_button = ctk.CTkButton(self.assay_method_frame, text="Import Excel", state="normal", command=self.import_excel_dotblot, fg_color="#288230", hover_color="#235e28")
             self.import_csv_button.pack(padx=2, pady=(5, 20))
@@ -471,6 +469,21 @@ class App(ctk.CTk):
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------- #
 
+    def open_dotblot_excel_file(self):
+        
+        initial_dir = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\06. DotBlot_automation_DPP"
+        
+        method_index = utils.get_assay_indices(RAW_ASSAYS_DATA,self.chosen_method.get(), self.chosen_product.get())[0]
+
+        # read correct excel depending if the method has 1 coating protein or 2
+        try:
+            if RAW_ASSAYS_DATA[method_index]["has_2_coating_proteins"] == "True":
+                file_path = initial_dir + r"\DotBlot automation dilution data - 2 coating.xlsx"
+        except:
+            file_path = initial_dir + r"\DotBlot automation dilution data.xlsx"
+
+        os.startfile(file_path)
+        
 
     def update_method(self, chosen_method):
         # Update the product options based on the selected method
@@ -1021,5 +1034,3 @@ if __name__ == "__main__":
     app.DEBUG = True
 
     app.mainloop()
-
-
