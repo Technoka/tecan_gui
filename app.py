@@ -1021,7 +1021,5 @@ if __name__ == "__main__":
     app.DEBUG = True
 
     app.mainloop()
-rt reload
-reload(utils)
 
 
