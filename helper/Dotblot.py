@@ -589,6 +589,20 @@ class DotblotMethod():
                         'Volume': volume
                     })
 
+                # make reagent distribution command, with all wells excluding the unused ones
+                # generate the GWL directly
+                path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
+                max_coating_1_well = np.max(coating_1_wells)
+                
+                complete_well_list = np.arange(1, max_coating_1_well + 1) # list with all wells from 1 to the max sample pos
+                excluded_pos = list(set(complete_well_list) - set(coating_1_wells)) # positions to exclude from pipetting in the reag. distrib. command
+                n_diti_reuses = 12
+                n_multi_dispense = 12
+
+                generate_reagent_distribution_gwl(path, LabwareNames["CoatingProtein"], dest_labware, 1, 1, 1, max_coating_1_well, volume, n_diti_reuses, n_multi_dispense, excluded_positions=excluded_pos)
+                
+                return
+
             elif self.has_2_coatings == True and source_labware == "Coating protein 2":
                 coating_2_wells = self.pump_lw_well_pos["pos_ctr_pos"][1] + self.pump_lw_well_pos["neg_ctr_pos"][1] + flatten(self.pump_lw_well_pos["samples_pos"][1])
                 logger.debug(f"coating 2 wells: {coating_2_wells}")
@@ -602,6 +616,20 @@ class DotblotMethod():
                         'DestWell': well,
                         'Volume': volume
                     })
+
+                # make reagent distribution command, with all wells excluding the unused ones
+                # generate the GWL directly
+                path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
+                max_coating_2_well = np.max(coating_2_wells)
+                
+                complete_well_list = np.arange(1, max_coating_2_well + 1) # list with all wells from 1 to the max sample pos
+                excluded_pos = list(set(complete_well_list) - set(coating_2_wells)) # positions to exclude from pipetting in the reag. distrib. command
+                n_diti_reuses = 12
+                n_multi_dispense = 12
+
+                generate_reagent_distribution_gwl(path, LabwareNames["CoatingProtein_2"], dest_labware, 1, 1, 1, max_coating_2_well, volume, n_diti_reuses, n_multi_dispense, excluded_positions=excluded_pos)
+                
+                return
 
 
             else: # if it has only 1 coating or step is not coating protein
@@ -755,43 +783,35 @@ class DotblotMethod():
         """
 
         # Dye part
-        csv_data = []
+        # csv_data = []
 
         # sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
         # all_wells = self.pump_lw_well_pos["pos_ctr_pos"] + self.pump_lw_well_pos["neg_ctr_pos"] + sample_wells # position of all wells to be used
-        all_wells = np.arange(1,97).tolist() # list from 1 to 96
+        # all_wells = np.arange(1,97).tolist() # list from 1 to 96
 
-        for well in all_wells:
-            csv_data.append(
-            {
-                'LabSource': LabwareNames["Dye"],
-                'SourceWell': 1,
-                'LabDest': self.pump_lw_name,
-                'DestWell': well,
-                'Volume': 100
-            }) 
+        # for well in all_wells:
+        #     csv_data.append(
+        #     {
+        #         'LabSource': LabwareNames["Dye"],
+        #         'SourceWell': 1,
+        #         'LabDest': self.pump_lw_name,
+        #         'DestWell': well,
+        #         'Volume': 100
+        #     }) 
 
+        # generate GWL files
+        dye_path = self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.gwl"
+        wash_path = self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.gwl"
+        n_diti_reuses = 12
+        n_multi_dispense = 12
+
+        # Dye
+        generate_reagent_distribution_gwl(dye_path, LabwareNames["Dye"], self.pump_lw_name, 1, 1, 1, 96, 100, n_diti_reuses, n_multi_dispense)
         
-        path = self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.csv"
-        pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
-        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.gwl") # generate gwl
-
-        # Wash with DPBS part
-        csv_data = []
-        for well in all_wells:
-            csv_data.append(
-            {
-                'LabSource': LabwareNames["DPBS"],
-                'SourceWell': 1,
-                'LabDest': self.pump_lw_name,
-                'DestWell': well,
-                'Volume': 200
-            }) 
-
+        # Wash
+        generate_reagent_distribution_gwl(wash_path, LabwareNames["DPBS"], self.pump_lw_name, 1, 1, 1, 96, 200, n_diti_reuses, n_multi_dispense)
         
-        path = self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.csv"
-        pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
-        convert_csv_to_gwl(path, self.csv_files_path + self.pump_steps_csv_name + "Transfer wash.gwl") # generate gwl
+        logger.info("Generated Dye and Wash GWL files.")
 
 
     def generate_config_file(self):
