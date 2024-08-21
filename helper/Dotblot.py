@@ -435,6 +435,10 @@ class DotblotMethod():
 
         self.pump_lw_well_pos =  final_pos
 
+        logger.debug(f"Pos. ctr. wells: {pos_ctr_pos}")
+        logger.debug(f"Neg. ctr. wells: {neg_ctr_pos}")
+        logger.debug(f"Sample wells: {sample_pos}")
+
         return final_pos
 
 
@@ -564,6 +568,7 @@ class DotblotMethod():
 
         # sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
         sample_wells = np.ndarray.flatten(np.array(self.pump_lw_well_pos["samples_pos"])).tolist()
+        max_sample_well = np.max(sample_wells)
 
         # print("sample wells:", sample_wells)
         all_wells = flatten(self.pump_lw_well_pos["pos_ctr_pos"]) + flatten(self.pump_lw_well_pos["neg_ctr_pos"]) + sample_wells # position of all wells to be used
@@ -600,15 +605,28 @@ class DotblotMethod():
 
 
             else: # if it has only 1 coating or step is not coating protein
-                for well in all_wells:
-                    csv_data.append(
-                    {
-                        'LabSource': LabSource,
-                        'SourceWell': SourceWell,
-                        'LabDest': dest_labware,
-                        'DestWell': well,
-                        'Volume': volume
-                    })
+                # for well in all_wells:
+                #     csv_data.append(
+                #     {
+                #         'LabSource': LabSource,
+                #         'SourceWell': SourceWell,
+                #         'LabDest': dest_labware,
+                #         'DestWell': well,
+                #         'Volume': volume
+                #     })
+
+                # make reagent distribution command, with all wells excluding the unused ones
+                # generate the GWL directly
+                path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
+                
+                complete_well_list = np.arange(1, max_sample_well + 1) # list with all wells from 1 to the max sample pos
+                excluded_pos = list(set(complete_well_list) - set(all_wells)) # positions to exclude from pipetting in the reag. distrib. command
+                n_diti_reuses = 12
+                n_multi_dispense = 12
+
+                generate_reagent_distribution_gwl(path, LabSource, dest_labware, 1, 1, 1, max_sample_well, volume, n_diti_reuses, n_multi_dispense, excluded_positions=excluded_pos)
+                
+                return
 
 
 
@@ -657,7 +675,6 @@ class DotblotMethod():
         elif _type == "reagent_distribution":
             # generate the GWL directly
             path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
-            max_sample_well = np.max(sample_wells)
             n_diti_reuses = 12
             n_multi_dispense = 12
 

@@ -694,9 +694,10 @@ def generate_reagent_distribution_gwl(output_file_path:str, source_lw:str, dest_
         r_command = f"R;{source_lw};;;{source_pos_start};{source_pos_end};{dest_lw};;;{dest_pos_start};{dest_pos_end};{volume};;{n_diti_reuses};{n_multi_dispenses};0;"
 
         # If there are some excluded positions, add them at the end
-        if len(excluded_positions) > 0:
-            for excluded_pos in excluded_positions:
-                r_command = r_command + f"{excluded_pos};"
+        if isinstance(excluded_positions, list):
+            if len(excluded_positions) > 0:
+                for excluded_pos in sorted(excluded_positions):
+                    r_command = r_command + f"{excluded_pos};"
         
         r_command = r_command + "\n"
 
