@@ -819,15 +819,28 @@ class DotblotMethod():
         Generates the config file for the current run.
         """
 
-        config_parameters = {"has_2_coatings": str(self.has_2_coatings)}
+        # If there are repeated keys in the dictionary, the last one and its value is the dominant one !!!
+
+        config_parameters = {"has_2_coatings": str(True),
+                            "DPBS": LabwareNames["DPBS"],
+                            "Coating protein": LabwareNames["CoatingProtein"],
+                            "Blocking buffer": LabwareNames["BlockingBuffer"],
+                            "Assay buffer": LabwareNames["AssayBuffer"],
+                            "Pos. control": str(self.pos_control_vial_posX) + ", " + str(self.pos_control_vial_posY),
+                            "Neg. control": "A, 1",
+                            "Samples": self.main_sample_labware_type,
+                            "Conjugate": LabwareNames["Conjugate"],
+                            "Coating protein 2": LabwareNames["CoatingProtein_2"],
+                            "Dye": LabwareNames["Dye"]
+                     }
 
         with open(self.csv_files_path + self.config_file_name, 'w') as file:
             # Write the keys
-            keys = ";".join(config_parameters.keys())
+            keys = "; ".join(config_parameters.keys())
             file.write(keys + ";\n")
             
             # Write the values
-            values = ";".join(map(str, config_parameters.values()))
+            values = "; ".join(map(str, config_parameters.values()))
             file.write(values + ";\n")
 
 
