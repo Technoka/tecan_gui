@@ -539,8 +539,9 @@ class DotblotMethod():
         _type = "All wells" # to decide where to transfer the volume to.
 
         # Define labware source name as in Tecan worktable
-        if source_labware == "DPBS": #  pos neg conjugate
+        if source_labware == "DPBS": # DPBS
             LabSource = LabwareNames["DPBS"]
+            _type = "reagent_distribution" # to skip the CSV and generate the GWL directly with the reagent distribution command
         elif source_labware == "Coating protein":
             # LabSource = self.coat_prot_lw_name
             LabSource = LabwareNames["CoatingProtein"]
@@ -653,6 +654,18 @@ class DotblotMethod():
                         'Volume': volume
                     })
 
+        elif _type == "reagent_distribution":
+            # generate the GWL directly
+            path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
+            max_sample_well = np.max(sample_wells)
+            n_diti_reuses = 12
+            n_multi_dispense = 12
+
+            generate_reagent_distribution_gwl(path, LabSource, dest_labware, 1, 1, 1, max_sample_well, volume, n_diti_reuses, n_multi_dispense)
+            print("transfer volume instruction ", csv_number, "done")
+
+            return
+        
         # print("before csv generating")
         # Generate CSV file
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".csv"

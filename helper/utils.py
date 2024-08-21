@@ -640,76 +640,68 @@ def convert_csv_to_gwl(input_file_path:str, output_file_path:str, reuse_tips:boo
         output_file.writelines(new_output_lines)
 
 
-def generate_complete_96_well_gwl(input_file_path, output_file_path):
+def generate_reagent_distribution_gwl(output_file_path:str, source_lw:str, dest_lw:str, source_pos_start:int, source_pos_end:int, dest_pos_start:int, dest_pos_end:int, volume:int, n_diti_reuses:int, n_multi_dispenses:int, excluded_positions:list[int]=[]):
     """
-    Converts all CSV files in the ``path`` directory to GWL.
+    Generates a GWL file with a reagent distribution command with the specified parameters.
 
     Parameters
     ----------
-    ``input_file_path``: str
-        Path to the input file.
-
     ``output_file_path``: str
         Path to the output file.
 
-    ``onetime_tip_change``: bool
-        If True, the extra ``W`` commands will be removed so that only 8 are left, to ensure that all tips are used only once and then reused throughout the script.
+    ``source_lw``: str
+        Labware source name as in Tecan worktable.
 
+    ``dest_lw``: str
+        Labware destination name as in Tecan worktable.
+
+    ``source_pos_start``: int
+        Start well position of source labware.
+
+    ``source_pos_end``: int
+        Start well position of source labware.
+
+    ``dest_pos_start``: int
+        Start well position of destination labware.
+
+    ``dest_pos_end``: int
+        End well position of destination labware.
+
+    ``volume``: int
+        Volume to transfer to destination wells. Same for all wells.
+
+    ``n_diti_reuses``: int
+        Maximum number of DiTi reuses allowed (1 for no reuse).
+
+    ``n_multi_dispenses``: int
+        Mmaximum number of dispenses in a multi-dispense sequence (1 for no multi-dispense).
+
+    ``excluded_positions``: list[int]
+        Optional list of wells in destination labware to be excluded from pipetting.
+        
     Example
     --------
-    Input: ``3. Pump steps - Transfer 4.csv:``
-    >>> Falcon15[001],1,dotblot_appr_standalone,1,100
-        Falcon15[001],1,dotblot_appr_standalone,9,100
+    generate_reagent_distribution_gwl("test.gwl", "100ml_1", "dotblot_apparatus", 1, 1, 1, 24, 100, 12, 12)
 
-    Output: ``3. Pump steps - Transfer 4.gwl:``
-    >>> A;Falcon15[001];;;1;;100;;;;
-        D;dotblot_appr_standalone;;;1;;100;;;;
-        F;
+    >>> Output: ``R;100ml_1;;;1;1;dotblot_apparatus;;;1;24;100;;12;12;0;``
     """
-    
-    NUMBER_OF_PARTS = 5 # number of parts per instruction line in the csv file
+
 
     # Open the input file in read mode and output file in write mode
-    with open(input_file_path, 'r') as input_file, open(output_file_path, 'w') as output_file:
-        # Read all lines from the input file
-        lines = input_file.readlines()
-
-        assert len(lines) % 8 == 0 # make sure csv file is a multiple of 8 so that all tips can be used
-        well_positions = [[i for i in range(row, 97, 8)] for row in range(1, 9)] # generate list of lists where each element are the positions in deep well for each tip
-
-        output_lines = []
+    with open(output_file_path, 'w') as output_file:
         
-        for row in well_positions:
-            well = get_deep_well_pos()
-            # Extract the values
-            lw_origin = "lw_origin"
-            lw_origin_well = 1
-            lw_dest = "dotblot_appr_standalone"
-            lw_dest_well = well
-            volume = 125
+        # Create the line for the output
+        r_command = f"R;{source_lw};;;{source_pos_start};{source_pos_end};{dest_lw};;;{dest_pos_start};{dest_pos_end};{volume};;{n_diti_reuses};{n_multi_dispenses};0;"
 
-            tip_capacity = 900 # tip capacity
-            n_aspirates = tip_capacity // volume
-            
-            # Create the three lines for the output
-            a_line = f"A;{lw_origin};;;{lw_origin_well};;{volume * n_aspirates};;;;\n"
-            output_lines.append(a_line)
-            
-            d_line = f"D;{lw_dest};;;{lw_dest_well};;{volume};;;;\n"
-            w_line = "F;\n" # use F to flush tip remaining contents instead of changing tip, which is actually better for each round
-            
-            # Append the lines to the output lines list
-            for i in range(n_aspirates):
-                output_lines.append(d_line)
-            output_lines.append(w_line)
-    
-        # Replace all "W;" with "F;" except the last "W;"
-        w_indices = [i for i, line in enumerate(output_lines) if line == "W;\n"]
-        for i in w_indices[:-1]:  # Exclude the last "W;"
-            output_lines[i] = "F;\n"
+        # If there are some excluded positions, add them at the end
+        if len(excluded_positions) > 0:
+            for excluded_pos in excluded_positions:
+                r_command = r_command + f"{excluded_pos};"
+        
+        r_command = r_command + "\n"
 
-    # Write the lines to the output file
-    output_file.writelines(output_lines)
+        # Write the lines to the output file
+        output_file.writelines(r_command)
 
 
 def convert_all_csv_files_in_directory(path: str, pattern: str):
