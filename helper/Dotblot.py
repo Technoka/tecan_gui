@@ -123,9 +123,9 @@ class DotblotMethod():
         if the destination labware is the same, new tubes are used.
         """
 
-        if self.sample_lw_origin in LabwareNames:
+        if self.main_sample_labware_type in LabwareNames:
             for i in range(0, self.n_samples):
-                self.next_labware_pos(LabwareNames[self.sample_lw_origin])
+                self.next_labware_pos(LabwareNames[self.main_sample_labware_type])
   
 
 
@@ -593,7 +593,7 @@ class DotblotMethod():
         # Define labware source name as in Tecan worktable
         if source_labware == "DPBS": # DPBS
             LabSource = LabwareNames["DPBS"]
-            _type = "reagent_distribution" # to skip the CSV and generate the GWL directly with the reagent distribution command
+            # _type = "reagent_distribution" # to skip the CSV and generate the GWL directly with the reagent distribution command
         elif source_labware == "Coating protein":
             # LabSource = self.coat_prot_lw_name
             LabSource = LabwareNames["CoatingProtein"]
@@ -616,6 +616,7 @@ class DotblotMethod():
 
         # sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
         sample_wells = np.ndarray.flatten(np.array(self.pump_lw_well_pos["samples_pos"])).tolist()
+        min_sample_well = np.min(sample_wells)
         max_sample_well = np.max(sample_wells)
 
         # print("sample wells:", sample_wells)
@@ -722,6 +723,22 @@ class DotblotMethod():
                             'Volume': 100
                         })
 
+            # make reagent distribution command, with all wells excluding the unused ones
+            # generate the GWL directly
+            # path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
+            
+            # complete_well_list = np.arange(1, max_sample_well + 1) # list with all wells from 1 to the max sample pos
+            # excluded_pos = list(set(complete_well_list) - set(sample_wells)) # positions to exclude from pipetting in the reag. distrib. command
+            # n_diti_reuses = 1 # no reuse
+            # n_multi_dispense = 3
+            # sample_direction = 0 # top to down
+            # replicate_direction = 1 # left to right
+
+            # generate_sample_transfer_gwl(path, LabSource, dest_labware, self.sample_eppendorf_positions[0][0], self.sample_eppendorf_positions[-1][-1], min_sample_well, max_sample_well, volume, n_diti_reuses, n_multi_dispense, self.n_samples_main_dilution, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+            
+            # return
+        
+
         elif _type == "pos/neg":
             for j, sample_group in enumerate(self.pos_control_eppendorf_positions):
                 LabSource, SourceWell = dilution_position_def("Eppendorf", sample_group[0], len(sample_group))
@@ -748,7 +765,7 @@ class DotblotMethod():
                         'Volume': volume
                     })
 
-        elif _type == "reagent_distribution":
+        elif _type == "reagent_distribution": # right now only DPBS used this
             # generate the GWL directly
             path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
             n_diti_reuses = 12
