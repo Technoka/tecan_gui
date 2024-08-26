@@ -114,7 +114,7 @@ LABWARE_VOLUMES = {
 # Define the values for each category
 # dead volume values in uL, max volume value in mL
 data = {
-    "Eppendorf": [np.nan, 25, np.nan, 1.5], # 10uL, 200uL, 1000uL, labware_max_volume
+    "Eppendorf": [np.nan, 25, 50, 1.5], # 10uL, 200uL, 1000uL, labware_max_volume
     "Falcon15": [np.nan, 600, 35, 15],
     "100mL_reservoir": [np.nan, np.nan, 2000, 100]
 }
