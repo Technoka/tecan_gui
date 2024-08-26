@@ -22,6 +22,8 @@ class DotblotMethod():
         self.last_eppendorf_pos = 1 # position of the last Eppendorf tube used. Useful so that methods don't use same tube twice.
         self.last_deep_well_pos = 1 # position of the last Deep well position used. Useful so that methods don't use same well twice.
 
+        self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions 
+
         self.has_2_coatings = False # if method has 2 coating proteins, then all dilutions are doubled (1 for each) and process is more difficult
 
         # CSV file names
@@ -87,6 +89,44 @@ class DotblotMethod():
 
         # Total volumes needed for the method
         self.total_volumes = {}
+
+
+    def next_labware_pos(self, labware_name:str):
+        """
+        Adds one to the last labware position to keep track of already used ones. 
+
+        Parameters
+        ----------
+        ``labware_name`` : str
+            Labware name as in TECAN Fluent worktable.
+
+        Returns
+        ----------
+        ``curr_pos``: int
+            Current position number.
+        """
+
+        try:
+            if labware_name in LabwareNames:
+                    if (self.used_labware_pos[labware_name] + 1 <= AvailableLabware[labware_name]): # if max pos has not been reached
+                        self.used_labware_pos[labware_name] = self.used_labware_pos[labware_name] + 1
+                        return self.used_labware_pos[labware_name] # return current one before adding an unit
+            else:
+                return -1
+        except Exception as e:
+            return -1
+        
+
+    def count_starting_lw_pos(self):
+        """
+        Counts the positions of the sample origin labware, so that
+        if the destination labware is the same, new tubes are used.
+        """
+
+        if self.sample_lw_origin in LabwareNames:
+            for i in range(0, self.n_samples):
+                self.next_labware_pos(LabwareNames[self.sample_lw_origin])
+  
 
 
     def next_eppendorf_pos(self):
@@ -159,12 +199,16 @@ class DotblotMethod():
                 csv_data_buffer = [] # list to store CSV data
 
                 if i + 1 == len(self.pos_control_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
-                    eppendorf_positions.append(self.last_eppendorf_pos)
+                    # eppendorf_positions.append(self.last_eppendorf_pos)
+                    eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
+                    
                     # LabDest, DestWell = self.dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
-                    LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
+                    # LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
+                    LabDest, DestWell = dilution_position_def("Eppendorf", self.next_labware_pos("Eppendorf"), 1) # define destination labware as eppendorf
+                    
                 else:
                     # LabDest, DestWell = self.dilution_position_def("Deep Well", self.next_deep_well_pos(), 1) # define destination labware as deep well
-                    LabDest, DestWell = dilution_position_def("DeepWell", self.next_deep_well_pos(), 1) # define destination labware as deep well
+                    LabDest, DestWell = dilution_position_def("DeepWell", self.next_labware_pos("DeepWell"), 1) # define destination labware as deep well
 
                 csv_data_sample.append( # move pos control to dest well
                 {
@@ -228,10 +272,12 @@ class DotblotMethod():
                 csv_data_buffer = [] # list to store CSV data
 
                 if i + 1 == len(self.neg_control_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
-                    eppendorf_positions.append(self.last_eppendorf_pos)
-                    LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
+                    eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
+                    # LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
+                    LabDest, DestWell = dilution_position_def("Eppendorf", self.next_labware_pos("Eppendorf"), 1) # define destination labware as eppendorf
+                    
                 else:
-                    LabDest, DestWell = dilution_position_def("DeepWell", self.next_deep_well_pos(), 1) # define destination labware as deep well
+                    LabDest, DestWell = dilution_position_def("DeepWell", self.next_labware_pos("DeepWell"), 1) # define destination labware as deep well
 
                 csv_data_sample.append( # move pos control to dest well
                 {
@@ -291,13 +337,14 @@ class DotblotMethod():
         initial_sample_positions = []
         for i in range(1, self.n_samples_main_dilution + 1):
             if self.main_sample_labware_type == "Eppendorf":
-                initial_sample_positions.append(self.next_eppendorf_pos())                
+                # initial_sample_positions.append(self.next_eppendorf_pos())
+                initial_sample_positions.append(self.next_labware_pos("Eppendorf"))                
         
         for k in range(len(self.sample_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
             csv_number = 0 # to name generated files sequentially
             csv_data_init = []
 
-            LabDest, DestWell = dilution_position_def(self.main_sample_dil_destination, self.last_deep_well_pos, self.n_samples_main_dilution)
+            LabDest, DestWell = dilution_position_def(self.main_sample_dil_destination, self.used_labware_pos["DeepWell"], self.n_samples_main_dilution)
 
             # Initial transfer of sample to deep wells, so that smaller tips can reach
             for j in range(1, self.n_samples_main_dilution + 1):
@@ -316,7 +363,7 @@ class DotblotMethod():
                     'Volume': float(self.samples_initial_volume_transfer)
                 }
                 )
-                self.next_deep_well_pos() # to keep the position updated
+                self.next_labware_pos("DeepWell") # to keep the position updated
                 
             path = self.csv_files_path + self.sample_dilutions_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
             pd.DataFrame(csv_data_init).to_csv(path, index=False, header=False)
@@ -331,9 +378,9 @@ class DotblotMethod():
                 LabSource, SourceWell = LabDest, DestWell # source of next step is destination of previous one
 
                 if i + 1 == len(self.sample_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
-                    LabDest, DestWell = dilution_position_def("Eppendorf", self.last_eppendorf_pos, (self.n_samples_main_dilution * (i+1) + 1))
+                    LabDest, DestWell = dilution_position_def("Eppendorf", self.used_labware_pos["Eppendorf"], (self.n_samples_main_dilution * (i+1) + 1))
                 else:
-                    LabDest, DestWell = dilution_position_def("DeepWell", self.last_deep_well_pos, (self.n_samples_main_dilution * (i+1) + 1))
+                    LabDest, DestWell = dilution_position_def("DeepWell", self.used_labware_pos["DeepWell"], (self.n_samples_main_dilution * (i+1) + 1))
 
                 for j in range(self.n_samples_main_dilution):
                     csv_data_sample.append(
@@ -356,10 +403,11 @@ class DotblotMethod():
                     }
                     )
                     if i + 1 == len(self.sample_dilution_data[k]["Assay buffer volume"]): # if this is the last dilution step
-                        eppendorf_positions.append(self.last_eppendorf_pos)
-                        self.next_eppendorf_pos()
+                        eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
+                        # self.next_eppendorf_pos()
+                        self.next_labware_pos("Eppendorf")
                     else:
-                        self.next_deep_well_pos()
+                        self.next_labware_pos("DeepWell")
 
                 path = self.csv_files_path + self.sample_dilutions_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
                 pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
@@ -863,6 +911,9 @@ class DotblotMethod():
         logger.info("Starting Dotblot method calculations")
         self.generate_config_file()
         logger.info("Config file generated.")
+        
+        self.next_labware_pos("Eppendorf") # we call this once at the start because the dict begins at 0, and the coded positions assume the number is 1
+        self.next_labware_pos("DeepWell") # we call this once at the start because the dict begins at 0, and the coded positions assume the number is 1
 
         # make sure that if run has 2 coatings, it is present as a transfer step in the pump data (extracted from assays.json)
         if self.has_2_coatings:
@@ -915,6 +966,8 @@ class DotblotMethod():
         # Reset parameters
         self.last_eppendorf_pos = 1
         self.last_deep_well_pos = 1
+
+        self.count_starting_lw_pos()
 
         # General
         self.sample_dilution_data = external.sample_dilution_data
