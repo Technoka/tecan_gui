@@ -83,11 +83,16 @@ class A280Method():
         buffer_volume_per_sample = 375 # uL
 
         buffer_total_volume = buffer_volume_per_sample * self.n_samples
+        print("buffer total volume", buffer_total_volume)
         # calculate buffer labware depending in the volume used
 
         # buffer_lw, buffer_pos = dilution_position_def("Eppendorf", self.next_labware_pos("Eppendorf"), 1) # buffer is placed in Eppendorf tube
-        buffer_lw, buffer_pos = dilution_position_def(find_best_container(buffer_total_volume/1000), self.next_labware_pos(find_best_container(buffer_total_volume)), 1) # buffer is placed in Eppendorf tube
+        initial_pos = self.next_labware_pos(find_best_container(buffer_total_volume/1000))
+        print("initial pos:", initial_pos)
+        buffer_lw, buffer_pos = dilution_position_def(find_best_container(buffer_total_volume/1000), initial_pos, 1) # buffer is placed in Eppendorf tube
         self.buffer_lw_pos = (buffer_lw, buffer_pos)
+
+        print(f"buffer_lw and pos: {buffer_lw}, {buffer_pos}")
 
         LabSource, SourceWell = dilution_position_def(self.sample_lw_origin, 1, self.n_samples) # samples are always placed in positions 1..n_samples
         LabDest, DestWell = dilution_position_def("Eppendorf", self.used_labware_pos["Eppendorf"] + 1, self.n_samples)
@@ -105,7 +110,7 @@ class A280Method():
             
             csv_data_buffer.append(
             {
-                'LabSource': buffer_lw[0], # index 0 because
+                'LabSource': buffer_lw[0],
                 'SourceWell': buffer_pos[0],
                 'LabDest': LabDest[j],
                 'DestWell':  DestWell[j],
