@@ -100,7 +100,7 @@ LabwarePlates = ["DeepWell",
 # labware name: dead_volume, max_volume (in mL)
 LABWARE_VOLUMES = {
 # #             dead vol, max_vol
-    "Eppendorf": [0.035, 1.5],
+    "Eppendorf": [0.05, 1.5],
     "Falcon15": [0.6, 15],
     # "Falcon50": [5, 50],
     # "2R Vial": [0.1, 2],
