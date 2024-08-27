@@ -850,12 +850,11 @@ class DotblotMethod():
                     total_volume["DPBS"]+= (ctr_wells + n_sample_wells) * int(step["volume_amount"]) / 1000
 
         # round values
-        total_volume = {key: round(value, 2) for key, value in total_volume.items()}
+        total_volume = {key: round(value, 1) for key, value in total_volume.items()}
 
         self.total_volumes = total_volume
 
-        print("total_volumes:", total_volume)
-        logger.debug(f"Total volumes: {total_volume}")
+        # print("total_volumes:", total_volume)
 
 
     def generate_dye_and_wash_files(self):
@@ -949,6 +948,7 @@ class DotblotMethod():
         self.next_labware_pos("DeepWell") # we call this once at the start because the dict begins at 0, and the coded positions assume the number is 1
 
         self.calculate_total_volumes()
+        logger.debug(f"Total volumes: {self.total_volumes}")
 
         # make sure that if run has 2 coatings, it is present as a transfer step in the pump data (extracted from assays.json)
         if self.has_2_coatings:
@@ -1031,9 +1031,9 @@ class DotblotMethod():
         self.pump_steps_data = external.pump_steps_data
 
         # Labware of reagents
-        self.coat_prot_lw_name = "def_coat_prot" # Coating protein labware
-        self.blocking_buffer_lw_name = "def_blocking" # Blocking Buffer labware
-        self.pos_ctr_diluted_lw_name = "def_pos_ctr" # Positive control labware
-        self.neg_ctr_diluted_lw_name = "def_neg_ctr" # Negative control labware
-        self.conjugate_lw_name = "def_conjugate" # Conjugate labware
-        self.dpbs_lw_name = "def_dpbs" # DPBS labware
+        # self.coat_prot_lw_name = "def_coat_prot" # Coating protein labware
+        # self.blocking_buffer_lw_name = "def_blocking" # Blocking Buffer labware
+        # self.pos_ctr_diluted_lw_name = "def_pos_ctr" # Positive control labware
+        # self.neg_ctr_diluted_lw_name = "def_neg_ctr" # Negative control labware
+        # self.conjugate_lw_name = "def_conjugate" # Conjugate labware
+        # self.dpbs_lw_name = "def_dpbs" # DPBS labware
