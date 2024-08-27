@@ -90,6 +90,8 @@ class DotblotMethod():
         # Total volumes needed for the method
         self.total_volumes = {}
 
+        self.dye_volume_per_well = 100 # in uL
+
 
     def next_labware_pos(self, labware_name:str):
         """
@@ -124,7 +126,7 @@ class DotblotMethod():
         """
 
         if self.main_sample_labware_type in LabwareNames:
-            for i in range(0, self.n_samples):
+            for i in range(0, self.n_samples_main_dilution):
                 self.next_labware_pos(LabwareNames[self.main_sample_labware_type])
   
 
@@ -795,51 +797,65 @@ class DotblotMethod():
 
     def calculate_total_volumes(self):
         """
-        Calculates the total volumes needed for each reagent.
-
-        TODO 
-        ---
-        mk
+        Calculates the total volume needed for each reagent.
+        
+        Returns
+        ----------
+            Dictionary with the calculated volumes.
         """
 
         # empty dictionary that will contain keys for total
         total_volume = {}
+        ctr_wells = 2 * 3 * (1 + int(self.has_2_coatings)) # total number of wells for positive and negative controls
+        n_sample_wells = self.n_samples_main_dilution * 3 * (1 + int(self.has_2_coatings)) # total number of wells used for samples
+
 
         for step in self.pump_steps_data:
             if step["step_type"] == "Transfer volume to wells":
                 if step["liquid_type"] not in total_volume:
                     total_volume[step["liquid_type"]] = 0 # create key
                 
-                total_volume[step["liquid_type"]] = total_volume[step["liquid_type"]] + float(step["volume_amount"])/1000 # because volume amount is in uL and we want it in mL
+                total_volume[step["liquid_type"]] += float(step["volume_amount"])/1000 # because volume amount is in uL and we want it in mL
 
-        # del(total_volume["Pos/Neg control"]) # remove this key because it is not needed
-        total_volume["Pos_ctr"] = total_volume.pop("Pos/Neg control") # change name of key
-        total_volume["Neg_ctr"] = total_volume["Pos_ctr"] # copy the value into a new key
+        # remove this key because it is not needed
+        total_volume.pop("Samples")
+        total_volume.pop("Pos/Neg control")
 
         # multiply by number of samples
         for key in total_volume:
-            total_volume[key] *= self.n_samples_main_dilution
-            total_volume[key] *= 3 # because each sample is triplicated (placed in 3 wells)
-            total_volume[key] = round(total_volume[key], 2)
+            total_volume[key] *= n_sample_wells
+            total_volume[key] = total_volume[key]
 
-        # print("sample vol:", self.pos_control_dilution_data["Sample volume"])
-        # pos_ctr_sample_vol = round(self.pos_control_dilution_data["Sample volume"].sum(), 1)
-        # neg_ctr_sample_vol = round(self.neg_control_dilution_data["Sample volume"].sum(), 1)
-        # buffer_vol = round(self.pos_control_dilution_data, ["Assay buffer volume"].sum(), 2) + round(self.neg_control_dilution_data["Assay buffer volume"].sum(), 2)
-        pos_ctr_sample_vol = round(sum(self.pos_control_dilution_data[0]["Sample volume"]), 1)
-        neg_ctr_sample_vol = round(sum(self.neg_control_dilution_data[0]["Sample volume"]), 1)
-        # print("type:", type(sum(self.pos_control_dilution_data, ["Assay buffer volume"]), 2))
-        buffer_vol = round(sum(self.pos_control_dilution_data[0]["Assay buffer volume"]), 2) + round(sum(self.neg_control_dilution_data[0]["Assay buffer volume"]), 2) + round(sum(self.sample_dilution_data[0]["Assay buffer volume"] * self.n_samples_main_dilution), 2)
-        
-        total_volume["Pos_ctr"] = total_volume["Pos_ctr"] + pos_ctr_sample_vol
-        total_volume["Neg_ctr"] = total_volume["Neg_ctr"] + neg_ctr_sample_vol
-        
+        assay_buffer_vol = 0
+        for k, sample_group in enumerate(self.sample_dilution_data):
+            assay_buffer_vol += sum(self.pos_control_dilution_data[k]["Assay buffer volume"]) + sum(self.neg_control_dilution_data[k]["Assay buffer volume"]) + sum(self.sample_dilution_data[k]["Assay buffer volume"] * self.n_samples_main_dilution)
+
         buffer_type = "Assay buffer" # pos/neg ctr are diluted always with assay buffer
-        total_volume[buffer_type] = buffer_vol/1000
+        total_volume[buffer_type] = assay_buffer_vol/1000
 
-        # total_volume["Samples"] = self.sample_dilution_data["Sample volume"][0] # the real amount of sample vol needed for the dilutions
+        # double the volume if 2 coatings are needed (samples are doubled)
+        if self.has_2_coatings:
+            for key in total_volume:
+                if key in ["Coating protein", "Coating protein 2"]:
+                    total_volume[key] /= 2
+
+        total_volume["Dye"] = (96 * self.dye_volume_per_well) / 1000 # full 96 wells used, DYE is used only once in whole method
+
+        # calculate DPBS total volume
+        total_volume["DPBS"] = 0
+
+        for step in self.pump_steps_data:
+            if step["step_type"] == "Transfer volume to wells":
+                if step["liquid_type"] == "DPBS":
+                    total_volume["DPBS"]+= (ctr_wells + n_sample_wells) * int(step["volume_amount"]) / 1000
+
+        # round values
+        total_volume = {key: round(value, 2) for key, value in total_volume.items()}
 
         self.total_volumes = total_volume
+
+        print("total_volumes:", total_volume)
+        logger.debug(f"Total volumes: {total_volume}")
 
 
     def generate_dye_and_wash_files(self):
@@ -871,7 +887,7 @@ class DotblotMethod():
         n_multi_dispense = 12
 
         # Dye
-        generate_reagent_distribution_gwl(dye_path, LabwareNames["Dye"], self.pump_lw_name, 1, 1, 1, 96, 100, n_diti_reuses, n_multi_dispense)
+        generate_reagent_distribution_gwl(dye_path, LabwareNames["Dye"], self.pump_lw_name, 1, 1, 1, 96, self.dye_volume_per_well, n_diti_reuses, n_multi_dispense)
         
         # Wash
         generate_reagent_distribution_gwl(wash_path, LabwareNames["DPBS"], self.pump_lw_name, 1, 1, 1, 96, 200, n_diti_reuses, n_multi_dispense)
@@ -931,6 +947,8 @@ class DotblotMethod():
         
         self.next_labware_pos("Eppendorf") # we call this once at the start because the dict begins at 0, and the coded positions assume the number is 1
         self.next_labware_pos("DeepWell") # we call this once at the start because the dict begins at 0, and the coded positions assume the number is 1
+
+        self.calculate_total_volumes()
 
         # make sure that if run has 2 coatings, it is present as a transfer step in the pump data (extracted from assays.json)
         if self.has_2_coatings:
