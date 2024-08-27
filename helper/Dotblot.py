@@ -730,19 +730,49 @@ class DotblotMethod():
 
             # make reagent distribution command, with all wells excluding the unused ones
             # generate the GWL directly
-            # path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
-            path = "SampleTransferTestRUN.gwl"
+            path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
+            # path = "SampleTransferTestRUN.gwl"
             
             complete_well_list = np.arange(1, max_sample_well + 1) # list with all wells from 1 to the max sample pos
             excluded_pos = list(set(complete_well_list) - set(sample_wells)) # positions to exclude from pipetting in the reag. distrib. command
             n_diti_reuses = 1 # no reuse
             n_multi_dispense = 3
-            sample_direction = 0 # top to down
-            replicate_direction = 1 # left to right
+            sample_direction = 1 # top to down
+            replicate_direction = 0 # left to right
+            LabSource = "1x24 Eppendorf Tube Runner no Tubes[001]"
+            sample_eppendorf_pos = np.array(self.sample_eppendorf_positions).flatten()
 
-            generate_sample_transfer_gwl(path, LabSource, dest_labware, self.sample_eppendorf_positions[0][0], self.sample_eppendorf_positions[-1][-1], min_sample_well, max_sample_well, volume, n_diti_reuses, n_multi_dispense, self.n_samples_main_dilution, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+            # all samples fit in the first eppendorf rack
+            if sample_eppendorf_pos.max() <= 24:
+                generate_sample_transfer_gwl(path, LabSource, dest_labware, self.sample_eppendorf_positions[0][0], self.sample_eppendorf_positions[-1][-1], min_sample_well, max_sample_well, volume, n_diti_reuses, n_multi_dispense, self.n_samples_main_dilution * (1 + int(self.has_2_coatings)), 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
             
-            # return
+            # some samples are in the second eppendorf rack (sample number is high), so the sample transfer has to be divided in 2 commands actually
+            else:
+                logger.debug(f"Max Eppendorf position for samples was gerater than 24: {sample_eppendorf_pos}")
+                pass
+
+
+            return
+
+            # make reagent distribution command, with all wells excluding the unused ones
+            # generate the GWL directly
+            path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
+            # path = "SampleTransferTestRUN.gwl"
+            
+            complete_ctr_well_list = np.array(self.pump_lw_well_pos["neg_ctr_pos"] + self.pump_lw_well_pos["pos_ctr_pos"]).flatten() # list with all wells from 1 to the max sample pos
+            min_ctr_well = complete_ctr_well_list.min()
+            max_ctr_well = complete_ctr_well_list.max()
+            excluded_pos = list(set(np.arange(1, max_ctr_well + 1)) - set(complete_ctr_well_list)) # positions to exclude from pipetting in the reag. distrib. command
+            
+            n_diti_reuses = 1 # no reuse
+            n_multi_dispense = 3
+            sample_direction = 0 # left to right
+            replicate_direction = 0 # left to right
+            n_ctr_samples = 2 * (1 + int(self.has_2_coatings))
+            LabSource = "1x24 Eppendorf Tube Runner no Tubes[001]"
+
+            generate_sample_transfer_gwl(path, LabSource, dest_labware, self.pos_control_eppendorf_positions[0][0], self.neg_control_eppendorf_positions[-1][-1], min_ctr_well, max_ctr_well, volume, n_diti_reuses, n_multi_dispense, n_ctr_samples, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+            
         
 
         elif _type == "pos/neg":
@@ -772,6 +802,7 @@ class DotblotMethod():
                     })
 
             # command for pos/neg control transfer to dotblot_apparatus
+            # this should be the fixed generated command, since positions are fixed independent of all other parameters (for 2 coatings)
             # "T;1x24 Eppendorf Tube Runner no Tubes[001];;;1;4;dotblot_appr_standalone;;;1;42;100;;1;3;4;3;0;0;3;4;5;6;7;8;11;12;13;14;15;16;19;20;21;22;23;24;27;28;29;30;31;32;35;36;37;38;39;40;"
 
             # make reagent distribution command, with all wells excluding the unused ones
