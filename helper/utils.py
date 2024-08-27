@@ -768,7 +768,7 @@ def generate_sample_transfer_gwl(output_file_path:str, source_lw:str, dest_lw:st
     with open(output_file_path, 'w') as output_file:
         
         # Create the line for the output
-        s_command = f"S;{source_lw};;;{source_pos_start};{source_pos_end};{dest_lw};;;{dest_pos_start};{dest_pos_end};{volume};;{n_diti_reuses};{n_multi_dispenses};{sample_count};{replication_count};{sample_direction};{replicate_direction};0;"
+        s_command = f"T;{source_lw};;;{source_pos_start};{source_pos_end};{dest_lw};;;{dest_pos_start};{dest_pos_end};{volume};;{n_diti_reuses};{n_multi_dispenses};{sample_count};{replication_count};{sample_direction};{replicate_direction};"
 
         # If there are some excluded positions, add them at the end
         if isinstance(excluded_positions, list):
