@@ -705,7 +705,7 @@ def generate_reagent_distribution_gwl(output_file_path:str, source_lw:str, dest_
         output_file.writelines(r_command)
 
 
-def generate_sample_transfer_gwl(output_file_path:str, source_lw:str, dest_lw:str, source_pos_start:int, source_pos_end:int, dest_pos_start:int, dest_pos_end:int, volume:int, n_diti_reuses:int, n_multi_dispenses:int, sample_count:int, replication_count:int, sample_direction:int, replicate_direction:int, excluded_positions:list[int]=[]):
+def generate_sample_transfer_gwl(output_file_path:str, open_mode:str, source_lw:str, dest_lw:str, source_pos_start:int, source_pos_end:int, dest_pos_start:int, dest_pos_end:int, volume:int, n_diti_reuses:int, n_multi_dispenses:int, sample_count:int, replication_count:int, sample_direction:int, replicate_direction:int, excluded_positions:list[int]=[]):
     """
     Generates a GWL file with a reagent distribution command with the specified parameters.
 
@@ -713,6 +713,9 @@ def generate_sample_transfer_gwl(output_file_path:str, source_lw:str, dest_lw:st
     ----------
     ``output_file_path``: str
         Path to the output file.
+
+    ``open_mode``: str
+        Mode to open the output file. Can be 'a' or 'w'.
 
     ``source_lw``: str
         Labware source name as in Tecan worktable.
@@ -763,9 +766,11 @@ def generate_sample_transfer_gwl(output_file_path:str, source_lw:str, dest_lw:st
     >>> Output: ``R;100ml_1;;;1;1;dotblot_apparatus;;;1;24;100;;12;12;0;``
     """
 
+    assert(open_mode in ["a", "w"])
+
 
     # Open the input file in read mode and output file in write mode
-    with open(output_file_path, 'w') as output_file:
+    with open(output_file_path, open_mode) as output_file:
         
         # Create the line for the output
         s_command = f"T;{source_lw};;;{source_pos_start};{source_pos_end};{dest_lw};;;{dest_pos_start};{dest_pos_end};{volume};;{n_diti_reuses};{n_multi_dispenses};{sample_count};{replication_count};{sample_direction};{replicate_direction};"
