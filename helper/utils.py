@@ -13,13 +13,6 @@ from datetime import datetime
 logger = logging.getLogger("assay_logger")
 logger.setLevel(logging.DEBUG)
 
-# now = datetime.now()
-# log_filename = f"logs/{now.strftime('%d-%m-%Y_%H-%M')}.log"
-# logger_file_handler = logging.FileHandler(log_filename)  # Log to a file
-# logger_file_handler.setLevel(logging.DEBUG)
-# logger_file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
-
-# logger.addHandler(logger_file_handler)
 
 def new_log_file():
     """

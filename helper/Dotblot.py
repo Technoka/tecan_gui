@@ -19,9 +19,6 @@ class DotblotMethod():
 
         self.csv_files_path = r"C:\Users\DPerez36\OneDrive - JNJ\Documents\git repos\method outputs\dotblot" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\3. DotBlot' # network path where all the CSV files will be saved in.
 
-        self.last_eppendorf_pos = 1 # position of the last Eppendorf tube used. Useful so that methods don't use same tube twice.
-        self.last_deep_well_pos = 1 # position of the last Deep well position used. Useful so that methods don't use same well twice.
-
         self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions 
 
         self.has_2_coatings = False # if method has 2 coating proteins, then all dilutions are doubled (1 for each) and process is more difficult
@@ -132,33 +129,6 @@ class DotblotMethod():
                 self.next_labware_pos(LabwareNames[self.main_sample_labware_type])
         
 
-
-    def next_eppendorf_pos(self):
-        """
-        Adds one to the Eppendorf position used and returns that number.
-        If no Eppendorf tubes are available, returns -1.
-        """
-
-        if (self.last_eppendorf_pos + 1 <= AvailableLabware["Eppendorf"]): # if max pos has not been reached
-            self.last_eppendorf_pos = self.last_eppendorf_pos + 1
-            return self.last_eppendorf_pos - 1 # return current one before adding an unit
-        else:
-            return -1
-
-
-    def next_deep_well_pos(self):
-        """
-        Adds one to the Deep Well position used and returns that number.
-        If no Deep Well tubes are available, returns -1.
-        """
-        
-        if (self.last_deep_well_pos + 1 <= AvailableLabware["DeepWell"]): # if max pos has not been reached
-            self.last_deep_well_pos = self.last_deep_well_pos + 1
-            return self.last_deep_well_pos - 1 # return current one before adding an unit
-        else:
-            return -1
-        
-
     def positive_control_dilutions(self):
         """
         Performs the dilutions to get the positive control final concentration.
@@ -203,15 +173,11 @@ class DotblotMethod():
                 csv_data_buffer = [] # list to store CSV data
 
                 if i + 1 == len(self.pos_control_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
-                    # eppendorf_positions.append(self.last_eppendorf_pos)
                     eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
                     
-                    # LabDest, DestWell = self.dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
-                    # LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
                     LabDest, DestWell = dilution_position_def("Eppendorf", self.next_labware_pos("Eppendorf"), 1) # define destination labware as eppendorf
                     
                 else:
-                    # LabDest, DestWell = self.dilution_position_def("Deep Well", self.next_deep_well_pos(), 1) # define destination labware as deep well
                     LabDest, DestWell = dilution_position_def("DeepWell", self.next_labware_pos("DeepWell"), 1) # define destination labware as deep well
 
                 csv_data_sample.append( # move pos control to dest well
@@ -265,7 +231,7 @@ class DotblotMethod():
         buffer_labware_name = LabwareNames[self.neg_control_buffer] # Name of Labware in TECAN for the Assay buffer
         eppendorf_positions = [] # to store final eppendorf positions
 
-        for k in range(len(self.pos_control_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
+        for k in range(len(self.neg_control_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
 
             csv_number = 1 # to name generated files sequentially
             sample_lab_source = pos_2_str(LabwareNames["8R_Vial neg_ctr"], 1) # initial source of neg control sample, pos fixed to 1 (left upper-most position)
@@ -277,7 +243,6 @@ class DotblotMethod():
 
                 if i + 1 == len(self.neg_control_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
                     eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
-                    # LabDest, DestWell = dilution_position_def("Eppendorf", self.next_eppendorf_pos(), 1) # define destination labware as eppendorf
                     LabDest, DestWell = dilution_position_def("Eppendorf", self.next_labware_pos("Eppendorf"), 1) # define destination labware as eppendorf
                     
                 else:
@@ -341,7 +306,6 @@ class DotblotMethod():
         initial_sample_positions = []
         for i in range(1, self.n_samples_main_dilution + 1):
             if self.main_sample_labware_type == "Eppendorf":
-                # initial_sample_positions.append(self.next_eppendorf_pos())
                 initial_sample_positions.append(self.next_labware_pos("Eppendorf"))                
         
         for k in range(len(self.sample_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
@@ -354,7 +318,7 @@ class DotblotMethod():
             for j in range(1, self.n_samples_main_dilution + 1):
                 if self.main_sample_labware_type == "Eppendorf":
                     LabSource = pos_2_str(self.main_sample_labware_type, initial_sample_positions[j-1])
-                    # self.next_eppendorf_pos()
+
                 else:
                     LabSource = pos_2_str(self.main_sample_labware_type, j) # sample always comes in a labware with 1 hole (falcon, fakeFalcon, eppendorf, ...) if not we would use dilution_pos_def instead of pos2str
 
@@ -373,8 +337,6 @@ class DotblotMethod():
             pd.DataFrame(csv_data_init).to_csv(path, index=False, header=False)
             csv_number = csv_number + 1
 
-            # print("before long csv")
-            # for i in range(self.n_sample_dilution_steps):
             for i in range(len(self.sample_dilution_data[k]["Assay buffer volume"])):
                 csv_data_sample = []
                 csv_data_buffer = []
@@ -408,8 +370,8 @@ class DotblotMethod():
                     )
                     if i + 1 == len(self.sample_dilution_data[k]["Assay buffer volume"]): # if this is the last dilution step
                         eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
-                        # self.next_eppendorf_pos()
                         self.next_labware_pos("Eppendorf")
+
                     else:
                         self.next_labware_pos("DeepWell")
 
@@ -421,7 +383,6 @@ class DotblotMethod():
 
             # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
             for i in range(csv_number, 6 + 1):
-                # path = self.csv_files_path + self.sample_dilutions_csv_name + str(csv_number) + ".csv"
                 path = self.csv_files_path + self.sample_dilutions_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
                 pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
                 csv_number = csv_number + 1
@@ -454,9 +415,6 @@ class DotblotMethod():
         if len(self.pos_control_dilution_data) == 1:
             pos_ctr_pos.append(get_deep_well_pos(1)) # always in first place
             neg_ctr_pos.append(get_deep_well_pos(2)) # always in second place
-            # hard coded, forced
-            # pos_ctr_pos.append(get_deep_well_pos(9)) # always in first place
-            # neg_ctr_pos.append(get_deep_well_pos(10)) # always in second place
             sample_pos = [[]]
 
         elif len(self.pos_control_dilution_data) == 2:
@@ -482,7 +440,6 @@ class DotblotMethod():
                     # if 2 coatings are present, it changes, if only 1 coating is present it is the same as above statement always
                     sample_pos[k].append(get_deep_well_pos(i + 3 + (k+int(self.has_2_coatings))*samples_per_block))
 
-        # sample_pos[0].append(get_deep_well_pos(11)) # hard coded, forced
         final_pos = {"pos_ctr_pos": pos_ctr_pos,
                      "neg_ctr_pos": neg_ctr_pos,
                      "samples_pos": sample_pos}
@@ -530,7 +487,6 @@ class DotblotMethod():
 
         step_types = [] # temp list to store step names
         transfer_step_data = pd.DataFrame([], columns=["volume_amount", "liquid_type"])
-        # vacuum_step_data = pd.DataFrame([], columns=[""])
         timer_step_data = pd.DataFrame([], columns=["wait_timer"])
         csv_number = 1
 
@@ -548,7 +504,6 @@ class DotblotMethod():
 
             elif step["step_type"] == "Vacuum":
                 step_types.append("vacuum")
-                # vacuum_step_data.loc[i] = (list(step.values())[1:]) # select only values from dict, ignoring first entry (step type)
             elif step["step_type"] == "Wait timer":
                 step_types.append("timer")
                 timer_step_data.loc[i] = (list(step.values())[1:]) # select only values from dict, ignoring first entry (step type)
@@ -562,8 +517,6 @@ class DotblotMethod():
 
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer.csv"
         pd.DataFrame(transfer_step_data).to_csv(path, header="step_type", index=False, sep=";", lineterminator=";\n") # generate CSV file
-        # path = self.csv_files_path + self.pump_steps_csv_name + "Vacuum.csv"
-        # pd.DataFrame(vacuum_step_data).to_csv(path, header=False, index=False, sep=";", lineterminator=";\n") # generate CSV file
         path = self.csv_files_path + self.pump_steps_csv_name + "Timer.csv"
         pd.DataFrame(timer_step_data).to_csv(path, index=False, sep=";", lineterminator=";\n") # generate CSV file
 
@@ -620,13 +573,11 @@ class DotblotMethod():
             LabSource = LabwareNames["Conjugate"]
 
 
-        # sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
         sample_wells = np.ndarray.flatten(np.array(self.pump_lw_well_pos["samples_pos"])).tolist()
         min_sample_well = np.min(sample_wells)
         max_sample_well = np.max(sample_wells)
         max_neg_ctr_well = np.max(self.pump_lw_well_pos["neg_ctr_pos"])
 
-        # print("sample wells:", sample_wells)
         all_wells = flatten(self.pump_lw_well_pos["pos_ctr_pos"]) + flatten(self.pump_lw_well_pos["neg_ctr_pos"]) + sample_wells # position of all wells to be used
         
         if _type == "All wells": # transfer to all wells
@@ -689,18 +640,6 @@ class DotblotMethod():
 
 
             else: # if it has only 1 coating or step is not coating protein
-                # for well in all_wells:
-                #     csv_data.append(
-                #     {
-                #         'LabSource': LabSource,
-                #         'SourceWell': SourceWell,
-                #         'LabDest': dest_labware,
-                #         'DestWell': well,
-                #         'Volume': volume
-                #     })
-
-                # make reagent distribution command, with all wells excluding the unused ones
-                # generate the GWL directly
                 path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
                 
                 complete_well_list = np.arange(1, max_sample_well + 1) # list with all wells from 1 to the max sample pos
@@ -1110,17 +1049,12 @@ class DotblotMethod():
         """
 
         # Reset parameters
-        # self.last_eppendorf_pos = 1
-        # self.last_deep_well_pos = 1
-
         self.used_labware_pos = dict.fromkeys(self.used_labware_pos, 0) # reset dict
-        # self.count_starting_lw_pos()
 
         # General
         self.sample_dilution_data = external.sample_dilution_data
         self.coating_protein_dilution_data = external.coating_protein_dilution_data
         self.n_sample_dilution_steps = len(self.sample_dilution_data[0]["Assay buffer volume"])
-        # self.n_coating_protein_steps = len(self.coating_protein_dilution_data[0]["Assay buffer volume"])
 
         # Sample
         self.main_sample_labware_type = external.optionmenu_1.get()
