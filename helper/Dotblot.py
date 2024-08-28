@@ -130,7 +130,7 @@ class DotblotMethod():
         if self.main_sample_labware_type in LabwareNames:
             for i in range(0, self.n_samples_main_dilution):
                 self.next_labware_pos(LabwareNames[self.main_sample_labware_type])
-  
+        
 
 
     def next_eppendorf_pos(self):
@@ -467,6 +467,7 @@ class DotblotMethod():
             sample_pos = [[], []]
 
         else:
+            logger.error(f"Positive control data must be of length 1 or 2, not {len(self.pos_control_dilution_data)}")
             raise ValueError(f"Positive control data must be of length 1 or 2, not {len(self.pos_control_dilution_data)}")
 
 
@@ -478,7 +479,8 @@ class DotblotMethod():
                 if i < 6: # if in first triplicate block
                     sample_pos[k].append(get_deep_well_pos(i + 3 + k*samples_per_block)) # i starts at 0. We add 2 positions because 1 is pos.ctr and 2 is neg.ctr
                 else:
-                    sample_pos[k].append(get_deep_well_pos(i + 3 + (k+1)*samples_per_block))
+                    # if 2 coatings are present, it changes, if only 1 coating is present it is the same as above statement always
+                    sample_pos[k].append(get_deep_well_pos(i + 3 + (k+int(self.has_2_coatings))*samples_per_block))
 
         # sample_pos[0].append(get_deep_well_pos(11)) # hard coded, forced
         final_pos = {"pos_ctr_pos": pos_ctr_pos,
@@ -739,17 +741,64 @@ class DotblotMethod():
             n_multi_dispense = 3
             sample_direction = 1 # top to down
             replicate_direction = 0 # left to right
-            LabSource = "1x24 Eppendorf Tube Runner no Tubes[001]"
+            LabSource = "1x24 Eppendorf Tube Runner no Tubes"
             sample_eppendorf_pos = np.array(self.sample_eppendorf_positions).flatten()
+            print("sample eppendorf pos:", sample_eppendorf_pos)
 
             # all samples fit in the first eppendorf rack
             if sample_eppendorf_pos.max() <= 24:
-                generate_sample_transfer_gwl(path, LabSource, dest_labware, self.sample_eppendorf_positions[0][0], self.sample_eppendorf_positions[-1][-1], min_sample_well, max_sample_well, volume, n_diti_reuses, n_multi_dispense, self.n_samples_main_dilution * (1 + int(self.has_2_coatings)), 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+                generate_sample_transfer_gwl(path, "w", pos_2_str(LabSource, 1), dest_labware, self.sample_eppendorf_positions[0][0], self.sample_eppendorf_positions[-1][-1], min_sample_well, max_sample_well, volume, n_diti_reuses, n_multi_dispense, self.n_samples_main_dilution * (1 + int(self.has_2_coatings)), 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+            
+            # if all samples are in the second rack
+            elif sample_eppendorf_pos.min() > 24 and sample_eppendorf_pos.max() <= 48:
+                generate_sample_transfer_gwl(path, "w", pos_2_str(LabSource, 2), dest_labware, self.sample_eppendorf_positions[0][0] - 24, self.sample_eppendorf_positions[-1][-1] - 24, min_sample_well, max_sample_well, volume, n_diti_reuses, n_multi_dispense, self.n_samples_main_dilution * (1 + int(self.has_2_coatings)), 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
             
             # some samples are in the second eppendorf rack (sample number is high), so the sample transfer has to be divided in 2 commands actually
             else:
-                logger.debug(f"Max Eppendorf position for samples was gerater than 24: {sample_eppendorf_pos}")
-                pass
+                # np.where works because the array is sorted from smaller to bigger by definition
+                n_samples_first_eppendorf_rack = np.where(sample_eppendorf_pos == 24)[0][0] + 1 # we add 1 because the result is an index and we want the number itself
+                triplet_sample_wells = np.array(self.pump_lw_well_pos["samples_pos"]).reshape(-1, 3) # reshape to be a list of triplets
+
+                # Sample transfer command for first rack
+                # max_sample_well_1 = np.max(triplet_sample_wells[n_samples_first_eppendorf_rack - 1])
+                sample_wells_1 = triplet_sample_wells[:n_samples_first_eppendorf_rack].flatten()
+                complete_well_list = np.arange(1, sample_wells_1.max() + 1) # list with all wells from 1 to the max sample pos
+                excluded_pos = list(set(complete_well_list) - set(sample_wells_1)) # positions to exclude from pipetting in the reag. distrib. command
+
+                if n_samples_first_eppendorf_rack <= self.n_samples_main_dilution:
+                    generate_sample_transfer_gwl(path, "w", pos_2_str(LabSource, 1), dest_labware, sample_eppendorf_pos[0], sample_eppendorf_pos[n_samples_first_eppendorf_rack - 1], sample_wells_1.min(), sample_wells_1.max(), volume, n_diti_reuses, n_multi_dispense, n_samples_first_eppendorf_rack, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+
+                else: # we have to divide in 2 commands, because there are samples from both groups (diluted 1 and diluted 2)
+                    # if only has 1 coating, I think we dont have to do this separation, samples will be in order anyway, but let's test it later
+                    sample_wells_1_1 = triplet_sample_wells[:self.n_samples_main_dilution].flatten()
+                    complete_well_list = np.arange(1, sample_wells_1_1.max() + 1) # list with all wells from 1 to the max sample pos
+                    excluded_pos_1_1 = list(set(complete_well_list) - set(sample_wells_1_1)) # positions to exclude from pipetting in the reag. distrib. command
+
+                    generate_sample_transfer_gwl(path, "w", pos_2_str(LabSource, 1), dest_labware, sample_eppendorf_pos[0], sample_eppendorf_pos[self.n_samples_main_dilution - 1], sample_wells_1_1.min(), sample_wells_1_1.max(), volume, n_diti_reuses, n_multi_dispense, self.n_samples_main_dilution, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos_1_1)
+
+                    sample_wells_1_2 = triplet_sample_wells[self.n_samples_main_dilution:n_samples_first_eppendorf_rack].flatten()
+                    excluded_pos_1_2 = list(set(complete_well_list) - set(sample_wells_1_2)) # positions to exclude from pipetting in the reag. distrib. command
+                    generate_sample_transfer_gwl(path, "a", pos_2_str(LabSource, 1), dest_labware, sample_eppendorf_pos[self.n_samples_main_dilution], sample_eppendorf_pos[n_samples_first_eppendorf_rack - 1], sample_wells_1_2.min(), sample_wells_1_2.max(), volume, n_diti_reuses, n_multi_dispense, n_samples_first_eppendorf_rack - self.n_samples_main_dilution, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos_1_2)
+
+
+
+                # Sample transfer command for second rack
+                max_sample_well_2 = np.max(triplet_sample_wells)
+                complete_well_list = np.arange(1, max_sample_well_2 + 1) # list with all wells from 1 to the max sample pos
+                sample_wells_2 = triplet_sample_wells[n_samples_first_eppendorf_rack:].flatten()
+                excluded_pos_2 = list(set(complete_well_list) - set(sample_wells_2)) # positions to exclude from pipetting in the reag. distrib. command
+
+                generate_sample_transfer_gwl(path, "a", pos_2_str(LabSource, 2), dest_labware, sample_eppendorf_pos[n_samples_first_eppendorf_rack] - 24, sample_eppendorf_pos[-1] - 24, sample_wells_2.min(), sample_wells_2.max(), volume, n_diti_reuses, n_multi_dispense, len(sample_eppendorf_pos) - n_samples_first_eppendorf_rack, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos_2)
+
+
+                # # Sample transfer command for second rack
+                # max_sample_well_2 = np.max(triplet_sample_wells)
+                # complete_well_list = np.arange(1, max_sample_well_2 + 1) # list with all wells from 1 to the max sample pos
+                # sample_wells_2 = triplet_sample_wells[n_samples_first_eppendorf_rack:].flatten()
+                # excluded_pos = list(set(complete_well_list) - set(sample_wells_2)) # positions to exclude from pipetting in the reag. distrib. command
+
+                # generate_sample_transfer_gwl(path, "a", pos_2_str(LabSource, 2), dest_labware, sample_eppendorf_pos[n_samples_first_eppendorf_rack] - 24, sample_eppendorf_pos[-1] - 24, sample_wells_2.min(), sample_wells_2.max(), volume, n_diti_reuses, n_multi_dispense, len(sample_eppendorf_pos) - n_samples_first_eppendorf_rack, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+
 
 
             return
@@ -771,7 +820,7 @@ class DotblotMethod():
             n_ctr_samples = 2 * (1 + int(self.has_2_coatings))
             LabSource = "1x24 Eppendorf Tube Runner no Tubes[001]"
 
-            generate_sample_transfer_gwl(path, LabSource, dest_labware, self.pos_control_eppendorf_positions[0][0], self.neg_control_eppendorf_positions[-1][-1], min_ctr_well, max_ctr_well, volume, n_diti_reuses, n_multi_dispense, n_ctr_samples, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+            generate_sample_transfer_gwl(path, "w", LabSource, dest_labware, self.pos_control_eppendorf_positions[0][0], self.neg_control_eppendorf_positions[-1][-1], min_ctr_well, max_ctr_well, volume, n_diti_reuses, n_multi_dispense, n_ctr_samples, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
             
         
 
@@ -820,10 +869,13 @@ class DotblotMethod():
             sample_direction = 0 # left to right
             replicate_direction = 0 # left to right
             n_ctr_samples = 2 * (1 + int(self.has_2_coatings))
-            LabSource = "1x24 Eppendorf Tube Runner no Tubes[001]"
+            LabSource = "1x24 Eppendorf Tube Runner no Tubes"
+            sample_eppendorf_pos = np.array(self.sample_eppendorf_positions).flatten()
 
-            generate_sample_transfer_gwl(path, LabSource, dest_labware, self.pos_control_eppendorf_positions[0][0], self.neg_control_eppendorf_positions[-1][-1], min_ctr_well, max_ctr_well, volume, n_diti_reuses, n_multi_dispense, n_ctr_samples, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
-            
+            # all samples fit in the first eppendorf rack
+            if sample_eppendorf_pos.max() <= 24:
+                generate_sample_transfer_gwl(path, "w", pos_2_str(LabSource, 1), dest_labware, self.pos_control_eppendorf_positions[0][0], self.neg_control_eppendorf_positions[-1][-1], min_ctr_well, max_ctr_well, volume, n_diti_reuses, n_multi_dispense, n_ctr_samples, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+
             return
 
         elif _type == "reagent_distribution": # right now only DPBS uses this
@@ -1058,10 +1110,11 @@ class DotblotMethod():
         """
 
         # Reset parameters
-        self.last_eppendorf_pos = 1
-        self.last_deep_well_pos = 1
+        # self.last_eppendorf_pos = 1
+        # self.last_deep_well_pos = 1
 
-        self.count_starting_lw_pos()
+        self.used_labware_pos = dict.fromkeys(self.used_labware_pos, 0) # reset dict
+        # self.count_starting_lw_pos()
 
         # General
         self.sample_dilution_data = external.sample_dilution_data
