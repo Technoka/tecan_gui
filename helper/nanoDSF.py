@@ -156,13 +156,22 @@ class nanoDSFMethod():
 
         Executes all stages of the nanoDSF method step by step and generates CSV files for them.
         """
+        
+        logger.info("-------------------------------------")
+        logger.info(f"N. of samples: {self.n_samples}")
+        logger.info(f"Samples initial labware: {self.sample_lw_origin}")
+        logger.info(f"Sample transfer is {'n triplicates' if self.sample_triplicates else 'single'}")
+        logger.info("-------------------------------------")
 
+        logger.info("Starting nanoDSF method calculations")
         self.count_starting_lw_pos()
 
         self.calculate_deep_well_positions()
         print("Calculated 384 well positions:", self.sample_dest_positions)
+        logger.info(f"Calculated deep well positions: {self.sample_dest_positions}")
 
         self.generate_gwl_file()
+        logger.info(f"Generated GWL files.")
         print("Generated GWL file.")
 
         return
