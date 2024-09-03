@@ -729,40 +729,8 @@ class DotblotMethod():
 
                 generate_sample_transfer_gwl(path, "a", pos_2_str(LabSource, 2), dest_labware, sample_eppendorf_pos[n_samples_first_eppendorf_rack] - 24, sample_eppendorf_pos[-1] - 24, sample_wells_2.min(), sample_wells_2.max(), volume, n_diti_reuses, n_multi_dispense, len(sample_eppendorf_pos) - n_samples_first_eppendorf_rack, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos_2)
 
-
-                # # Sample transfer command for second rack
-                # max_sample_well_2 = np.max(triplet_sample_wells)
-                # complete_well_list = np.arange(1, max_sample_well_2 + 1) # list with all wells from 1 to the max sample pos
-                # sample_wells_2 = triplet_sample_wells[n_samples_first_eppendorf_rack:].flatten()
-                # excluded_pos = list(set(complete_well_list) - set(sample_wells_2)) # positions to exclude from pipetting in the reag. distrib. command
-
-                # generate_sample_transfer_gwl(path, "a", pos_2_str(LabSource, 2), dest_labware, sample_eppendorf_pos[n_samples_first_eppendorf_rack] - 24, sample_eppendorf_pos[-1] - 24, sample_wells_2.min(), sample_wells_2.max(), volume, n_diti_reuses, n_multi_dispense, len(sample_eppendorf_pos) - n_samples_first_eppendorf_rack, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
-
-
-
             return
-
-            # make reagent distribution command, with all wells excluding the unused ones
-            # generate the GWL directly
-            path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
-            # path = "SampleTransferTestRUN.gwl"
-            
-            complete_ctr_well_list = np.array(self.pump_lw_well_pos["neg_ctr_pos"] + self.pump_lw_well_pos["pos_ctr_pos"]).flatten() # list with all wells from 1 to the max sample pos
-            min_ctr_well = complete_ctr_well_list.min()
-            max_ctr_well = complete_ctr_well_list.max()
-            excluded_pos = list(set(np.arange(1, max_ctr_well + 1)) - set(complete_ctr_well_list)) # positions to exclude from pipetting in the reag. distrib. command
-            
-            n_diti_reuses = 1 # no reuse
-            n_multi_dispense = 3
-            sample_direction = 0 # left to right
-            replicate_direction = 0 # left to right
-            n_ctr_samples = 2 * (1 + int(self.has_2_coatings))
-            LabSource = "1x24 Eppendorf Tube Runner no Tubes[001]"
-
-            generate_sample_transfer_gwl(path, "w", LabSource, dest_labware, self.pos_control_eppendorf_positions[0][0], self.neg_control_eppendorf_positions[-1][-1], min_ctr_well, max_ctr_well, volume, n_diti_reuses, n_multi_dispense, n_ctr_samples, 3, sample_direction, replicate_direction, excluded_positions=excluded_pos)
-            
         
-
         elif _type == "pos/neg":
             for j, sample_group in enumerate(self.pos_control_eppendorf_positions):
                 LabSource, SourceWell = dilution_position_def("Eppendorf", sample_group[0], len(sample_group))
@@ -796,7 +764,6 @@ class DotblotMethod():
             # make reagent distribution command, with all wells excluding the unused ones
             # generate the GWL directly
             path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".gwl"
-            # path = "SampleTransferTestRUN.gwl"
             
             complete_ctr_well_list = np.array(self.pump_lw_well_pos["neg_ctr_pos"] + self.pump_lw_well_pos["pos_ctr_pos"]).flatten() # list with all wells from 1 to the max sample pos
             min_ctr_well = complete_ctr_well_list.min()
@@ -828,7 +795,6 @@ class DotblotMethod():
 
             return
         
-        # print("before csv generating")
         # Generate CSV file
         path = self.csv_files_path + self.pump_steps_csv_name + "Transfer " + str(csv_number) + ".csv"
         pd.DataFrame(csv_data).to_csv(path, index=False, header=False)
@@ -904,30 +870,11 @@ class DotblotMethod():
 
         self.total_volumes = total_volume
 
-        # print("total_volumes:", total_volume)
-
 
     def generate_dye_and_wash_files(self):
         """
         Generates the dye and wash csv and gwl files.
         """
-
-        # Dye part
-        # csv_data = []
-
-        # sample_wells = flatten(self.pump_lw_well_pos["samples_pos"]) # flatten sample well pos
-        # all_wells = self.pump_lw_well_pos["pos_ctr_pos"] + self.pump_lw_well_pos["neg_ctr_pos"] + sample_wells # position of all wells to be used
-        # all_wells = np.arange(1,97).tolist() # list from 1 to 96
-
-        # for well in all_wells:
-        #     csv_data.append(
-        #     {
-        #         'LabSource': LabwareNames["Dye"],
-        #         'SourceWell': 1,
-        #         'LabDest': self.pump_lw_name,
-        #         'DestWell': well,
-        #         'Volume': 100
-        #     }) 
 
         # generate GWL files
         dye_path = self.csv_files_path + self.pump_steps_csv_name + "Transfer dye.gwl"
@@ -1025,11 +972,6 @@ class DotblotMethod():
         self.generate_dye_and_wash_files()
         logger.info("Dye and wash files generated.")
 
-        # Call method in utils file
-        # pattern = r"4\. Pump steps - Transfer (\d+)\.csv"
-        # pattern = self.pump_steps_csv_name + "Transfer (\d+)\.csv"
-        
-        # convert_all_csv_files_in_directory(self.csv_files_path, pattern) # to reuse tips
         print("generated all GWL files")
         logger.info("All GWL files generated.")
 
@@ -1075,11 +1017,3 @@ class DotblotMethod():
 
         # Pump steps
         self.pump_steps_data = external.pump_steps_data
-
-        # Labware of reagents
-        # self.coat_prot_lw_name = "def_coat_prot" # Coating protein labware
-        # self.blocking_buffer_lw_name = "def_blocking" # Blocking Buffer labware
-        # self.pos_ctr_diluted_lw_name = "def_pos_ctr" # Positive control labware
-        # self.neg_ctr_diluted_lw_name = "def_neg_ctr" # Negative control labware
-        # self.conjugate_lw_name = "def_conjugate" # Conjugate labware
-        # self.dpbs_lw_name = "def_dpbs" # DPBS labware
