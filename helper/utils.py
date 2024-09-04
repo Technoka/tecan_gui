@@ -461,10 +461,10 @@ def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "ve
 
             init_pos = int( block * wells_per_block + row )
         
-        else:
+        else: # sample transfer = "single"
             return pos
 
-    else:
+    else: # sample direction = "horizontal"
         if sample_transfer == "triplicate":
             row = int((pos-1) / (wells_per_row/3)) + 1
             block = (pos % (wells_per_row/3))
@@ -473,7 +473,7 @@ def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "ve
 
             init_pos = int( (block-1) * wells_per_block + row )
 
-        else:
+        else: # sample transfer = "single"
             row = int(pos / wells_per_row)
             col = pos % wells_per_row
             if col == 0:
