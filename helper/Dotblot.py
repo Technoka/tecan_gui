@@ -102,7 +102,7 @@ class DotblotMethod():
         Returns
         ----------
         ``curr_pos``: int
-            Current position number.
+            Current position number (after adding the unit)
         """
 
         try:
@@ -173,9 +173,9 @@ class DotblotMethod():
                 csv_data_buffer = [] # list to store CSV data
 
                 if i + 1 == len(self.pos_control_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
-                    eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
                     
                     LabDest, DestWell = dilution_position_def("Eppendorf", self.next_labware_pos("Eppendorf"), 1) # define destination labware as eppendorf
+                    eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
                     
                 else:
                     LabDest, DestWell = dilution_position_def("DeepWell", self.next_labware_pos("DeepWell"), 1) # define destination labware as deep well
@@ -242,12 +242,11 @@ class DotblotMethod():
                 csv_data_buffer = [] # list to store CSV data
 
                 if i + 1 == len(self.neg_control_dilution_data[k]["Assay buffer volume"]): # if this is the final dilution step
-                    eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
                     LabDest, DestWell = dilution_position_def("Eppendorf", self.next_labware_pos("Eppendorf"), 1) # define destination labware as eppendorf
+                    eppendorf_positions.append(self.used_labware_pos["Eppendorf"])
                     
                 else:
                     LabDest, DestWell = dilution_position_def("DeepWell", self.next_labware_pos("DeepWell"), 1) # define destination labware as deep well
-
                 csv_data_sample.append( # move pos control to dest well
                 {
                     'LabSource': sample_lab_source,
@@ -280,7 +279,7 @@ class DotblotMethod():
                 path = self.csv_files_path + self.neg_control_csv_name + f"{k+1} - " + str(csv_number) + ".csv"
                 pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
                 csv_number = csv_number + 1
-        
+
         # divide "eppendorf_positions" into sublists of 1 item
         return [eppendorf_positions[i:i + 1] for i in range(0, len(eppendorf_positions), 1)]
     
@@ -306,8 +305,11 @@ class DotblotMethod():
         initial_sample_positions = []
         for i in range(1, self.n_samples_main_dilution + 1):
             if self.main_sample_labware_type == "Eppendorf":
-                initial_sample_positions.append(self.next_labware_pos("Eppendorf"))                
-        
+                initial_sample_positions.append(self.next_labware_pos("Eppendorf"))          
+
+        self.next_labware_pos("DeepWell") # we add this because if not, we reuse the same well as the last neg. ctr. 2 used
+        self.next_labware_pos("Eppendorf") # we add this because if not, we reuse the eppendorf position of the last undiluted sample for the first diluted one
+
         for k in range(len(self.sample_dilution_data)): # 1 or 2 times, depending on the coating protein necesities
             csv_number = 0 # to name generated files sequentially
             csv_data_init = []
@@ -941,8 +943,8 @@ class DotblotMethod():
         self.generate_config_file()
         logger.info("Config file generated.")
         
-        self.next_labware_pos("Eppendorf") # we call this once at the start because the dict begins at 0, and the coded positions assume the number is 1
-        self.next_labware_pos("DeepWell") # we call this once at the start because the dict begins at 0, and the coded positions assume the number is 1
+        # self.next_labware_pos("Eppendorf") # we call this once at the start because the dict begins at 0, and the coded positions assume the number is 1
+        # self.next_labware_pos("DeepWell") # we call this once at the start because the dict begins at 0, and the coded positions assume the number is 1
 
         self.calculate_total_volumes()
         logger.debug(f"Total volumes: {self.total_volumes}")
@@ -976,7 +978,7 @@ class DotblotMethod():
         logger.info("All GWL files generated.")
 
         
-        logger.info("Dotblot method finished successfully.")
+        logger.info("Dotblot method finished successfully.\n\n")
         return self.pos_control_eppendorf_positions, self.neg_control_eppendorf_positions, self.sample_eppendorf_positions
 
         
