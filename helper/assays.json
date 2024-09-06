@@ -38,6 +38,7 @@
                 "product": "CD33xV\u03b39\u03b42",
                 "tmd": "TV-TMD-38396 v1.0",
                 "title": "Test Method for Determining the Identity of JNJ-89853413 using the Dot Blot Assay",
+                "has_2_coating_proteins": "False",
                 "step_types": 
                     [
                         {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
@@ -90,6 +91,38 @@
                         {"step_type": "Wait timer", "wait_timer": 8}, 
                         {"step_type": "Vacuum"}, 
                         {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"},  
+                        {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1}, 
+                        {"step_type": "Vacuum"}
+                    ]
+            },
+            {
+                "method": "Dotblot",
+                "product": "VEGFR1",
+                "tmd": "TV-TMD-35066 v1.0",
+                "title": "Method to Determine Identity of JNJ-79032395 (Anti-VEGFR1) by Dot Blot",
+                "has_2_coating_proteins": "False",
+                "step_types": 
+                    [
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
+                        {"step_type": "Wait timer", "wait_timer": 1},
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, 
+                        {"step_type": "Wait timer", "wait_timer": 6}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, 
+                        {"step_type": "Wait timer", "wait_timer": 6}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, 
+                        {"step_type": "Wait timer", "wait_timer": 6}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, 
+                        {"step_type": "Wait timer", "wait_timer": 6}, 
+                        {"step_type": "Vacuum"}, 
+                        {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, 
                         {"step_type": "Wait timer", "wait_timer": 1}, 
                         {"step_type": "Vacuum"},  
                         {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, 
