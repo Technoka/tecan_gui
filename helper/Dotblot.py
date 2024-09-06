@@ -900,7 +900,7 @@ class DotblotMethod():
 
         # If there are repeated keys in the dictionary, the last one and its value is the dominant one !!!
 
-        config_parameters = {"has_2_coatings": str(True),
+        config_parameters = {"has_2_coatings": str(self.has_2_coatings),
                             "DPBS": LabwareNames["DPBS"],
                             "Coating protein": LabwareNames["CoatingProtein"],
                             "Blocking buffer": LabwareNames["BlockingBuffer"],
