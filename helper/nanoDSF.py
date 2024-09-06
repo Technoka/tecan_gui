@@ -17,7 +17,8 @@ class nanoDSFMethod():
     def __init__(self):
         # General parameters
         self.files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\7. nanoDSF' # network path where all the files will be saved in.
-        self.gwl_file_name = r"\sample_transfer"
+        self.gwl_sample_transfer = r"\sample_transfer"
+        self.gwl_bsa_transfer = r"\bsa_transfer"
         self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions 
 
         # Sample transfer parameters
@@ -30,6 +31,8 @@ class nanoDSFMethod():
 
         self.add_BSA = False # if BSA has to be added
         self.BSA_wells = [] # wells in 384 well plate where BSA has to be added
+
+        self.BSA_lw = "Eppendorf" # origin labware where BSA tube is placed on. Fixed position.
 
 
     def next_labware_pos(self, labware_name:str):
@@ -64,6 +67,8 @@ class nanoDSFMethod():
         if the destination labware is the same, new tubes are used.
         """
 
+        self.next_labware_pos(LabwareNames[self.BSA_lw])
+
         if self.sample_lw_origin in LabwareNames:
             for i in range(0, self.n_samples):
                 self.next_labware_pos(LabwareNames[self.sample_lw_origin])
@@ -87,7 +92,6 @@ class nanoDSFMethod():
         
         sample_wells = []
         init_sample_pos = [i for i in range(1, self.n_samples+1)] # initial sample numbers
-        print(f"init sample positions: {init_sample_pos}")
 
         # if BSA has to be added, shift well values to leave room to place BSA in the first column of each used row
         if self.add_BSA:
@@ -118,7 +122,12 @@ class nanoDSFMethod():
             else:
                 sample_wells.append(get_deep_well_pos(sample, 384, sample_direction="horizontal", sample_transfer="single"))
 
-        self.sample_dest_positions = sample_wells # update variable
+        # self.sample_dest_positions = sample_wells # update variable
+
+        # only sample wells, without BSA ones
+        self.sample_dest_positions = sorted(list(set(sample_wells) - set(self.BSA_wells)))
+        print("BSA wells:", self.BSA_wells)
+        print("Sample wells:", self.sample_dest_positions)
  
         return sample_wells
 
@@ -133,6 +142,36 @@ class nanoDSFMethod():
             True if tips should be changed for every sample, False to just flush tips.
 
         """
+
+        # Sample transfer
+        output_file_path = self.files_path + self.gwl_sample_transfer + ".gwl"
+        n_diti_reuses = 1 # no reuse
+        n_multi_dispense = 1 # no multi dispense
+        sample_direction = 0 # left to right
+        replicate_direction = 0 # left to right
+        replication_count = 3 if self.sample_triplicates else 1
+        LabSource = "1x24 Weird Tube Runner no Tubes"
+        LabDest = LabwareNames["384_Well"]
+        complete_well_list = np.arange(1, max(self.sample_dest_positions) + 1) # list with all wells from 1 to the max sample pos
+        excluded_pos = list(set(complete_well_list) - set(self.sample_dest_positions) - set(self.BSA_wells))
+        sample_origin_pos = list(i for i in range(1, self.n_samples + 1))
+        print("sample labware pos:", sample_origin_pos)
+
+        generate_sample_transfer_gwl(output_file_path, "w", pos_2_str(LabSource, 1), LabDest, sample_origin_pos[0], sample_origin_pos[-1], min(self.sample_dest_positions), max(self.sample_dest_positions), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, self.n_samples, replication_count, sample_direction, replicate_direction, excluded_positions=excluded_pos)
+            
+
+        # BSA transfer
+        output_file_path = self.files_path + self.gwl_bsa_transfer + ".gwl"
+        n_diti_reuses = 12
+        n_multi_dispense = 12
+        LabSource = self.BSA_lw
+        LabDest = LabwareNames["384_Well"]
+
+        generate_reagent_distribution_gwl(output_file_path, pos_2_str(LabSource, 1), LabDest, 1, 1, min(self.BSA_wells), max(self.BSA_wells), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, excluded_positions=self.sample_dest_positions)
+                
+
+
+        return
 
         # LabDest, DestWell = dilution_position_def("DeepWell", self.next_deep_well_pos(), 1) # define destination labware as deep well
 
