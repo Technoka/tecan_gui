@@ -28,7 +28,14 @@ def new_log_file():
     # name for new log file
     current_time = datetime.now().strftime('%d-%m-%Y_%H-%M')
 
-    log_filename = f"logs/{current_time}.log"
+    logs_folder_name = "logs"
+    
+    # Check if the folder exists
+    if not os.path.exists(logs_folder_name):
+        # Create the folder if it doesn't exist
+        os.makedirs(logs_folder_name)
+
+    log_filename = f"{logs_folder_name}/{current_time}.log"
     logger_file_handler = logging.FileHandler(log_filename, encoding="utf-8")  # Log to a file
     logger_file_handler.setLevel(logging.DEBUG)
     logger_file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
@@ -47,6 +54,7 @@ LabwareNames = {
     "FakeFalcon15": "FakeFalcon15",
     "DeepWell": "96 Deep Well 2ml[001]",
     "384_Well": "384 Well[001]",
+    "384_Well_Tall": "384 Well Tall[001]",
     "2R Vial": "2R Vial holder[001]",
     "8R Vial": "8R_Vial",
     "8R_Vial neg_ctr": "8R_Vial_neg_ctr", # dotblot negative control vial
@@ -55,6 +63,7 @@ LabwareNames = {
     "BlockingBuffer": "100ml_1",
     "DPBS": "100ml_2",
     "AssayBuffer": "100ml_3",
+    # "AssayBuffer": "Falcon15[002]",
     "Conjugate": "100ml_4",
     "CoatingProtein": "Falcon15[001]",
     "CoatingProtein_2": "Falcon15[002]",
@@ -63,7 +72,10 @@ LabwareNames = {
     # "NegControl": "Falcon15[002]",
     "100mL reservoir": "100ml", # the [00x] needs to be added later
     "soloVPE cuvettes": "48 Pos 2R Vial Rack[001]",
-    "GeneralBuffer": "100ml_1" # for every method that uses a buffer of any kind, this will be the position
+    "GeneralBuffer": "100ml_1", # for every method that uses a buffer of any kind, this will be the position
+    "BSA tube": "Brown_screw_cap_2ml",
+    "16 weird tube runner": "1x16 16mm Tube Runner No Tubes",
+    "16 falcon15 tube runner": "1x16 15ml Falcon Tube Runner no Tubes"
 
 }
 
