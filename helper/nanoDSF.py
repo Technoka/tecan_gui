@@ -32,7 +32,7 @@ class nanoDSFMethod():
         self.add_BSA = False # if BSA has to be added
         self.BSA_wells = [] # wells in 384 well plate where BSA has to be added
 
-        self.BSA_lw = "Eppendorf" # origin labware where BSA tube is placed on. Fixed position.
+        self.BSA_lw = "BSA tube" # origin labware where BSA tube is placed on. Fixed position.
 
 
     def next_labware_pos(self, labware_name:str):
@@ -150,10 +150,16 @@ class nanoDSFMethod():
         sample_direction = 0 # left to right
         replicate_direction = 0 # left to right
         replication_count = 3 if self.sample_triplicates else 1
-        LabSource = "1x24 Weird Tube Runner no Tubes"
-        LabDest = LabwareNames["384_Well"]
+        # LabSource = LabwareNames["16 weird tube runner"]
+        LabSource = LabwareNames["16 falcon15 tube runner"]
+        LabDest = LabwareNames["384_Well_Tall"]
         complete_well_list = np.arange(1, max(self.sample_dest_positions) + 1) # list with all wells from 1 to the max sample pos
-        excluded_pos = list(set(complete_well_list) - set(self.sample_dest_positions) - set(self.BSA_wells))
+
+        if self.add_BSA:
+            excluded_pos = list(set(complete_well_list) - set(self.sample_dest_positions) - set(self.BSA_wells))
+        else:
+            excluded_pos = list(set(complete_well_list) - set(self.sample_dest_positions))
+
         sample_origin_pos = list(i for i in range(1, self.n_samples + 1))
         print("sample labware pos:", sample_origin_pos)
 
@@ -164,10 +170,11 @@ class nanoDSFMethod():
         output_file_path = self.files_path + self.gwl_bsa_transfer + ".gwl"
         n_diti_reuses = 12
         n_multi_dispense = 12
-        LabSource = self.BSA_lw
-        LabDest = LabwareNames["384_Well"]
+        # LabSource = self.BSA_lw
+        LabSource = pos_2_str(LabwareNames[self.BSA_lw], 1)
+        LabDest = LabwareNames["384_Well_Tall"]
 
-        generate_reagent_distribution_gwl(output_file_path, pos_2_str(LabSource, 1), LabDest, 1, 1, min(self.BSA_wells), max(self.BSA_wells), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, excluded_positions=self.sample_dest_positions)
+        generate_reagent_distribution_gwl(output_file_path, LabSource, LabDest, 1, 1, min(self.BSA_wells), max(self.BSA_wells), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, excluded_positions=self.sample_dest_positions)
                 
 
 
