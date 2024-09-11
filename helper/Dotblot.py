@@ -936,6 +936,9 @@ class DotblotMethod():
         logger.info(f"N. of samples: {self.n_samples_main_dilution}")
         logger.info(f"Samples initial labware: {self.main_sample_labware_type}")
         logger.info(f"Pos. ctr. vial position: {self.pos_control_vial_posX}, {self.pos_control_vial_posY}")
+        logger.info(f"Pos. ctr. dilution data: {self.pos_control_dilution_data}")
+        logger.info(f"Neg. ctr. dilution data: {self.neg_control_dilution_data}")
+        logger.info(f"Sample dilution data: {self.sample_dilution_data}")
         logger.info("-------------------------------------")
 
 
@@ -1005,7 +1008,7 @@ class DotblotMethod():
         self.n_samples_main_dilution = int(external.entry_slider2.get())
         # self.samples_initial_volume_transfer = external.entry_slider3.get()
         # self.samples_initial_volume_transfer = self.sample_dilution_data["Sample volume"][0] * 10 # value normally between 10uL, so transfer around 100uL, which is more than
-        self.samples_initial_volume_transfer = 30 # hard coded for nicolas's test on thu. 4/7
+        self.samples_initial_volume_transfer = 20 # hard coded for nicolas's test on thu. 4/7
 
         # Positive control
         self.pos_control_dilution_data = external.pos_control_dilution_data
