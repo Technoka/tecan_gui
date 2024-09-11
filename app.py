@@ -3,8 +3,6 @@
 
 # %%
 import os
-from pandas import DataFrame
-import numpy as np
 
 from tkinter import messagebox
 from tkinter import filedialog
@@ -36,6 +34,11 @@ a280_method = A280.A280Method()
 sec_hplc_method = SEC_HPLC.sec_HPLCMethod()
 general_dilution = GeneralDilution.GeneralDilution()
 vol_tr = VolumeTransfer.VolumeTransfer()
+
+
+# %% [markdown]
+# ### GUI Classes
+# 
 
 # %%
 # read JSON assay file and generate methods and products lists
@@ -82,7 +85,7 @@ class App(ctk.CTk):
         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
         self.scaling_optionemenu = ctk.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
         self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
-        self.appearance_mode_label = ctk.CTkLabel(self.sidebar_frame, text="Tecan Interface v0.4.5", anchor="w", font=ctk.CTkFont(size=8))
+        self.appearance_mode_label = ctk.CTkLabel(self.sidebar_frame, text="Tecan Interface v0.4.6\nGenerated 10/09/2024", anchor="w", font=ctk.CTkFont(size=8))
         self.appearance_mode_label.grid(row=9, column=0, padx=20, pady=(10, 0))
 
 
@@ -138,8 +141,8 @@ class App(ctk.CTk):
         self.neg_ctr_buffer = tk.StringVar()
 
         # Reagents volumes
-        self.text_samples_vol = tk.StringVar(value="?, ? mL needed\n")
-        self.vol_samples = tk.DoubleVar()
+        # self.text_samples_vol = tk.StringVar(value="?, ? mL needed\n")
+        # self.vol_samples = tk.DoubleVar()
         self.text_conjugate_vol = tk.StringVar(value="?, ? mL needed\n")
         self.vol_conjugate = tk.DoubleVar()
         self.text_coating_protein_vol = tk.StringVar(value="?, ? mL needed\n")
@@ -168,6 +171,7 @@ class App(ctk.CTk):
         self.nDSF_lw_origin = tk.StringVar(value="---")
         self.nDSF_volume = tk.StringVar(value="20")
         self.nDSF_sample_triplicates = tk.StringVar(value="Single transfer")
+        self.nDSF_add_BSA = tk.BooleanVar(value="False") # if it is allowed, decide if you want to add BSA to first column of each row
         # self.check_nDSF = tk.BooleanVar(value=False)
         
         # A280
@@ -341,36 +345,36 @@ class App(ctk.CTk):
             self.separator.pack(fill='x', pady=(10, 10))
 
             # Labware of reagents
-            # self.title_pos_control = ctk.CTkLabel(self.assay_method_frame, text="Labware of reagents", font=ctk.CTkFont(size=16, weight="bold"))
-            # self.title_pos_control.pack(pady=(1, 6))
-            # self.title_pump_steps = ctk.CTkLabel(self.assay_method_frame, text="Just visual, not \nimplemented in Tecan yet.\n")
-            # self.title_pump_steps.pack(pady=(1, 3))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Samples:", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#b8335f")
-            # self.label_1d.pack(padx=20, pady=(5, 1))
-            # self.label_sample_volume = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_samples_vol, width=120, height=25, corner_radius=8)
-            # self.label_sample_volume.pack(padx=20, pady=(5, 10))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Conjugate:", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#b85d33")
-            # self.label_1d.pack(padx=20, pady=(5, 1))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_conjugate_vol, width=120, height=25, corner_radius=8)
-            # self.label_1d.pack(padx=20, pady=(5, 10))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Coating protein", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#a2b833")
-            # self.label_1d.pack(padx=20, pady=(5, 1))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_coating_protein_vol, width=120, height=25, corner_radius=8)
-            # self.label_1d.pack(padx=20, pady=(5, 10))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="DPBS", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#33b87e")
-            # self.label_1d.pack(padx=20, pady=(5, 1))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_dpbs_vol, width=120, height=25, corner_radius=8)
-            # self.label_1d.pack(padx=20, pady=(5, 10))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Assay buffer", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#3350b8")
-            # self.label_1d.pack(padx=20, pady=(5, 1))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_assay_buffer_vol, width=120, height=25, corner_radius=8)
-            # self.label_1d.pack(padx=20, pady=(5, 10))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Blocking buffer", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#9033b8")
-            # self.label_1d.pack(padx=20, pady=(5, 1))
-            # self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_blocking_buffer_vol, width=120, height=25, corner_radius=8)
-            # self.label_1d.pack(padx=20, pady=(5, 10))
-            # self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
-            # self.separator.pack(fill='x', pady=(10, 10))
+            self.title_pos_control = ctk.CTkLabel(self.assay_method_frame, text="Labware of reagents", font=ctk.CTkFont(size=16, weight="bold"))
+            self.title_pos_control.pack(pady=(1, 6))
+            self.title_pump_steps = ctk.CTkLabel(self.assay_method_frame, text="Automatic calculation of\nlabware and volumes needed\n")
+            self.title_pump_steps.pack(pady=(1, 3))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Conjugate:", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#b85d33")
+            self.label_1d.pack(padx=20, pady=(5, 1))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_conjugate_vol, width=120, height=25, corner_radius=8)
+            self.label_1d.pack(padx=20, pady=(5, 10))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Coating protein(s)", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#a2b833")
+            self.label_1d.pack(padx=20, pady=(5, 1))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_coating_protein_vol, width=120, height=25, corner_radius=8)
+            self.label_1d.pack(padx=20, pady=(5, 10))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="DPBS", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#33b87e")
+            self.label_1d.pack(padx=20, pady=(5, 1))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_dpbs_vol, width=120, height=25, corner_radius=8)
+            self.label_1d.pack(padx=20, pady=(5, 10))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Assay buffer", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#3350b8")
+            self.label_1d.pack(padx=20, pady=(5, 1))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_assay_buffer_vol, width=120, height=25, corner_radius=8)
+            self.label_1d.pack(padx=20, pady=(5, 10))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Blocking buffer", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#9033b8")
+            self.label_1d.pack(padx=20, pady=(5, 1))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, textvariable=self.text_blocking_buffer_vol, width=120, height=25, corner_radius=8)
+            self.label_1d.pack(padx=20, pady=(5, 10))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Dye", width=120, height=25, corner_radius=8, font=ctk.CTkFont(size=12, weight="bold"), fg_color="#b8337e")
+            self.label_1d.pack(padx=20, pady=(5, 1))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="100mL_reservoir, 15mL needed", width=120, height=25, corner_radius=8)
+            self.label_1d.pack(padx=20, pady=(5, 10))
+            self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
+            self.separator.pack(fill='x', pady=(10, 10))
 
 
             # Confirm button
@@ -386,8 +390,9 @@ class App(ctk.CTk):
             self.title_sample.pack(pady=(1, 6))
             self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Sample origin:", width=120, height=25, corner_radius=8)
             self.label_1d.pack(pady=(5, 1))
-            self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, variable=self.nDSF_lw_origin, values=["Falcon15", "Falcon50", "2R Vial", "8R Vial", "Eppendorf"])
+            self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, variable=self.nDSF_lw_origin, values=["FakeFalcon15", "Falcon15", "Eppendorf"])
             self.optionmenu_1.pack(pady=(1, 10))
+            self.optionmenu_1.set("FakeFalcon15")
             self.label_slider_nDSF = ctk.CTkLabel(self.assay_method_frame, text="Number of samples: " + str(self.nDSF_n_samples.get()), width=120, height=25,corner_radius=8)
             self.label_slider_nDSF.pack(pady=(1, 1))
             self.entry_slider2 = ctk.CTkSlider(self.assay_method_frame, from_=1, to=25, number_of_steps=24, command=self.nDSF_sample_slider, variable=self.nDSF_n_samples)
@@ -397,8 +402,10 @@ class App(ctk.CTk):
             self.label_1d.pack(padx=20, pady=(5, 1))
             self.volume = ctk.CTkEntry(self.assay_method_frame,placeholder_text=self.nDSF_volume.get(), validate="all", validatecommand=(self.register(self.validate_input), "%P"), textvariable=self.nDSF_volume)
             self.volume.pack(pady=(1, 10))
-            self._check_triplicates = ctk.CTkSwitch(self.assay_method_frame, textvariable=self.nDSF_sample_triplicates, variable=self.nDSF_sample_triplicates, onvalue="Triplicate transfer", offvalue="Single Transfer")
-            self._check_triplicates.pack(padx=0, pady=(5, 10))
+            self._check_triplicates = ctk.CTkSwitch(self.assay_method_frame, textvariable=self.nDSF_sample_triplicates, variable=self.nDSF_sample_triplicates, onvalue="Triplicate transfer", offvalue="Single Transfer", command=self.nDSF_sample_transfer)
+            self._check_triplicates.pack(padx=0, pady=(10, 5))
+            self._check_add_BSA = ctk.CTkCheckBox(self.assay_method_frame, text="Add BSA to first column", variable=self.nDSF_add_BSA)
+            self._check_add_BSA.pack(padx=0, pady=(5, 10))
 
             # Confirm button
             self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
@@ -469,6 +476,13 @@ class App(ctk.CTk):
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------- #
 
+    def reset_reagent_volumes(self):
+        self.text_conjugate_vol.set("?, ? mL needed\n")
+        self.text_coating_protein_vol.set(value="?, ? mL needed\n")
+        self.text_dpbs_vol.set(value="?, ? mL needed\n")
+        self.text_assay_buffer_vol.set(value="?, ? mL needed\n")
+        self.text_blocking_buffer_vol.set(value="?, ? mL needed\n")
+
     def open_dotblot_excel_file(self):
         
         initial_dir = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\06. DotBlot_automation_DPP"
@@ -497,6 +511,7 @@ class App(ctk.CTk):
         # update side panel with correct options
         self.update_side_panel_options()
 
+
     def update_assay_info(self, event=None):
         indices = utils.get_assay_indices(RAW_ASSAYS_DATA, self.chosen_method.get(), self.chosen_product.get())
         self.chosen_tmd.set(RAW_ASSAYS_DATA[indices[0]]["tmd"])
@@ -511,6 +526,8 @@ class App(ctk.CTk):
         # reset read excel data if present
         if self.is_excel_imported:
             self.tab_changed() # this method resets the middle frame
+        
+        self.reset_reagent_volumes()
 
     
     def assay_changed(self, event): # DEPRECATED
@@ -527,40 +544,27 @@ class App(ctk.CTk):
         self.label_assay.configure(text="Assay code: " + self.var_assay_tmd.get())
         self.label_assay_type.configure(text="Assay type: " + RAW_ASSAYS_DATA["assays"][index][self.var_assay_tmd.get()]["type"])
 
+        self.reset_reagent_volumes()
+
+
+    def nDSF_sample_transfer(self):
+        if self.nDSF_sample_triplicates.get() == "Single Transfer":
+            self._check_add_BSA.configure(state=tk.NORMAL)
+        else:
+            self._check_add_BSA.configure(state=tk.DISABLED)
+            self._check_add_BSA.deselect()
+
     def sample_initial_volume_slider(self, event):
         self.label_slider3.configure(text="Initial volume transfer: " + str(int(self.entry_slider3.get())) + " uL")
 
     def samples_slider(self, event):
         self.label_slider2.configure(text="Number of samples: " + str(int(self.entry_slider2.get())))
 
-        # self.label_sample_volume.configure(text="Eppendorf, 1 mL per sample needed\n" + "n_samples: " + str(self.n_samples.get()))
-
         # update labware reagents calculations
         if self.is_excel_imported == False:
             return
 
-        # dotblot_method.set_all_parameters(self)
-        # dotblot_method.calculate_total_volumes()
-        # dpbs_vol_needed = dotblot_method.total_volumes["DPBS"]
-        # container = utils.find_best_container(dpbs_vol_needed)
-        # self.vol_dpbs.set(dpbs_vol_needed)
-        # self.text_dpbs_vol.set(container + ", " + str(dpbs_vol_needed) + " mL needed\n")
-        
-        # containers = utils.find_best_container(dotblot_method.total_volumes)
-        # print(containers)
-        
-        # self.vol_dpbs.set(dotblot_method.total_volumes["Samples"])
-        # self.text_dpbs_vol.set(containers["Samples"] + ", " + int(self.vol_dpbs.get() + " mL needed\n") # samples
-        # self.vol_conjugate.set(dotblot_method.total_volumes["Conjugate"])
-        # self.text_conjugate_vol.set(containers["Conjugate"] + ", " + str(self.vol_conjugate.get()) + " mL needed\n") # conjugate
-        # self.vol_coating_protein.set(dotblot_method.total_volumes["Coating protein"])
-        # self.text_coating_protein_vol.set(containers["Coating protein"] + ", " + str(self.vol_coating_protein.get()) + " mL needed\n") # coating protein
-        # self.vol_dpbs.set(dotblot_method.total_volumes["DPBS"])
-        # self.text_dpbs_vol.set(containers["DPBS"] + ", " + str(self.vol_dpbs.get()) + " mL needed\n") # dpbs
-        # self.vol_assay_buffer.set(dotblot_method.total_volumes["Assay buffer"])
-        # self.text_assay_buffer_vol.set(containers["Assay buffer"] + ", " + str(self.vol_assay_buffer.get()) + " mL needed\n") # assay buffer
-        # self.vol_blocking_buffer.set(dotblot_method.total_volumes["Blocking buffer"])
-        # self.text_blocking_buffer_vol.set(containers["Blocking buffer"] + ", " + str(self.vol_blocking_buffer.get()) + " mL needed\n") # blocking buffer
+        self.calculate_volumes_dotblot()
 
     def sec_HPLC_sample_slider(self, event):
         self.label_slider_sec_HPLC.configure(text="Number of samples: " + str(self.sec_HPLC_n_samples.get()))
@@ -662,6 +666,7 @@ class App(ctk.CTk):
             widget.destroy()
 
         self.is_excel_imported = False
+        self.reset_reagent_volumes()
 
         # add default label to middle frame
         self.middle_frame_default_label = ctk.CTkLabel(self.middle_frame, text="Import an Excel dilutions file, \nselect the correct options \nand press Generate CSV files.\nAs easy as that.", font=ctk.CTkFont(size=16, weight="bold"))
@@ -674,35 +679,59 @@ class App(ctk.CTk):
             # self.middle_frame.grid_forget()
             pass
 
-
-    def calculate_volumes(self):
+    
+    def calculate_volume_text(self, volume:float, container:str):
         """
-        Calculates the volumes needed based on the excel dilution files.
+            Calculates the text string for the labware and volume needed for the reagent data passed.
+            
+            Parameters
+            ----------
+            ``volume``: float
+                Volume for the reagent.
+                
+            ``container``: str
+                Container for the reagent.
+
+            Returns
+            ---------
+            ``result_text``: str
+                Formatted string with the information summary.
 
         """
-        
-        indices = utils.get_assay_indices(RAW_ASSAYS_DATA, self.chosen_method.get(), self.chosen_product.get())
-        self.pump_steps_data = RAW_ASSAYS_DATA[indices[0]]["step_types"] # get pump steps from JSON file
-        print(self.pump_steps_data)
+
+        if container == "VOLUME TOO BIG": # if container is this, don't try to sum the dead volume of the container because it will give of an error
+            result_text = container + ", " + str(round(volume, 1)) + " mL needed\n"
+
+        else:
+            result_text = container + ", " + str(round(volume + utils.LABWARE_VOLUMES[container][0], 1)) + " mL needed\n"
+
+        return result_text
+
+
+
+    def calculate_volumes_dotblot(self):
+        """
+        Calculates the volumes for the DotBlot method needed based on the excel dilution files.
+
+        """
 
         dotblot_method.set_all_parameters(self)
 
         dotblot_method.calculate_total_volumes()
         containers = utils.find_best_container(dotblot_method.total_volumes)
-        # print(containers)
         
-        # self.vol_dpbs.set(dotblot_method.total_volumes["Samples"])
-        # self.text_dpbs_vol.set(containers["Samples"] + ", " + int(self.vol_dpbs.get() + " mL needed\n") # samples
         self.vol_conjugate.set(dotblot_method.total_volumes["Conjugate"])
-        self.text_conjugate_vol.set(containers["Conjugate"] + ", " + str(self.vol_conjugate.get()) + " mL needed\n") # conjugate
         self.vol_coating_protein.set(dotblot_method.total_volumes["Coating protein"])
-        self.text_coating_protein_vol.set(containers["Coating protein"] + ", " + str(self.vol_coating_protein.get()) + " mL needed\n") # coating protein
         self.vol_dpbs.set(dotblot_method.total_volumes["DPBS"])
-        self.text_dpbs_vol.set(containers["DPBS"] + ", " + str(self.vol_dpbs.get()) + " mL needed\n") # dpbs
         self.vol_assay_buffer.set(dotblot_method.total_volumes["Assay buffer"])
-        self.text_assay_buffer_vol.set(containers["Assay buffer"] + ", " + str(self.vol_assay_buffer.get()) + " mL needed\n") # assay buffer
         self.vol_blocking_buffer.set(dotblot_method.total_volumes["Blocking buffer"])
-        self.text_blocking_buffer_vol.set(containers["Blocking buffer"] + ", " + str(self.vol_blocking_buffer.get()) + " mL needed\n") # blocking buffer
+
+        self.text_conjugate_vol.set(self.calculate_volume_text(self.vol_conjugate.get(), containers["Conjugate"])) # conjugate
+        self.text_coating_protein_vol.set(self.calculate_volume_text(self.vol_coating_protein.get(), containers["Coating protein"])) # coating protein
+        self.text_dpbs_vol.set(self.calculate_volume_text(self.vol_dpbs.get(), containers["DPBS"])) # dpbs
+        self.text_assay_buffer_vol.set(self.calculate_volume_text(self.vol_assay_buffer.get(), containers["Assay buffer"])) # assay buffer
+        self.text_blocking_buffer_vol.set(self.calculate_volume_text(self.vol_blocking_buffer.get(), containers["Blocking buffer"])) # blocking buffer
+
 
     # select excel file from computer
     def import_excel_dotblot(self):
@@ -714,8 +743,9 @@ class App(ctk.CTk):
 
         # Open a file dialog to select the Excel file
         initial_dir = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\06. DotBlot_automation_DPP"
-        
         method_index = utils.get_assay_indices(RAW_ASSAYS_DATA,self.chosen_method.get(), self.chosen_product.get())[0]
+        self.pump_steps_data = RAW_ASSAYS_DATA[method_index]["step_types"] # get pump steps from JSON file
+
 
         # read correct excel depending if the method has 1 coating protein or 2
         try:
@@ -724,7 +754,15 @@ class App(ctk.CTk):
                 file_path = initial_dir + r"\DotBlot automation dilution data - 2 coating.xlsx"
                 data = utils.import_excel_dotblot_2_coating(file_path)
                 dotblot_method.has_2_coatings = True
+
+            else:
+                print("importing excel 1 coating")
+                file_path = initial_dir + r"\DotBlot automation dilution data.xlsx"
+                data = utils.import_excel_dotblot(file_path)
+                dotblot_method.has_2_coatings = False
+
         except:
+            print("importing excel 1 coating")
             file_path = initial_dir + r"\DotBlot automation dilution data.xlsx"
             data = utils.import_excel_dotblot(file_path)
             dotblot_method.has_2_coatings = False
@@ -805,7 +843,7 @@ class App(ctk.CTk):
             row_number = row_number + 1
             for row, value_list in enumerate(sample_dilution):
                 for col, value in enumerate(value_list):
-                    label = ctk.CTkLabel(self.middle_frame, text=round(float(value), 2))
+                    label = ctk.CTkLabel(self.middle_frame, text=round(float(value), 4))
                     label.grid(row=col+row_number, column=row, sticky="ew")
             row_number = row_number + len(self.sample_dilution_data[0])
 
@@ -833,7 +871,7 @@ class App(ctk.CTk):
 
             for row, value_list in enumerate(dilution_group):
                 for col, value in enumerate(value_list):
-                    label = ctk.CTkLabel(self.middle_frame, text=round(float(value), 2))
+                    label = ctk.CTkLabel(self.middle_frame, text=round(float(value), 4))
                     label.grid(row=col+row_number, column=row, sticky="ew")
             row_number = row_number + len(self.pos_control_dilution_data[0])
         
@@ -848,7 +886,7 @@ class App(ctk.CTk):
 
             for row, value_list in enumerate(dilution_group):
                 for col, value in enumerate(value_list):
-                    label = ctk.CTkLabel(self.middle_frame, text=round(float(value), 2))
+                    label = ctk.CTkLabel(self.middle_frame, text=round(float(value), 4))
                     label.grid(row=col+row_number, column=row, sticky="ew")
             row_number = row_number + len(self.neg_control_dilution_data[0])
 
@@ -856,7 +894,7 @@ class App(ctk.CTk):
         self.add_label(5, "info")
 
         # self.labware_text = "" # remove inplace text
-        # self.calculate_volumes()
+        self.calculate_volumes_dotblot()
 
 
     # select excel file from computer
@@ -952,9 +990,10 @@ class App(ctk.CTk):
                     # self.set_pump_steps_parameters()
                     print("starting dotblot calculations...") if self.DEBUG else 0
 
-                    indices = utils.get_assay_indices(RAW_ASSAYS_DATA, self.chosen_method.get(), self.chosen_product.get())
-                    self.pump_steps_data = RAW_ASSAYS_DATA[indices[0]]["step_types"] # get pump steps from JSON file
-                    print(self.pump_steps_data)
+                    # not needed now, as they are imported when importing the excel file, saving computing time
+                    # indices = utils.get_assay_indices(RAW_ASSAYS_DATA, self.chosen_method.get(), self.chosen_product.get())
+                    # self.pump_steps_data = RAW_ASSAYS_DATA[indices[0]]["step_types"] # get pump steps from JSON file
+                    print(self.pump_steps_data) if self.DEBUG else 0
 
                     dotblot_method.set_all_parameters(self)
                     print("parameters set") if self.DEBUG else 0
@@ -1034,3 +1073,7 @@ if __name__ == "__main__":
     app.DEBUG = True
 
     app.mainloop()
+
+
+
+
