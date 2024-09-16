@@ -29,7 +29,7 @@ def new_log_file():
     current_time = datetime.now().strftime('%d-%m-%Y_%H-%M')
 
     logs_folder_name = "logs"
-    
+
     # Check if the folder exists
     if not os.path.exists(logs_folder_name):
         # Create the folder if it doesn't exist
@@ -449,16 +449,16 @@ def get_deep_well_pos(pos: int, plate_type:int = 96, sample_direction: str = "ve
         raise ValueError("Invalid transfer type. Must be either 'single' or 'triplicate'.")
 
     if plate_type == 96:
-        if pos < 1 or pos > 128:
-            return ValueError("Invalid position. Must be between [1-32].")
+        if pos < 1 or pos > 96:
+            return ValueError("Invalid position. Must be between [1-96].")
         
         wells_per_block = 24
         wells_per_col = 8
         wells_per_row = 12
 
     elif plate_type == 384:
-        if pos < 1 or pos > 128:
-            return ValueError("Invalid position. Must be between [1-128].")
+        if pos < 1 or pos > 384:
+            return ValueError(f"Invalid position {pos}. Must be between [1-384].")
         wells_per_block = 48
         wells_per_col = 16
         wells_per_row = 24
