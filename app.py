@@ -112,7 +112,7 @@ class App(ctk.CTk):
         self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
         self.scaling_optionemenu = ctk.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
         self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
-        self.appearance_mode_label = ctk.CTkLabel(self.sidebar_frame, text="Tecan Interface v0.4.6\nGenerated 11/09/2024", anchor="w", font=ctk.CTkFont(size=8))
+        self.appearance_mode_label = ctk.CTkLabel(self.sidebar_frame, text="Tecan Interface v0.4.7\nGenerated 12/09/2024", anchor="w", font=ctk.CTkFont(size=8))
         self.appearance_mode_label.grid(row=9, column=0, padx=20, pady=(10, 0))
 
 
