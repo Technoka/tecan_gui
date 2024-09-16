@@ -33,6 +33,7 @@ class nanoDSFMethod():
         self.BSA_wells = [] # wells in 384 well plate where BSA has to be added
 
         self.BSA_lw = "BSA tube" # origin labware where BSA tube is placed on. Fixed position.
+        self.starting_row_pos = 1 # the row in the 384 well plate where you want to start the transfer
 
 
     def next_labware_pos(self, labware_name:str):
@@ -91,29 +92,58 @@ class nanoDSFMethod():
         """
         
         sample_wells = []
+        wells_per_row = 24 # for a 384 well plate
         init_sample_pos = [i for i in range(1, self.n_samples+1)] # initial sample numbers
+
+        # add positions depending to match the wanted starting row
+        init_sample_pos = [i + wells_per_row * (self.starting_row_pos - 1) for i in init_sample_pos]
+        
+        # print("init sample pos after adding:", init_sample_pos)
 
         # if BSA has to be added, shift well values to leave room to place BSA in the first column of each used row
         if self.add_BSA:
             assert self.sample_triplicates == False, "BSA can only be added if sample transfer is single, not in triplicates."
 
             index = 0
-            wells_per_row = 24 # for a 384 well plate
+
+            # if self.starting_row_pos > 1: # starting row is not top one
+            #     1
+            
 
             pos = init_sample_pos
 
             while (index < len(pos)): # at least the loop is run once
 
                 pos[index:] = [value + 1 for value in pos[index:]] # shift values to the right (+1)
+
+                # increase BSA pos in deep well to match wanted starting row
+                # if index == 0 and self.starting_row_pos > 1: # if it is the first time that we enter this loop
+                    # pos.insert(index, index + self.starting_row_pos) # insert the well number of the first column of the row
+                # else:
+                    # pos.insert(index, index+1) # insert the well number of the first column of the row
+                # print("index in insert:", index)
                 pos.insert(index, index+1) # insert the well number of the first column of the row
-                self.BSA_wells.append(get_deep_well_pos(pos[index], 384, sample_direction="horizontal", sample_transfer="single")) # add newly inserted BSA position to the list
+                # normal positions, not actual wells
+                self.BSA_wells.append(pos[index]) # add newly inserted BSA position to the list
                 index += wells_per_row
                 # print(f"after INT BSA added positions: {pos}")
             
             # print(f"after BSA added positions: {pos}")
-            init_sample_pos = pos
+            init_sample_pos = pos # update list with added BSA positions
+
+            # add 
+            # if self.starting_row_pos > 1:
+            #     self.BSA_wells = [i + self.starting_row_pos - 1 for i in self.BSA_wells]
+
+            # print("bsa wells position not well:", self.BSA_wells)
+            # remove BSA wells from init_sample_pos
+            init_sample_pos = list(set(init_sample_pos) - set(self.BSA_wells))
+            # transfer positions into deep well well numbers
+            # print("bsa well pos calc:", self.BSA_wells[0] + wells_per_row * (self.starting_row_pos - 1))
+            self.BSA_wells = [get_deep_well_pos(well + wells_per_row * (self.starting_row_pos - 1), 384, sample_direction="horizontal", sample_transfer="single") for well in self.BSA_wells]
 
         
+        # print("init sample pos before sample dest positions:", init_sample_pos)
         for sample in init_sample_pos: # create list from 1 to number of samples
 
             if self.sample_triplicates:
@@ -125,6 +155,7 @@ class nanoDSFMethod():
         # self.sample_dest_positions = sample_wells # update variable
 
         # only sample wells, without BSA ones
+        logger.debug(f"sample wells: {sample_wells}")
         self.sample_dest_positions = sorted(list(set(sample_wells) - set(self.BSA_wells)))
         print("BSA wells:", self.BSA_wells)
         print("Sample wells:", self.sample_dest_positions)
@@ -161,63 +192,23 @@ class nanoDSFMethod():
             excluded_pos = list(set(complete_well_list) - set(self.sample_dest_positions))
 
         sample_origin_pos = list(i for i in range(1, self.n_samples + 1))
-        print("sample labware pos:", sample_origin_pos)
+        # print("sample labware pos:", sample_origin_pos)
 
         generate_sample_transfer_gwl(output_file_path, "w", pos_2_str(LabSource, 1), LabDest, sample_origin_pos[0], sample_origin_pos[-1], min(self.sample_dest_positions), max(self.sample_dest_positions), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, self.n_samples, replication_count, sample_direction, replicate_direction, excluded_positions=excluded_pos)
             
 
         # BSA transfer
-        output_file_path = self.files_path + self.gwl_bsa_transfer + ".gwl"
-        n_diti_reuses = 12
-        n_multi_dispense = 12
-        # LabSource = self.BSA_lw
-        LabSource = pos_2_str(LabwareNames[self.BSA_lw], 1)
-        LabDest = LabwareNames["384_Well_Tall"]
+        if self.add_BSA:
+            output_file_path = self.files_path + self.gwl_bsa_transfer + ".gwl"
+            n_diti_reuses = 12
+            n_multi_dispense = 12
+            # LabSource = self.BSA_lw
+            LabSource = pos_2_str(LabwareNames[self.BSA_lw], 1)
+            LabDest = LabwareNames["384_Well_Tall"]
 
-        generate_reagent_distribution_gwl(output_file_path, LabSource, LabDest, 1, 1, min(self.BSA_wells), max(self.BSA_wells), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, excluded_positions=self.sample_dest_positions)
+            generate_reagent_distribution_gwl(output_file_path, LabSource, LabDest, 1, 1, min(self.BSA_wells), max(self.BSA_wells), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, excluded_positions=self.sample_dest_positions)
                 
-
-
         return
-
-        # LabDest, DestWell = dilution_position_def("DeepWell", self.next_deep_well_pos(), 1) # define destination labware as deep well
-
-        output_file_path = self.files_path + self.gwl_file_name + ".gwl"
-
-        with open(output_file_path, 'w') as output_file:
-            # Read all lines from the input file
-
-            output_lines = []
-            
-            
-            LabSource, SourceWell = dilution_position_def(self.sample_lw_origin, 1, self.n_samples)
-            # Extract the values
-            for sample in [i for i in range(self.n_samples)]: # create list from 1 to number of samples
-                LabDest, _ = dilution_position_def(self.sample_lw_dest, 1, 1) # ignore received position as we already have it in self.sample_dest_positions
-                DestWell = self.sample_dest_positions[sample]
-                Volume = self.sample_volume_per_well
-                
-                # Create the three lines for the output
-                if self.sample_triplicates:
-                    a_line = f"A;{LabSource[sample]};;;{SourceWell[sample]};;{Volume*3};;;;\n" # 3x volume to save time
-                    d_line_1 = f"D;{LabDest[0]};;;{DestWell[0]};;{Volume};;;;\n"
-                    d_line_2 = f"D;{LabDest[0]};;;{DestWell[1]};;{Volume};;;;\n"
-                    d_line_3 = f"D;{LabDest[0]};;;{DestWell[2]};;{Volume};;;;\n"
-                else:
-                    a_line = f"A;{LabSource[sample]};;;{SourceWell[sample]};;{Volume};;;;\n"
-                    d_line_1 = f"D;{LabDest[0]};;;{DestWell};;{Volume};;;;\n"
-
-                w_line = "W;\n" if change_tip else "F;\n" # use F to flush tip remaining contents, W to change tips instead of changing tip
-                
-                # Append the lines to the output lines list
-                output_lines.append(a_line)
-                output_lines.append(d_line_1)
-                if self.sample_triplicates: # if triplicates do 2 more
-                    output_lines.append(d_line_2)
-                    output_lines.append(d_line_3)
-                output_lines.append(w_line)
-
-            output_file.writelines(output_lines)
 
 
     def nanoDSF(self):
@@ -239,14 +230,15 @@ class nanoDSFMethod():
         self.count_starting_lw_pos()
 
         self.calculate_deep_well_positions()
-        print("Calculated 384 well positions:", self.sample_dest_positions)
-        logger.info(f"Calculated deep well positions: {self.sample_dest_positions}")
 
         if self.add_BSA:
             logger.info(f"Well positions of BSA are: {self.BSA_wells}")
 
+        print("Calculated 384 well positions:", self.sample_dest_positions)
+        logger.info(f"Calculated deep well positions: {self.sample_dest_positions}")
+
         self.generate_gwl_file()
-        logger.info(f"Generated GWL files.")
+        logger.info(f"Generated GWL files.\n\n")
         print("Generated GWL file.")
 
         return
@@ -264,6 +256,7 @@ class nanoDSFMethod():
 
         # Reset parameters
         self.used_labware_pos = dict.fromkeys(self.used_labware_pos, 0) # reset dict
+        self.BSA_wells = []
 
         # General
         self.n_samples = external.nDSF_n_samples.get() # amount of samples for the sample transfer
@@ -271,5 +264,6 @@ class nanoDSFMethod():
         self.sample_lw_origin = external.nDSF_lw_origin.get() # origin labware of samples
         self.sample_triplicates = True if external.nDSF_sample_triplicates.get() == "Triplicate transfer" else False
         self.add_BSA = external.nDSF_add_BSA.get()
-        print(f"add bsa: {self.add_BSA}")
+        self.starting_row_pos = external.nDSF_starting_row.get()
+        # print(f"add bsa: {self.add_BSA}")
         
