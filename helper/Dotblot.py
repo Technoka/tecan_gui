@@ -978,7 +978,7 @@ class DotblotMethod():
         logger.info("Dye and wash files generated.")
 
         print("generated all GWL files")
-        logger.info("All GWL files generated.")
+        logger.info("All GWL files generated.\n\n")
 
         
         logger.info("Dotblot method finished successfully.\n\n")
