@@ -20,6 +20,7 @@ class nanoDSFMethod():
         self.gwl_sample_transfer = r"\sample_transfer"
         self.gwl_bsa_transfer = r"\bsa_transfer"
         self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions 
+        self.config_file_name = r"\config.txt"
 
         # Sample transfer parameters
         self.n_samples = 0 # amount of samples for the sample transfer
@@ -209,6 +210,26 @@ class nanoDSFMethod():
             generate_reagent_distribution_gwl(output_file_path, LabSource, LabDest, 1, 1, min(self.BSA_wells), max(self.BSA_wells), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, excluded_positions=self.sample_dest_positions)
                 
         return
+    
+
+    def generate_config_file(self):
+        """
+        Generates the config file for the current run.
+        """
+
+        # If there are repeated keys in the dictionary, the last one and its value is the dominant one !!!
+
+        config_parameters = {"add_BSA": str(self.add_BSA)
+                     }
+
+        with open(self.files_path + self.config_file_name, 'w') as file:
+            # Write the keys
+            keys = "; ".join(config_parameters.keys())
+            file.write(keys + ";\n")
+            
+            # Write the values
+            values = "; ".join(map(str, config_parameters.values()))
+            file.write(values + ";\n")
 
 
     def nanoDSF(self):
@@ -227,6 +248,8 @@ class nanoDSFMethod():
         logger.info("-------------------------------------")
 
         logger.info("Starting nanoDSF method calculations")
+        self.generate_config_file()
+        logger.info("Config file generated.")
         self.count_starting_lw_pos()
 
         self.calculate_deep_well_positions()
