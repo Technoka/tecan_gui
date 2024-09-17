@@ -89,6 +89,10 @@ class DotblotMethod():
 
         self.dye_volume_per_well = 100 # in uL
 
+        # method checks
+        self.max_sample_number_1_coating = 23
+        self.max_sample_number_2_coatings = 14
+
 
     def next_labware_pos(self, labware_name:str):
         """
@@ -923,6 +927,18 @@ class DotblotMethod():
             file.write(values + ";\n")
 
 
+    def method_checks(self):
+        """
+            Performs different checks to assure that the method can run properly.
+        """
+
+        if self.has_2_coatings is False:
+            assert self.n_samples_main_dilution < self.max_sample_number_1_coating, "The maximum number of samples for 1 coating is 23."
+        else:
+            assert self.n_samples_main_dilution < self.max_sample_number_2_coatings, "The maximum number of samples for 2 coatings is 14."
+
+
+
     def dotblot(self):
         """
         Class main method.
@@ -941,6 +957,7 @@ class DotblotMethod():
         logger.info(f"Sample dilution data: {self.sample_dilution_data}")
         logger.info("-------------------------------------")
 
+        self.method_checks()
 
         logger.info("Starting Dotblot method calculations")
         self.generate_config_file()
