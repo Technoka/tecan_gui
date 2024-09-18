@@ -17,7 +17,7 @@ class DotblotMethod():
         # General parameters
         self.DEBUG = debug
 
-        self.csv_files_path = r"C:\Users\DPerez36\OneDrive - JNJ\Documents\git repos\method outputs\dotblot" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\3. DotBlot' # network path where all the CSV files will be saved in.
+        self.csv_files_path = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\0. Debug" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\3. DotBlot' # network path where all the CSV files will be saved in.
 
         self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions 
 
@@ -1014,6 +1014,10 @@ class DotblotMethod():
 
         # Reset parameters
         self.used_labware_pos = dict.fromkeys(self.used_labware_pos, 0) # reset dict
+
+        # Set files path
+        self.csv_files_path = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\0. Debug" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\3. DotBlot' # network path where all the CSV files will be saved in.
+
 
         # General
         self.sample_dilution_data = external.sample_dilution_data
