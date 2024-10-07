@@ -75,7 +75,9 @@ LabwareNames = {
     "GeneralBuffer": "100ml_1", # for every method that uses a buffer of any kind, this will be the position
     "BSA tube": "Brown_screw_cap_2ml",
     "16 weird tube runner": "1x16 16mm Tube Runner No Tubes",
-    "16 falcon15 tube runner": "1x16 15ml Falcon Tube Runner no Tubes"
+    "16 falcon15 tube runner": "1x16 15ml Falcon Tube Runner no Tubes",
+    "Mobile Phase": "100ml_1",
+    "2mL Vial": "2mL Vial"
 
 }
 
@@ -90,7 +92,8 @@ AvailableLabware = {
     "DeepWell": 96,
     "2R Vial": 24, # 4 x 6
     "8R Vial": 12, # 3 x 4
-    "CustomVialHolder": 30 # 5 x 6
+    "CustomVialHolder": 30, # 5 x 6
+    "2mL Vial": 40
 
 }
 
@@ -886,7 +889,6 @@ def get_assay_indices(raw_data: list, method: str, product: str) -> list:
     --------
         List of the indices that match the method and product type.
 
-
     """
         
     # Find indexes of matching assays
@@ -968,3 +970,36 @@ def find_best_container(reagents: dict | float | int):
                 result[item] = "VOLUME TOO BIG"
         
         return result
+
+
+def calculate_dilution_parameter(init_conc: float, final_conc: float, sample_vol: float = None, total_vol: float = None) -> float:
+    """
+    Calculates the buffer volume needed for the desired dilution parameters.
+
+    Parameters
+    ----------
+    ``init_conc``: float
+        Sample initial concentration (mg/mL).
+    
+    ``final_conc``: float
+        Sample final concentration (mg/mL).
+
+    ``sample_vol``: float
+        Sample withdrawn volume (uL).
+
+    Returns
+    --------
+        float: Buffer volume needed to get desired dilution parameters (uL).
+    """
+
+    assert total_vol is None or sample_vol is None, "Either 'sample_vol' or 'total_vol' have to be 'None'."
+
+    # This is the parameter to calculate
+    if total_vol is None:
+        total_vol = init_conc * sample_vol / final_conc
+        return total_vol - sample_vol
+    
+    elif sample_vol is None:
+        sample_vol = total_vol * final_conc / init_conc
+        buffer_vol = total_vol - sample_vol
+        return (sample_vol, buffer_vol)
