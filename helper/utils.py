@@ -78,7 +78,7 @@ LabwareNames = {
     "16 falcon15 tube runner": "1x16 15ml Falcon Tube Runner no Tubes",
     "Mobile Phase": "100ml_1",
     "2mL Vial": "2mL Vial",
-    "UV Cuvette holder": "UV Cuvette holder",
+    "UV Cuvette holder": "UV Cuvette holder[001]",
     "UV Cuvette": "UV_Cuvette"
 
 }
@@ -96,7 +96,8 @@ AvailableLabware = {
     "8R Vial": 12, # 3 x 4
     "CustomVialHolder": 30, # 5 x 6
     "2mL Vial": 40,
-    "UV Cuvette": 80
+    "UV Cuvette": 80,
+    "UV Cuvette holder": 80
 
 }
 
@@ -104,7 +105,8 @@ AvailableLabware = {
 LabwarePlates = ["DeepWell", 
                  "384_Well", 
                  "2R Vial", 
-                 "soloVPE cuvettes"]
+                 "soloVPE cuvettes",
+                 "UV Cuvette holder"]
 
 
  # fill the rest and actually do the calculations............................ measure myself with tecan for all tips, place biggest value obtained, most likely for the smaller tips

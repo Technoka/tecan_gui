@@ -30,7 +30,7 @@ class ColorProjectDilutionsMethod():
         self.n_replicates = 1 # number of replicates to do per solution transfer
 
         self.sample_lw_origin = "100ml_2" # origin labware of samples
-        self.lw_dest = "UV Cuvette"
+        self.lw_dest = "UV Cuvette holder"
         self.sample_dest_positions = [0] # positions of 384 plate where the diluted samples end up
         
         # Diluent parameters
@@ -58,9 +58,10 @@ class ColorProjectDilutionsMethod():
                         self.used_labware_pos[labware_name] = self.used_labware_pos[labware_name] + 1
                         return self.used_labware_pos[labware_name] # return next positions after adding an unit
             else:
-                return -1
+                raise ValueError(f"labware {labware_name} not in LabwareNames.")
         except Exception as e:
-            return -1
+            print(e)
+            raise ValueError(f"labware pos exceeded maximum one")
         
 
     def count_starting_lw_pos(self):
@@ -101,11 +102,14 @@ class ColorProjectDilutionsMethod():
         sample_volumes = []
         diluent_volumes = []
 
-        print("type init sample vol", type(starting_sample_vol))
+        print("type init sample vol:", type(starting_sample_vol))
 
         for i in range(num_samples):
             sample_vol = starting_sample_vol - (i * diff)  # Decreasing volume for sample_vol
-            diluent_vol = starting_diluent_vol + (i * diff)  # Increasing volume for diluent_vol
+            if starting_diluent_vol > 1000: # it vol cannot fit in 1 tip, divide by 2, it is then repeated 2 times in tecan
+                diluent_vol = round(starting_diluent_vol/2) + (i * round(diff/2))  # Increasing volume for diluent_vol
+            else:
+                diluent_vol = starting_diluent_vol + (i * diff)  # Increasing volume for diluent_vol
             
             sample_volumes.append(sample_vol)
             diluent_volumes.append(diluent_vol)
@@ -125,6 +129,7 @@ class ColorProjectDilutionsMethod():
 
         # we do it 1 time so that it doesnt start in 0 but in 1.
         self.next_labware_pos(self.lw_dest)
+        print("labware pos holder:", self.used_labware_pos[self.lw_dest])
 
         # for each sample
         for i in range(1, self.n_samples + 1):
@@ -136,13 +141,15 @@ class ColorProjectDilutionsMethod():
             dest_pos_start = self.used_labware_pos[self.lw_dest]
             dest_pos_end = dest_pos_start + self.n_replicates - 1
 
-            generate_sample_transfer_gwl(path, open_mode, self.sample_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, sample_volumes[i-1], n_diti_reuses, n_multi_dispense, 1, self.n_replicates, 1, 1)
+            # generate_sample_transfer_gwl(path, open_mode, self.sample_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, sample_volumes[i-1], n_diti_reuses, n_multi_dispense, 1, self.n_replicates, 1, 1)
+            generate_reagent_distribution_gwl(path, open_mode, self.sample_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, sample_volumes[i-1], n_diti_reuses, n_multi_dispense)
                 
             # Diluent transfer
             # path = self.files_path + "/" + self.diluent_filename + "_0" + str(12) + ".gwl"
             path = self.files_path + "/" + self.diluent_filename + ".gwl"
 
-            generate_sample_transfer_gwl(path, open_mode, self.diluent_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, diluent_volumes[i-1], n_diti_reuses, n_multi_dispense, 1, self.n_replicates, 1, 1)
+            # generate_sample_transfer_gwl(path, open_mode, self.diluent_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, diluent_volumes[i-1], n_diti_reuses, n_multi_dispense, 1, self.n_replicates, 1, 1)
+            generate_reagent_distribution_gwl(path, open_mode, self.diluent_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, diluent_volumes[i-1], n_diti_reuses, n_multi_dispense)
 
             # to account for the used cuvettes of the reagent distr. replicate use
             for j in range(self.n_replicates):
