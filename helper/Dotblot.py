@@ -612,7 +612,7 @@ class DotblotMethod():
                 n_diti_reuses = 12
                 n_multi_dispense = 12
 
-                generate_reagent_distribution_gwl(path, LabwareNames["CoatingProtein"], dest_labware, 1, 1, 1, max_coating_1_well, volume, n_diti_reuses, n_multi_dispense, excluded_positions=excluded_pos)
+                generate_reagent_distribution_gwl(path, "w", LabwareNames["CoatingProtein"], dest_labware, 1, 1, 1, max_coating_1_well, volume, n_diti_reuses, n_multi_dispense, excluded_positions=excluded_pos)
                 
                 return
 
@@ -640,7 +640,7 @@ class DotblotMethod():
                 n_diti_reuses = 12
                 n_multi_dispense = 12
 
-                generate_reagent_distribution_gwl(path, LabwareNames["CoatingProtein_2"], dest_labware, 1, 1, 1, max_coating_2_well, volume, n_diti_reuses, n_multi_dispense, excluded_positions=excluded_pos)
+                generate_reagent_distribution_gwl(path, "w", LabwareNames["CoatingProtein_2"], dest_labware, 1, 1, 1, max_coating_2_well, volume, n_diti_reuses, n_multi_dispense, excluded_positions=excluded_pos)
                 
                 return
 
@@ -653,7 +653,7 @@ class DotblotMethod():
                 n_diti_reuses = 12
                 n_multi_dispense = 12
 
-                generate_reagent_distribution_gwl(path, LabSource, dest_labware, 1, 1, 1, max_sample_well, volume, n_diti_reuses, n_multi_dispense, excluded_positions=excluded_pos)
+                generate_reagent_distribution_gwl(path, "w", LabSource, dest_labware, 1, 1, 1, max_sample_well, volume, n_diti_reuses, n_multi_dispense, excluded_positions=excluded_pos)
                 
                 return
 
@@ -796,7 +796,7 @@ class DotblotMethod():
             n_diti_reuses = 12
             n_multi_dispense = 12
 
-            generate_reagent_distribution_gwl(path, LabSource, dest_labware, 1, 1, 1, max_sample_well, volume, n_diti_reuses, n_multi_dispense)
+            generate_reagent_distribution_gwl(path, "w", LabSource, dest_labware, 1, 1, 1, max_sample_well, volume, n_diti_reuses, n_multi_dispense)
             print("transfer volume instruction ", csv_number, "done")
 
             return
@@ -889,10 +889,10 @@ class DotblotMethod():
         n_multi_dispense = 12
 
         # Dye
-        generate_reagent_distribution_gwl(dye_path, LabwareNames["Dye"], self.pump_lw_name, 1, 1, 1, 96, self.dye_volume_per_well, n_diti_reuses, n_multi_dispense)
+        generate_reagent_distribution_gwl(dye_path, "w", LabwareNames["Dye"], self.pump_lw_name, 1, 1, 1, 96, self.dye_volume_per_well, n_diti_reuses, n_multi_dispense)
         
         # Wash
-        generate_reagent_distribution_gwl(wash_path, LabwareNames["DPBS"], self.pump_lw_name, 1, 1, 1, 96, 200, n_diti_reuses, n_multi_dispense)
+        generate_reagent_distribution_gwl(wash_path, "w", LabwareNames["DPBS"], self.pump_lw_name, 1, 1, 1, 96, 200, n_diti_reuses, n_multi_dispense)
         
         logger.info("Generated Dye and Wash GWL files.")
 
@@ -1029,7 +1029,7 @@ class DotblotMethod():
         self.n_samples_main_dilution = int(external.entry_slider2.get())
         # self.samples_initial_volume_transfer = external.entry_slider3.get()
         # self.samples_initial_volume_transfer = self.sample_dilution_data["Sample volume"][0] * 10 # value normally between 10uL, so transfer around 100uL, which is more than
-        self.samples_initial_volume_transfer = 20 # hard coded for nicolas's test on thu. 4/7
+        self.samples_initial_volume_transfer = 30 # hard coded for nicolas's test on thu. 4/7
 
         # Positive control
         self.pos_control_dilution_data = external.pos_control_dilution_data
