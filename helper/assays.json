@@ -882,6 +882,12 @@
             "title": "Size Exclusion HPLC Test Method for Purity Determination of JNJ-61186372 (CNTO 4424)"
         },
         {
+            "method": "Color Project",
+            "product": "Model training tests",
+            "tmd": "N/A",
+            "title": "Perform dilutions to get data to train the model."
+        },
+        {
             "method": "test_method",
             "product": "test_product",
             "tmd": "test_tmd",
