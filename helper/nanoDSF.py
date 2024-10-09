@@ -207,7 +207,7 @@ class nanoDSFMethod():
             LabSource = pos_2_str(LabwareNames[self.BSA_lw], 1)
             LabDest = LabwareNames["384_Well_Tall"]
 
-            generate_reagent_distribution_gwl(output_file_path, LabSource, LabDest, 1, 1, min(self.BSA_wells), max(self.BSA_wells), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, excluded_positions=self.sample_dest_positions)
+            generate_reagent_distribution_gwl(output_file_path, "w", LabSource, LabDest, 1, 1, min(self.BSA_wells), max(self.BSA_wells), self.sample_volume_per_well, n_diti_reuses, n_multi_dispense, excluded_positions=self.sample_dest_positions)
                 
         return
     
