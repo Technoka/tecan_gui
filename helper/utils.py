@@ -77,7 +77,9 @@ LabwareNames = {
     "16 weird tube runner": "1x16 16mm Tube Runner No Tubes",
     "16 falcon15 tube runner": "1x16 15ml Falcon Tube Runner no Tubes",
     "Mobile Phase": "100ml_1",
-    "2mL Vial": "2mL Vial"
+    "2mL Vial": "2mL Vial",
+    "UV Cuvette holder": "UV Cuvette holder",
+    "UV Cuvette": "UV_Cuvette"
 
 }
 
@@ -93,7 +95,8 @@ AvailableLabware = {
     "2R Vial": 24, # 4 x 6
     "8R Vial": 12, # 3 x 4
     "CustomVialHolder": 30, # 5 x 6
-    "2mL Vial": 40
+    "2mL Vial": 40,
+    "UV Cuvette": 80
 
 }
 
@@ -648,7 +651,7 @@ def convert_csv_to_gwl(input_file_path:str, output_file_path:str, reuse_tips:boo
         output_file.writelines(new_output_lines)
 
 
-def generate_reagent_distribution_gwl(output_file_path:str, source_lw:str, dest_lw:str, source_pos_start:int, source_pos_end:int, dest_pos_start:int, dest_pos_end:int, volume:int, n_diti_reuses:int, n_multi_dispenses:int, excluded_positions:list[int]=[]):
+def generate_reagent_distribution_gwl(output_file_path:str, open_mode:str, source_lw:str, dest_lw:str, source_pos_start:int, source_pos_end:int, dest_pos_start:int, dest_pos_end:int, volume:int, n_diti_reuses:int, n_multi_dispenses:int, excluded_positions:list[int]=[]):
     """
     Generates a GWL file with a reagent distribution command with the specified parameters.
 
@@ -656,6 +659,9 @@ def generate_reagent_distribution_gwl(output_file_path:str, source_lw:str, dest_
     ----------
     ``output_file_path``: str
         Path to the output file.
+        
+    ``open_mode``: str
+        Mode to open the output file. Can be 'a' or 'w'.
 
     ``source_lw``: str
         Labware source name as in Tecan worktable.
@@ -693,10 +699,11 @@ def generate_reagent_distribution_gwl(output_file_path:str, source_lw:str, dest_
 
     >>> Output: ``R;100ml_1;;;1;1;dotblot_apparatus;;;1;24;100;;12;12;0;``
     """
-
+    
+    assert(open_mode in ["a", "w"])
 
     # Open the input file in read mode and output file in write mode
-    with open(output_file_path, 'w') as output_file:
+    with open(output_file_path, open_mode) as output_file:
         
         # Create the line for the output
         r_command = f"R;{source_lw};;;{source_pos_start};{source_pos_end};{dest_lw};;;{dest_pos_start};{dest_pos_end};{volume};;{n_diti_reuses};{n_multi_dispenses};0;"
