@@ -24,14 +24,22 @@ class sec_HPLCMethod():
 
         # Sample transfer parameters
         self.n_samples = 1 # amount of samples for the sample transfer
+        self.pos_ctr_initial_concentration = 1
+        self.pos_ctr_final_concentration = 10 # hard-coded, as in TMD document
         self.sample_initial_concentration = 1
         self.sample_volume_per_well = 1 # volume (uL) to transfer to each well
         self.sample_lw_origin = "" # origin labware of samples
-        self.sample_lw_dest = "" # destination labware of samples
+        self.lw_dest = "2mL Vial" # # 2 options: 2mL Vial, 96-well plate, vial by default
         self.sample_dest_positions = [0] # positions of 384 plate where the diluted samples end up
+
+        # Pos ctr parameters
+        self.pos_ctr_lw_origin = ""
         
         # Buffer parameters
-        self.buffer_lw_origin = "100ml_1" # origin labware of buffer, hard coded for now
+        self.buffer_lw_origin = LabwareNames["Mobile Phase"] # origin labware of buffer, hard coded for now
+
+        # Standards parameters
+        self.blank_transfer_volume = 2000
 
 
     def next_labware_pos(self, labware_name:str):
@@ -53,7 +61,7 @@ class sec_HPLCMethod():
             if labware_name in LabwareNames:
                     if (self.used_labware_pos[labware_name] + 1 <= AvailableLabware[labware_name]): # if max pos has not been reached
                         self.used_labware_pos[labware_name] = self.used_labware_pos[labware_name] + 1
-                        return self.used_labware_pos[labware_name] # return current one before adding an unit
+                        return self.used_labware_pos[labware_name] # return next positions after adding an unit
             else:
                 return -1
         except Exception as e:
@@ -97,7 +105,7 @@ class sec_HPLCMethod():
              # special case, needs extra calculations
              column_load = 0.2 # 200nL, ask nicolas
              volume = column_load / self.sample_initial_concentration # ???
-             final_concentration = "???" # ask nicolas
+             final_concentration = 9.99 # ask nicolas
              
              new_values = [True, final_concentration, volume]
 
@@ -127,7 +135,7 @@ class sec_HPLCMethod():
         total_volume = self.sample_initial_concentration * sample_volume / sample_dilution_data["final_concentration"]
         buffer_volume = total_volume - sample_volume
 
-        LabDest, DestWell = dilution_position_def(self.sample_lw_dest, self.next_labware_pos(self.sample_lw_dest), self.n_samples)
+        LabDest, DestWell = dilution_position_def(self.lw_dest, self.next_labware_pos(self.lw_dest), self.n_samples)
 
         # sample to dest labware
         LabSource, SourceWell = dilution_position_def(self.sample_lw_origin, 1, self.n_samples) # samples are always placed in positions 1..n_samples
@@ -179,7 +187,7 @@ class sec_HPLCMethod():
 
         sample_volume_to_transfer = sample_dilution_data["injection_volume"]
 
-        LabDest, DestWell = dilution_position_def(self.sample_lw_dest, 1, self.n_samples) # position starts in 1 because labware has not been used yet
+        LabDest, DestWell = dilution_position_def(self.lw_dest, 1, self.n_samples) # position starts in 1 because labware has not been used yet
 
         for j in range(self.n_samples):
             csv_data_sample.append(
@@ -198,6 +206,132 @@ class sec_HPLCMethod():
         pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
 
         return DestWell
+    
+    def pos_ctr_dilution(self):
+        """
+            Checks if the reference material has to be diluted, and if so, performs the calculations and generates the required files.
+        """
+
+        # pos ctr concentration is already the required one
+        if self.pos_ctr_initial_concentration == 10:
+            logger.info("Reference material has already desired final concentration. No dilution required.")
+            # return
+
+
+        csv_number = 1 # # to name generated files sequentially
+        csv_data_sample = []
+        csv_data_buffer = []
+
+        total_volume = 1000 # 1000uL total volume 
+        sample_volume, buffer_volume = calculate_dilution_parameter(self.pos_ctr_initial_concentration, self.pos_ctr_final_concentration, None, total_volume)
+
+        LabSource, SourceWell = dilution_position_def(self.pos_ctr_lw_origin, self.next_labware_pos(self.pos_ctr_lw_origin), 1)
+        LabDest, DestWell = dilution_position_def(self.lw_dest, self.next_labware_pos(self.lw_dest), 1)
+
+        # sample to dest labware
+        LabSource, SourceWell = dilution_position_def(self.sample_lw_origin, 1, self.n_samples) # samples are always placed in positions 1..n_samples
+        csv_data_sample.append(
+        {
+            'LabSource': LabSource,
+            'SourceWell': SourceWell,
+            'LabDest': LabDest,
+            'DestWell': DestWell,
+            'Volume': sample_volume
+        })
+        
+        # buffer to dest labware
+        csv_data_buffer.append(
+        {
+            'LabSource': self.buffer_lw_origin,
+            'SourceWell': 1,
+            'LabDest': LabDest,
+            'DestWell': DestWell,
+            'Volume': buffer_volume
+        })
+
+
+        path = self.files_path + self.sample_dilution_filename + str(csv_number) + ".csv"
+        pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
+        path = self.files_path + self.sample_dilution_filename + str(csv_number + 1) + ".csv"
+        pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
+        csv_number += 2
+
+
+        return 0
+
+
+    def standards_transfer(self):
+        """
+        Generates files for the transfer of blanks, reference materials and standards to the vials.
+
+        """
+
+        # We skip first vial because it is transfered manually (MW conditioning)
+        self.next_labware_pos(self.lw_dest) # to keep track of used labware positions
+
+        csv_number = 1 # # to name generated files sequentially
+        csv_data_sample = []
+        csv_data_buffer = []
+
+        # blank (just mobile phase)
+        LabDest, DestWell = dilution_position_def(self.lw_dest, self.next_labware_pos(self.lw_dest), 1)
+        csv_data_buffer.append(
+            {
+                'LabSource': self.buffer_lw_origin,
+                'SourceWell': 1,
+                'LabDest': LabDest,
+                'DestWell': DestWell,
+                'Volume': self.blank_transfer_volume
+            })
+        
+        # We skip third vial because it is transfered manually (MW SST)
+        self.next_labware_pos(self.lw_dest) # to keep track of used labware positions
+
+        if self.has_detectability_standard:
+            detectability_standard_dest = self.next_labware_pos(self.lw_dest) # we save this position for later
+
+        # reference material (with dilution if needed)
+        self.pos_ctr_dilution()
+
+        total_volume = 200 # 200uL total volume 
+        sample_volume, buffer_volume = calculate_dilution_parameter(self.pos_ctr_initial_concentration, self.pos_ctr_final_concentration, None, total_volume)
+
+        LabDest, DestWell = dilution_position_def(self.lw_dest, self.next_labware_pos(self.lw_dest), self.n_samples)
+
+        # sample to dest labware
+        LabSource, SourceWell = dilution_position_def(self.sample_lw_origin, 1, self.n_samples) # samples are always placed in positions 1..n_samples
+        for j in range(self.n_samples):
+            csv_data_sample.append(
+            {
+                'LabSource': LabSource[j],
+                'SourceWell': SourceWell[j],
+                'LabDest': LabDest[j],
+                'DestWell': DestWell[j],
+                'Volume': sample_volume
+            })
+
+            self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
+        
+        # buffer to dest labware
+        for j in range(self.n_samples):
+            csv_data_buffer.append(
+            {
+                'LabSource': self.buffer_lw_origin,
+                'SourceWell': 1,
+                'LabDest': LabDest[j],
+                'DestWell': DestWell[j],
+                'Volume': buffer_volume
+            })
+
+            self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
+
+
+        path = self.files_path + self.sample_dilution_filename + str(csv_number) + ".csv"
+        pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
+        path = self.files_path + self.sample_dilution_filename + str(csv_number + 1) + ".csv"
+        pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
+        csv_number += 2
+
 
 
     def sec_HPLC(self):
@@ -212,7 +346,7 @@ class sec_HPLCMethod():
         logger.info("-------------------------------------")
         logger.info(f"N. of samples: {self.n_samples}")
         logger.info(f"Samples initial labware: {self.sample_lw_origin}")
-        logger.info(f"Samples destination labware: {self.sample_lw_dest}")
+        logger.info(f"Samples destination labware: {self.lw_dest}")
         logger.info(f"Samples initial concentration: {self.sample_initial_concentration} mg/mL")
         logger.info("-------------------------------------")
 
@@ -221,6 +355,8 @@ class sec_HPLCMethod():
         sample_dilution_data = self.is_sample_dilution_needed()
         print("Sample dilution data:", sample_dilution_data)
         logger.info(f"Sample dilution needed: {sample_dilution_data['sample_dilution_needed']}")
+
+        self.standards_transfer()
 
         if sample_dilution_data["sample_dilution_needed"] == True:
             self.sample_dilution(sample_dilution_data)
@@ -248,9 +384,12 @@ class sec_HPLCMethod():
         # Reset parameters
         self.used_labware_pos = dict.fromkeys(self.used_labware_pos, 0) # reset dict
 
-        # General
+        # Sample
         self.n_samples = external.sec_HPLC_n_samples.get() # amount of samples for the sample transfer
-        self.sample_lw_origin = external.sec_HPLC_lw_origin.get() # origin labware of samples
-        self.sample_initial_concentration = int(external.sec_HPLC_initial_concentration.get()) # origin labware of samples
-        self.sample_lw_dest = external.sec_HPLC_lw_dest.get() # origin labware of samples
+        self.sample_lw_origin = external.sec_HPLC_sample_lw_origin.get() # origin labware of samples
+        self.sample_initial_concentration = int(external.sec_HPLC_sample_initial_concentration.get()) # origin labware of samples
+        self.lw_dest = external.sec_HPLC_lw_dest.get() # origin labware of samples
+        
+        # Pos Ctr
+        self.pos_ctr_lw_origin = external.sec_HPLC_pos_ctr_lw_origin.get() # origin labware of samples
         
