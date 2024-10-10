@@ -31,7 +31,8 @@ class ColorProjectDilutionsMethod():
 
         self.sample_lw_origin = "100ml_2" # origin labware of samples
         self.lw_dest = "UV Cuvette holder"
-        self.sample_dest_positions = [0] # positions of 384 plate where the diluted samples end up
+        self.lw_origin_tiny_vol = "DeepWell" # if volume to transfer is < 10uL, pipette from here so that the 10uL tips can reach the bottom
+
         
         # Diluent parameters
         self.diluent_lw_origin = "100ml_1" # origin labware of diluent, hard coded for now
@@ -113,6 +114,10 @@ class ColorProjectDilutionsMethod():
             
             sample_volumes.append(sample_vol)
             diluent_volumes.append(diluent_vol)
+
+        # Asserting that all elements in both lists are greater than or equal to 0
+        assert all(x >= 0 for x in sample_volumes), "Not all elements in sample_volumes are >= 0"
+        assert all(x >= 0 for x in diluent_volumes), "Not all elements in diluent_volumes are >= 0"
         
         return sample_volumes, diluent_volumes
 
