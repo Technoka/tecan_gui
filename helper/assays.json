@@ -879,7 +879,8 @@
             "method": "SEC-HPLC",
             "product": "CNTO 4424",
             "tmd": "TV-TMD-30962 v5.0",
-            "title": "Size Exclusion HPLC Test Method for Purity Determination of JNJ-61186372 (CNTO 4424)"
+            "title": "Size Exclusion HPLC Test Method for Purity Determination of JNJ-61186372 (CNTO 4424)",
+            "has_detectability_standard": "True"
         },
         {
             "method": "Color Project",
