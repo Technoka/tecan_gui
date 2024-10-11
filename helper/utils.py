@@ -79,6 +79,7 @@ LabwareNames = {
     "Mobile Phase": "100ml_1",
     "2mL Vial": "2mL Vial",
     "UV Cuvette holder": "UV Cuvette holder[001]",
+    "UV Cuvette holder 2": "UV Cuvette holder[002]",
     "UV Cuvette": "UV_Cuvette"
 
 }
@@ -97,7 +98,8 @@ AvailableLabware = {
     "CustomVialHolder": 30, # 5 x 6
     "2mL Vial": 40,
     "UV Cuvette": 80,
-    "UV Cuvette holder": 80
+    "UV Cuvette holder": 40,
+    "UV Cuvette holder 2": 40
 
 }
 
