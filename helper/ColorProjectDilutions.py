@@ -58,10 +58,13 @@ class ColorProjectDilutionsMethod():
                     if (self.used_labware_pos[labware_name] + 1 <= AvailableLabware[labware_name]): # if max pos has not been reached
                         self.used_labware_pos[labware_name] = self.used_labware_pos[labware_name] + 1
                         return self.used_labware_pos[labware_name] # return next positions after adding an unit
+                    else:   
+                        raise ValueError(f"Total number of positions of labware {labware_name} exceeded: pos {self.used_labware_pos[labware_name] + 1} wanted, but {AvailableLabware[labware_name]} is maximum.")
             else:
-                raise ValueError(f"labware {labware_name} not in LabwareNames.")
+                raise ValueError(f"Labware {labware_name} not in LabwareNames.")
         except Exception as e:
             print(e)
+            logger.error(f"Total number of positions of labware {labware_name} exceeded: pos {self.used_labware_pos[labware_name] + 1} wanted, but {AvailableLabware[labware_name]} is maximum.")
             raise ValueError(f"labware pos exceeded maximum one")
         
 
@@ -103,8 +106,6 @@ class ColorProjectDilutionsMethod():
         sample_volumes = []
         diluent_volumes = []
 
-        print("type init sample vol:", type(starting_sample_vol))
-
         for i in range(num_samples):
             sample_vol = starting_sample_vol - (i * diff)  # Decreasing volume for sample_vol
             if starting_diluent_vol > 1000: # it vol cannot fit in 1 tip, divide by 2, it is then repeated 2 times in tecan
@@ -116,8 +117,8 @@ class ColorProjectDilutionsMethod():
             diluent_volumes.append(diluent_vol)
 
         # Asserting that all elements in both lists are greater than or equal to 0
-        assert all(x >= 0 for x in sample_volumes), "Not all elements in sample_volumes are >= 0"
-        assert all(x >= 0 for x in diluent_volumes), "Not all elements in diluent_volumes are >= 0"
+        assert all(x >= 0 for x in sample_volumes), f"Not all elements in sample_volumes are >= 0: {sample_volumes}"
+        assert all(x >= 0 for x in diluent_volumes), f"Not all elements in diluent_volumes are >= 0: {diluent_volumes}"
         
         return sample_volumes, diluent_volumes
 
@@ -134,31 +135,56 @@ class ColorProjectDilutionsMethod():
 
         # we do it 1 time so that it doesnt start in 0 but in 1.
         self.next_labware_pos(self.lw_dest)
-        print("labware pos holder:", self.used_labware_pos[self.lw_dest])
+
+        # Flag variable to say if there is some volume transfer smaller than 10uL
+        has_tiny_volumes = False
+        # Sum of all volumes less than 10 in sample transfer
+        sample_vol_less_10uL = sum(x for x in sample_volumes if x < 10)
+
+        if sample_vol_less_10uL > 0: # at least 1 volume to transfer is smaller than 10uL
+            has_tiny_volumes = True # update flag
+            total_sample_vol_less_10uL = sample_vol_less_10uL * self.n_replicates # total vol accounting replicates also
+            # pre transfer some volume to DeepWell pos 1, where 10uL tips will take from later
+            path = self.files_path + rf"\{self.sample_filename}.gwl"
+            vol_to_transfer = min(total_sample_vol_less_10uL + 50, 1800) # we add 50uL for dead volume, and cap it at 1800uL because max of deepwell is 2mL. Anyway, it should never reach such a high value
+            generate_reagent_distribution_gwl(path, "w", self.sample_lw_origin, LabwareNames[self.lw_origin_tiny_vol], 1, 1, 1, 1, vol_to_transfer, n_diti_reuses, n_multi_dispense)
+                
 
         # for each sample
         for i in range(1, self.n_samples + 1):
 
             # Sample transfer
-            # path = self.files_path + "/" + self.sample_filename + "_0" + str(11) + ".gwl"
-            path = self.files_path + "/" + self.sample_filename + ".gwl"
-            open_mode = "w" if i == 1 else "a" # write mode in first sample to get a clean file, append mode after to keep adding lines
+            path = self.files_path + rf"\{self.sample_filename}.gwl"
+            open_mode = "w" if (i == 1 and not has_tiny_volumes) else "a" # write mode in first sample to get a clean file, append mode after to keep adding lines
             dest_pos_start = self.used_labware_pos[self.lw_dest]
             dest_pos_end = dest_pos_start + self.n_replicates - 1
 
-            # generate_sample_transfer_gwl(path, open_mode, self.sample_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, sample_volumes[i-1], n_diti_reuses, n_multi_dispense, 1, self.n_replicates, 1, 1)
-            generate_reagent_distribution_gwl(path, open_mode, self.sample_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, sample_volumes[i-1], n_diti_reuses, n_multi_dispense)
+            # if volume to transfer is less than 10uL, use 10uL tip and take from DeepWell instead of 100mL reservoir, so that tip can reach the bottom
+            if sample_volumes[i-1] < 10:
+                generate_reagent_distribution_gwl(path, open_mode, LabwareNames[self.lw_origin_tiny_vol], LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, sample_volumes[i-1], n_diti_reuses, n_multi_dispense)
+            
+            else:
+                # generate_sample_transfer_gwl(path, open_mode, self.sample_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, sample_volumes[i-1], n_diti_reuses, n_multi_dispense, 1, self.n_replicates, 1, 1)
+                generate_reagent_distribution_gwl(path, open_mode, self.sample_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, sample_volumes[i-1], n_diti_reuses, n_multi_dispense)
                 
             # Diluent transfer
-            # path = self.files_path + "/" + self.diluent_filename + "_0" + str(12) + ".gwl"
-            path = self.files_path + "/" + self.diluent_filename + ".gwl"
+            # path = self.files_path + "/" + self.diluent_filename + ".gwl"
+            path = self.files_path + rf"\{self.diluent_filename}.gwl"
 
             # generate_sample_transfer_gwl(path, open_mode, self.diluent_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, diluent_volumes[i-1], n_diti_reuses, n_multi_dispense, 1, self.n_replicates, 1, 1)
             generate_reagent_distribution_gwl(path, open_mode, self.diluent_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, diluent_volumes[i-1], n_diti_reuses, n_multi_dispense)
 
             # to account for the used cuvettes of the reagent distr. replicate use
-            for j in range(self.n_replicates):
+            for _ in range(self.n_replicates):
                 self.next_labware_pos(self.lw_dest)
+
+            # if in next iteration, the max pos of the replicates is > 40, change labware destination to second cuvette holder
+            if (dest_pos_end + self.n_replicates) > 40:
+                if self.lw_dest == "UV Cuvette holder 2":
+                    raise ValueError(f"The max number of positions for UV Cuvette holders is reached.")
+                
+                self.lw_dest = "UV Cuvette holder 2" # change labware dest to second one
+                self.next_labware_pos(self.lw_dest) # start in pos 1 instead of 0
 
 
     def generate_config_file(self):
@@ -200,8 +226,10 @@ class ColorProjectDilutionsMethod():
         self.count_starting_lw_pos()
 
         sample_volumes, diluent_volumes = self.generate_volume_sequences(self.initial_sample_volume, self.initial_diluent_volume, self.n_samples)
+        logger.debug(f"Volume sequences calculated. Sample volumes: {sample_volumes}.   Diluent volumes: {diluent_volumes}")
 
         self.generate_GWL_files(sample_volumes, diluent_volumes)
+        logger.info("GWL files generated.")
 
         
         logger.info(f"Dilutions finished successfully.")
