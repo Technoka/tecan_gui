@@ -22,7 +22,9 @@ class sec_HPLCMethod():
         self.pos_ctr_dilution_filename = r"\pos_ctr_dilution - "
         self.det_std_dilution_filename = r"\det_std - "
         self.config_file_name = r"\config.txt"
-        self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions 
+        self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions
+        self.csv_filename = r"\transfer - "
+        self.csv_number = 1 # to keep track of generated CSV files
 
         self.has_detectability_standard = False # only some products have it
 
@@ -135,7 +137,7 @@ class sec_HPLCMethod():
         Only called if samples need to be diluted. Generates the CSV files for the dilution and transfer (done in same step since there is only 1 dilution step).
         """
 
-        csv_number = 1 # # to name generated files sequentially
+        # self.csv_number = 1 # # to name generated files sequentially
         csv_data_sample = []
         csv_data_buffer = []
 
@@ -184,57 +186,19 @@ class sec_HPLCMethod():
             self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
 
 
-        path = self.files_path + self.sample_dilution_filename + str(csv_number) + ".csv"
+        path = self.files_path + self.csv_filename + str(self.csv_number) + ".csv"
         pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
-        
+
         # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
-        path = self.files_path + self.sample_dilution_filename + str(csv_number + 1) + ".csv"
+        path = self.files_path + self.csv_filename + str(self.csv_number + 1) + ".csv"
         if sample_dilution_data["sample_dilution_needed"] == True:
             pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
         else: # if dilution not needed, blank buffer csv so that Tecan ignores it
             pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
-        csv_number += 1
+        self.csv_number += 2
 
         return DestWell
 
-
-    def sample_transfer(self, sample_dilution_data):
-        """
-        Deprecated.
-        -----------
-
-        Transfer samples to vials. 
-        """
-
-        return 0
-    
-        LabSource, SourceWell = dilution_position_def(self.sample_lw_origin, 1, self.n_samples) # samples are always placed in positions 1..n_samples
-        print("labsource sample transfer:", LabSource)
-
-        csv_number = 1 # # to name generated files sequentially
-        csv_data_sample = []
-
-        sample_volume_to_transfer = sample_dilution_data["injection_volume"]
-
-        LabDest, DestWell = dilution_position_def(self.lw_dest, 1, self.n_samples) # position starts in 1 because labware has not been used yet
-
-        for j in range(self.n_samples):
-            csv_data_sample.append(
-            {
-                'LabSource': LabSource[j],
-                'SourceWell': SourceWell[j],
-                'LabDest': LabDest[j],
-                'DestWell': DestWell[j],
-                'Volume': sample_volume_to_transfer
-            }
-            )
-
-            self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
-
-        path = self.files_path + self.sample_transfer_filename + str(csv_number) + ".csv"
-        pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
-
-        return DestWell
     
     def pos_ctr_dilution(self):
         """
@@ -249,7 +213,7 @@ class sec_HPLCMethod():
             logger.info(f"Reference material dilution needed. From {self.pos_ctr_initial_concentration} mg/mL to {self.pos_ctr_final_concentration} mg/mL")
 
 
-        csv_number = 1 # # to name generated files sequentially
+        # csv_number = 1 # # to name generated files sequentially
         csv_data_sample = []
         csv_data_buffer = []
 
@@ -278,11 +242,11 @@ class sec_HPLCMethod():
             'Volume': buffer_volume
         })
 
-        path = self.files_path + self.pos_ctr_dilution_filename + str(csv_number) + ".csv"
+        path = self.files_path + self.csv_filename + str(self.csv_number) + ".csv"
         pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
-        path = self.files_path + self.pos_ctr_dilution_filename + str(csv_number + 1) + ".csv"
+        path = self.files_path + self.csv_filename + str(self.csv_number + 1) + ".csv"
         pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
-        csv_number += 2
+        self.csv_number += 2
 
 
         return LabDest, DestWell
@@ -293,7 +257,7 @@ class sec_HPLCMethod():
         Performs detectability standard dilution starting from RM one.
         """
 
-        csv_number = 1
+        # csv_number = 1
         csv_data_sample = []
         csv_data_buffer = []
 
@@ -325,10 +289,11 @@ class sec_HPLCMethod():
         })
 
 
-        path = self.files_path + self.det_std_dilution_filename + str(csv_number) + ".csv"
+        path = self.files_path + self.csv_filename + str(self.csv_number) + ".csv"
         pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
-        path = self.files_path + self.det_std_dilution_filename + str(csv_number + 1) + ".csv"
+        path = self.files_path + self.csv_filename + str(self.csv_number + 1) + ".csv"
         pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
+        self.csv_number += 2
 
 
     def standards_transfer(self):
@@ -340,7 +305,7 @@ class sec_HPLCMethod():
         # We skip first vial because it is transfered manually (MW conditioning)
         self.next_labware_pos(self.lw_dest) # to keep track of used labware positions
 
-        csv_number = 1 # # to name generated files sequentially
+        # csv_number = 1 # # to name generated files sequentially
         csv_data_sample = []
         csv_data_buffer = []
 
@@ -368,8 +333,9 @@ class sec_HPLCMethod():
             self.detectability_standard_dilution(detectability_standard_dest, PosCtrLabDest, PosCtrDestWell)
 
         
-        path = self.files_path + self.std_transfer_filename + str(csv_number) + ".csv"
+        path = self.files_path + self.csv_filename + str(self.csv_number) + ".csv"
         pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
+        self.csv_number += 1
 
 
     def generate_config_file(self):
@@ -399,6 +365,9 @@ class sec_HPLCMethod():
 
         Executes all stages of the Size Exclusion HPLC method step by step and generates CSV files for them.
         """
+        # Reset parameters
+        self.used_labware_pos = dict.fromkeys(self.used_labware_pos, 0) # reset dict
+        self.csv_number = 1
 
         logger.info(f"has_detectability_standard: {str(self.has_detectability_standard)}")
         logger.info("-------------------------------------")
@@ -421,14 +390,6 @@ class sec_HPLCMethod():
 
         self.sample_dilution(sample_dilution_data)
         logger.info(f"Sample dilutions and transfer done.")
-
-        # if sample_dilution_data["sample_dilution_needed"] == True:
-        #     self.sample_dilution(sample_dilution_data)
-        #     logger.info(f"Sample dilutions and transfer done.")
-
-        # else:
-        #     self.sample_transfer(sample_dilution_data)
-        #     logger.info(f"Sample transfer done.")
         
         logger.info(f"Method finished successfully.")
 
