@@ -58,8 +58,9 @@ class ColorProjectDilutionsMethod():
                     if (self.used_labware_pos[labware_name] + 1 <= AvailableLabware[labware_name]): # if max pos has not been reached
                         self.used_labware_pos[labware_name] = self.used_labware_pos[labware_name] + 1
                         return self.used_labware_pos[labware_name] # return next positions after adding an unit
-                    else:   
-                        raise ValueError(f"Total number of positions of labware {labware_name} exceeded: pos {self.used_labware_pos[labware_name] + 1} wanted, but {AvailableLabware[labware_name]} is maximum.")
+                    else:
+                        pass
+                        # raise ValueError(f"Total number of positions of labware {labware_name} exceeded: pos {self.used_labware_pos[labware_name] + 1} wanted, but {AvailableLabware[labware_name]} is maximum.")
             else:
                 raise ValueError(f"Labware {labware_name} not in LabwareNames.")
         except Exception as e:
