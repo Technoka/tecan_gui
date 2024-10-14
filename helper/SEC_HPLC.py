@@ -345,7 +345,7 @@ class sec_HPLCMethod():
         # If there are repeated keys in the dictionary, the last one and its value is the dominant one !!!
 
         config_parameters = {"has_detectability_standard": str(self.has_detectability_standard),
-                             "n_steps": self.csv_number
+                             "n_steps": self.csv_number - 1 # we remove 1 because it is already added beforehand
                      }
 
         with open(self.files_path + self.config_file_name, 'w') as file:
@@ -388,7 +388,7 @@ class sec_HPLCMethod():
 
         self.sample_dilution(sample_dilution_data)
         logger.info(f"Sample dilutions and transfer done.")
-        
+
         self.generate_config_file()
         logger.info("Config file generated.")
         
