@@ -70,7 +70,7 @@ LabwareNames = {
     "Dye": "100ml_7",
     # "PosControl": "Falcon15[001]",
     # "NegControl": "Falcon15[002]",
-    "100mL reservoir": "100ml", # the [00x] needs to be added later
+    "100mL reservoir": "100ml_1", # the [00x] needs to be added later
     "soloVPE cuvettes": "48 Pos 2R Vial Rack[001]",
     "GeneralBuffer": "100ml_1", # for every method that uses a buffer of any kind, this will be the position
     "BSA tube": "Brown_screw_cap_2ml",
