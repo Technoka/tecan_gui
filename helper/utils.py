@@ -1008,9 +1008,12 @@ def calculate_dilution_parameter(init_conc: float, final_conc: float, sample_vol
     # This is the parameter to calculate
     if total_vol is None:
         total_vol = init_conc * sample_vol / final_conc
+        assert total_vol - sample_vol > 0, f"Calculated buffer volume was less than 0: {total_vol - sample_vol}"
         return total_vol - sample_vol
     
     elif sample_vol is None:
         sample_vol = total_vol * final_conc / init_conc
         buffer_vol = total_vol - sample_vol
+        assert sample_vol >= 0, f"Calculated sample volume was less than 0: {sample_vol}"
+        assert buffer_vol >= 0, f"Calculated buffer volume was less than 0: {buffer_vol}"
         return (sample_vol, buffer_vol)
