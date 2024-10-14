@@ -248,7 +248,6 @@ class sec_HPLCMethod():
         pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
         self.csv_number += 2
 
-
         return LabDest, DestWell
 
 
@@ -345,7 +344,8 @@ class sec_HPLCMethod():
 
         # If there are repeated keys in the dictionary, the last one and its value is the dominant one !!!
 
-        config_parameters = {"has_detectability_standard": str(self.has_detectability_standard)
+        config_parameters = {"has_detectability_standard": str(self.has_detectability_standard),
+                             "n_steps": self.csv_number
                      }
 
         with open(self.files_path + self.config_file_name, 'w') as file:
@@ -377,8 +377,6 @@ class sec_HPLCMethod():
         logger.info(f"Samples initial concentration: {self.sample_initial_concentration} mg/mL")
         logger.info("-------------------------------------")
 
-        self.generate_config_file()
-        logger.info("Config file generated.")
         self.count_starting_lw_pos()
 
         self.standards_transfer()
@@ -390,6 +388,9 @@ class sec_HPLCMethod():
 
         self.sample_dilution(sample_dilution_data)
         logger.info(f"Sample dilutions and transfer done.")
+        
+        self.generate_config_file()
+        logger.info("Config file generated.")
         
         logger.info(f"Method finished successfully.")
 
