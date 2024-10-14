@@ -77,7 +77,7 @@ LabwareNames = {
     "16 weird tube runner": "1x16 16mm Tube Runner No Tubes",
     "16 falcon15 tube runner": "1x16 15ml Falcon Tube Runner no Tubes",
     "Mobile Phase": "100ml_1",
-    "2mL Vial": "2mL Vial",
+    "2mL Vial": "2mL_Vial",
     "UV Cuvette holder": "UV Cuvette holder[001]",
     "UV Cuvette holder 2": "UV Cuvette holder[002]",
     "UV Cuvette": "UV_Cuvette"
