@@ -149,7 +149,8 @@ class ColorProjectDilutionsMethod():
             path = self.files_path + rf"\{self.sample_filename}.gwl"
             vol_to_transfer = min(total_sample_vol_less_10uL + 50, 1800) # we add 50uL for dead volume, and cap it at 1800uL because max of deepwell is 2mL. Anyway, it should never reach such a high value
             generate_reagent_distribution_gwl(path, "w", self.sample_lw_origin, LabwareNames[self.lw_origin_tiny_vol], 1, 1, 1, 1, vol_to_transfer, n_diti_reuses, n_multi_dispense)
-                
+
+        print(f"tiny volumes needed: {has_tiny_volumes}")    
 
         # for each sample
         for i in range(1, self.n_samples + 1):
@@ -174,6 +175,8 @@ class ColorProjectDilutionsMethod():
 
             # generate_sample_transfer_gwl(path, open_mode, self.diluent_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, diluent_volumes[i-1], n_diti_reuses, n_multi_dispense, 1, self.n_replicates, 1, 1)
             generate_reagent_distribution_gwl(path, open_mode, self.diluent_lw_origin, LabwareNames[self.lw_dest], 1, 1, dest_pos_start, dest_pos_end, diluent_volumes[i-1], n_diti_reuses, n_multi_dispense)
+
+            print(f"Sample {i}/{self.n_samples} done.")
 
             # to account for the used cuvettes of the reagent distr. replicate use
             for _ in range(self.n_replicates):
@@ -228,9 +231,11 @@ class ColorProjectDilutionsMethod():
 
         sample_volumes, diluent_volumes = self.generate_volume_sequences(self.initial_sample_volume, self.initial_diluent_volume, self.n_samples)
         logger.debug(f"Volume sequences calculated. Sample volumes: {sample_volumes}.   Diluent volumes: {diluent_volumes}")
+        print("Volumes generated.")
 
         self.generate_GWL_files(sample_volumes, diluent_volumes)
         logger.info("GWL files generated.")
+        print("GWL files generated.")
 
         
         logger.info(f"Dilutions finished successfully.")
@@ -250,6 +255,7 @@ class ColorProjectDilutionsMethod():
 
         # Reset parameters
         self.used_labware_pos = dict.fromkeys(self.used_labware_pos, 0) # reset dict
+        self.lw_dest = "UV Cuvette holder" # reset to first holder
 
         # General
         self.n_samples = external.color_proj_n_samples.get() # amount of samples for the sample transfer
