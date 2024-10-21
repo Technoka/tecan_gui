@@ -859,9 +859,9 @@
         },
         {
             "method": "DLS",
-            "product": "product???",
-            "tmd": "TV-TEC-166007 v1.0",
-            "title": "Dynamic Light Scattering (DLS) for the analysis of particle sizes"
+            "product": "Any product",
+            "tmd": "TV-TEC-236370 v1.0",
+            "title": "Dynamic Light Scattering (DLS) for the analysis of translational diffusion coefficients and hydrodynamic radii using the Wyatt Dyna Pro II plate reader"
         },
         {
             "method": "nDSF",
