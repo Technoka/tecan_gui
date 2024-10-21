@@ -51,6 +51,7 @@ LabwareNames = {
     "Falcon15": "Falcon15",
     "Falcon50": "Falcon50",
     "Eppendorf": "Eppendorf", # Eppendorf 1.5mL
+    "Eppendorf 1.5mL": "Eppendorf", # Eppendorf 1.5mL
     "Eppendorf 2mL": "Eppendorf 2mL", # Eppendorf 2mL
     "FakeFalcon15": "FakeFalcon15",
     "DeepWell": "96 Deep Well 2ml[001]",
