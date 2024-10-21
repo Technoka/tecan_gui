@@ -409,6 +409,7 @@ class sec_HPLCMethod():
 
         # Reset parameters
         self.used_labware_pos = dict.fromkeys(self.used_labware_pos, 0) # reset dict
+        self.csv_number = 1
 
         # Sample
         self.n_samples = external.sec_HPLC_n_samples.get() # amount of samples for the sample transfer
