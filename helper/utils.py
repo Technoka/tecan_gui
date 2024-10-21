@@ -61,6 +61,7 @@ LabwareNames = {
     "8R_Vial neg_ctr": "8R_Vial_neg_ctr", # dotblot negative control vial
     # "CustomVialHolder": "30 Custom_vial_holder[001]",
     "Pos_Ctr_Vial": "Pos_Ctr_Vial", # dotblot small positive control vial with orange cap
+    "Orange cap small vial": "Pos_Ctr_Vial", # another name for the vial defined right before this one
     "BlockingBuffer": "100ml_1",
     "DPBS": "100ml_2",
     "AssayBuffer": "100ml_3",
