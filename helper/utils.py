@@ -50,7 +50,8 @@ def new_log_file():
 LabwareNames = {
     "Falcon15": "Falcon15",
     "Falcon50": "Falcon50",
-    "Eppendorf": "Eppendorf",
+    "Eppendorf": "Eppendorf", # Eppendorf 1.5mL
+    "Eppendorf 2mL": "Eppendorf 2mL", # Eppendorf 2mL
     "FakeFalcon15": "FakeFalcon15",
     "DeepWell": "96 Deep Well 2ml[001]",
     "384_Well": "384 Well[001]",
