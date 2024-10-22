@@ -419,4 +419,5 @@ class sec_HPLCMethod():
         
         # Pos Ctr
         self.pos_ctr_lw_origin = external.sec_HPLC_pos_ctr_lw_origin.get() # origin labware of samples
+        self.pos_ctr_initial_concentration = int(external.sec_HPLC_pos_ctr_initial_concentration.get())
         
