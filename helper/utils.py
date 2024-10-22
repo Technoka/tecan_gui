@@ -94,6 +94,7 @@ AvailableLabware = {
     "Falcon15": 48,
     "Falcon50": 20,
     "Eppendorf": 48,
+    "Eppendorf 2mL": 48,
     "FakeFalcon15": 16,
     "DeepWell": 96,
     "2R Vial": 24, # 4 x 6
@@ -102,7 +103,8 @@ AvailableLabware = {
     "2mL Vial": 40,
     "UV Cuvette": 80,
     "UV Cuvette holder": 40,
-    "UV Cuvette holder 2": 40
+    "UV Cuvette holder 2": 40,
+    "Orange cap small vial": 5
 
 }
 
