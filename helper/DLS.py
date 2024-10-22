@@ -27,7 +27,10 @@ class DLSMethod():
         self.sample_volume_per_well = 35 # volume (uL) to transfer to each well
         self.sample_lw_origin = "" # origin labware of samples
         self.lw_dest = LabwareNames["384_Well"]
-        self.sample_dest_positions = [0] # positions of 384 plate where the diluted samples end up
+        self.reagents_pos = {} # positions of 384 plate where the reagents end up
+
+        self.sample_final_concentration = 5 # mg/mL, it is always like this
+        self.sample_transfer_volume = 35 # uL, always like this, it is the same for sst and blank
 
         # Buffer parameters
         self.buffer_lw_origin = LabwareNames["GeneralBuffer"] # origin labware of buffer, hard coded for now
@@ -83,41 +86,16 @@ class DLSMethod():
         
         Returns
         ----------
-        dict
+        bool
             True or False depending if the samples have to be diluted
         """
 
-        # dict to return containing essential data
-        sample_dilution_data = {"sample_dilution_needed": False, # if this is False, the other parameters are useless
-                                  "final_concentration": 0, # in mg/mL
-                                  "injection_volume": 20} # in uL
-
-        # as in the table in the TMD
-        if self.sample_initial_concentration > 10:
-             new_values = [True, 10, 20]
-        elif self.sample_initial_concentration == 10:
-             new_values = [False, 10, 20]
-        elif self.sample_initial_concentration > 4 and self.sample_initial_concentration < 10:
-             new_values = [True, 4, 50]
-        elif self.sample_initial_concentration > 2 and self.sample_initial_concentration < 4:
-             # special case, needs extra calculations
-             column_load = 0.2 # 200nL, ask nicolas
-             volume = column_load / self.sample_initial_concentration # ???
-             final_concentration = 9.99 # ask nicolas
-             
-             new_values = [True, final_concentration, volume]
-
-
-        elif self.sample_initial_concentration == 2:
-             new_values = [False, 2, 100]
+        if self.sample_initial_concentration > self.sample_final_concentration:
+            logger.info(f"Sample dilution needed: True. From {self.sample_initial_concentration} mg/mL to {self.final_concentration} mg/mL.")
+            return True
         else:
-            raise ValueError("The sample initial concentration needs to be at least 2mg/mL")
-
-        
-        sample_dilution_data = {k: v for k, v in zip(sample_dilution_data.keys(), new_values)}
-        
-
-        return sample_dilution_data
+            logger.info(f"Sample dilution needed: False")
+            return False
 
 
     def sample_dilution(self, sample_dilution_data):
@@ -187,6 +165,49 @@ class DLSMethod():
 
         return DestWell
 
+    def calculate_pump_labware_positions(self):
+        """
+        Calculate well positions of SST, blank and samples for the 384 well plate.
+
+        Returns
+        --------
+        Dictionary containing well positions.
+
+        Example
+        --------
+        >>> self.sample_eppendorf_positions = [3,4,5,6]
+            calculate_pump_labware_positions()
+        {'sst': [1, 9, 17],
+        'blank': [2, 10, 18],
+        'sample_pos': [[3, 11, 19], [4, 12, 20], [5, 13, 21], [6, 14, 22]]}
+
+        """
+
+        sst_pos = []
+        blank_pos = []
+        sample_pos = [[]]
+        
+        sst_pos.append(get_deep_well_pos(1, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate")) # always in first place
+        blank_pos.append(get_deep_well_pos(2, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate")) # always in second place
+
+        # Sample positions
+        samples_per_block = 8 # fixed. number of triplicate vertical spaces in a 96 well plate.
+
+        for sample in range(self.n_samples):
+            sample_pos.append(get_deep_well_pos(2+sample, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate"))
+
+        final_pos = {"pos_ctr_pos": sst_pos,
+                     "neg_ctr_pos": blank_pos,
+                     "samples_pos": sample_pos}
+
+        self.reagents_pos =  final_pos
+
+        logger.debug(f"SST wells: {sst_pos}")
+        logger.debug(f"Blank wells: {blank_pos}")
+        logger.debug(f"Sample wells: {sample_pos}")
+
+        return final_pos
+    
 
     def standards_transfer(self):
         """
@@ -295,7 +316,7 @@ class DLSMethod():
         self.csv_number = 1
 
         # Sample
-        self.n_samples = external.sec_HPLC_n_samples.get() # amount of samples for the sample transfer
-        self.sample_lw_origin = external.sec_HPLC_sample_lw_origin.get() # origin labware of samples
-        self.sample_initial_concentration = int(external.sec_HPLC_sample_initial_concentration.get()) # origin labware of samples
+        self.n_samples = external.DLS_n_samples.get() # amount of samples for the sample transfer
+        self.sample_lw_origin = external.DLS_sample_lw_origin.get() # origin labware of samples
+        self.sample_initial_concentration = int(external.DLS_sample_initial_concentration.get()) # origin labware of samples
         
