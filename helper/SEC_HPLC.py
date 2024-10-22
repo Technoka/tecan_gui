@@ -146,7 +146,7 @@ class sec_HPLCMethod():
         # buffer_volume = total_volume - sample_volume
 
         # labware dest is the same for samples and buffer: dilution done in only 1 step
-        LabDest, DestWell = dilution_position_def(self.lw_dest, self.next_labware_pos(self.lw_dest), self.n_samples)
+        LabDest, DestWell = dilution_position_def(LabwareNames[self.lw_dest], self.next_labware_pos(self.lw_dest), self.n_samples)
         total_volume = 1000
 
         # if samples have to be diluted
@@ -220,8 +220,8 @@ class sec_HPLCMethod():
         total_volume = 1000 # 1000uL total volume 
         sample_volume, buffer_volume = calculate_dilution_parameter(self.pos_ctr_initial_concentration, self.pos_ctr_final_concentration, None, total_volume)
 
-        LabSource, SourceWell = dilution_position_def(self.pos_ctr_lw_origin, self.next_labware_pos(self.pos_ctr_lw_origin), 1)
-        LabDest, DestWell = dilution_position_def(self.lw_dest, self.next_labware_pos(self.lw_dest), 1)
+        LabSource, SourceWell = dilution_position_def(LabwareNames[self.pos_ctr_lw_origin], self.next_labware_pos(self.pos_ctr_lw_origin), 1)
+        LabDest, DestWell = dilution_position_def(LabwareNames[self.lw_dest], self.next_labware_pos(self.lw_dest), 1)
         
         csv_data_sample.append(
         {
@@ -263,7 +263,7 @@ class sec_HPLCMethod():
         total_volume = 1000 # 1000uL total volume 
         sample_volume, buffer_volume = calculate_dilution_parameter(self.pos_ctr_final_concentration, 0.1, None, total_volume)
 
-        LabDest, DestWell = dilution_position_def(self.lw_dest, detectability_standard_dest, 1)
+        LabDest, DestWell = dilution_position_def(LabwareNames[self.lw_dest], detectability_standard_dest, 1)
         # LabDest, DestWell = self.lw_dest, detectability_standard_dest
 
         # sample to dest labware
