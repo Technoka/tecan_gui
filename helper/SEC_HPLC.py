@@ -350,11 +350,11 @@ class sec_HPLCMethod():
 
         with open(self.files_path + self.config_file_name, 'w') as file:
             # Write the keys
-            keys = "; ".join(config_parameters.keys())
+            keys = ";".join(config_parameters.keys())
             file.write(keys + ";\n")
             
             # Write the values
-            values = "; ".join(map(str, config_parameters.values()))
+            values = ";".join(map(str, config_parameters.values()))
             file.write(values + ";\n")
 
 
