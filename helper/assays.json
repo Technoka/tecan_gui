@@ -889,10 +889,13 @@
             "title": "Perform dilutions to get data to train the model."
         },
         {
-            "method": "test_method",
-            "product": "test_product",
-            "tmd": "test_tmd",
-            "title": "Test_title"
+            "method": "Drug Product Preparation",
+            "product": "Daratumumab G2 IV",
+            "tmd": "TV-TEC-79279 v2.0",
+            "title": "DPFD Daratumumab G2 IV 100 mg and 400 mg FVP",
+            "sample_initial_concentration": "120",
+            "final_concentration": "20",
+            "total_volume": "1000"
         }
     ]
 }
