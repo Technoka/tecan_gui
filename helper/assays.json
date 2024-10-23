@@ -896,6 +896,15 @@
             "sample_initial_concentration": "120",
             "final_concentration": "20",
             "total_volume": "1000"
+        },
+        {
+            "method": "Drug Product Preparation",
+            "product": "Simponi ARIA",
+            "tmd": "TV-TEC-126936 v1.0",
+            "title": "Simponi ARIA 50MG DPFD for Verification Fill",
+            "sample_initial_concentration": "100",
+            "final_concentration": "12.5",
+            "total_volume": "1000"
         }
     ]
 }
