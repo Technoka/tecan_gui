@@ -75,6 +75,7 @@ LabwareNames = {
     # "NegControl": "Falcon15[002]",
     "100mL reservoir": "100ml_1", # the [00x] needs to be added later
     "soloVPE cuvettes": "48 Pos 2R Vial Rack[001]",
+    "soloVPE cuvette holder custom": "48 Pos 2R Vial Rack custom[001]",
     "GeneralBuffer": "100ml_1", # for every method that uses a buffer of any kind, this will be the position
     "BSA tube": "Brown_screw_cap_2ml",
     "16 weird tube runner": "1x16 16mm Tube Runner No Tubes",
@@ -1005,7 +1006,10 @@ def calculate_dilution_parameter(init_conc: float, final_conc: float, sample_vol
 
     Returns
     --------
-        float: Buffer volume needed to get desired dilution parameters (uL).
+        If ``sample_volume`` is provided:
+            float: Buffer volume needed to get desired dilution parameters (uL).
+        If ``total_volume`` is provided:
+            (float, float): (sample_volume, buffer_volume)
     """
 
     assert total_vol is None or sample_vol is None, "Either 'sample_vol' or 'total_vol' have to be 'None'."
