@@ -25,7 +25,7 @@ class A280Method():
         self.sample_concentration = 100 # initial concentration in mg/mL
         self.concentration_limit = 100 # mg/mL. If it is more than this, we need to dilute
         self.sample_lw_origin = "" # origin labware of samples
-        self.sample_lw_dest = "soloVPE cuvettes" # destination labware of samples
+        self.sample_lw_dest = "soloVPE cuvette holder custom" # destination labware of samples
         self.sample_diluted_positions = [0] # positions where the diluted samples end up
         self.is_dilution_needed = False
         self.sample_transfer_volume = 100 # volume in uL to transfer to each cuvette
