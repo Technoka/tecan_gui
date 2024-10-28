@@ -45,7 +45,7 @@ class sec_HPLCMethod():
         self.buffer_lw_origin = LabwareNames["Mobile Phase"] # origin labware of buffer, hard coded for now
 
         # Standards parameters
-        self.blank_transfer_volume = 2000
+        self.blank_transfer_volume = 900
 
 
     def next_labware_pos(self, labware_name:str):
@@ -310,14 +310,15 @@ class sec_HPLCMethod():
 
         # blank (just mobile phase)
         LabDest, DestWell = dilution_position_def(LabwareNames[self.lw_dest], self.next_labware_pos(self.lw_dest), 1)
-        csv_data_buffer.append(
-            {
-                'LabSource': self.buffer_lw_origin,
-                'SourceWell': 1,
-                'LabDest': LabDest[0],
-                'DestWell': DestWell[0],
-                'Volume': self.blank_transfer_volume
-            })
+        for i in range(2): # add 2 times 950uL of blank
+            csv_data_buffer.append(
+                {
+                    'LabSource': self.buffer_lw_origin,
+                    'SourceWell': 1,
+                    'LabDest': LabDest[0],
+                    'DestWell': DestWell[0],
+                    'Volume': self.blank_transfer_volume
+                })
         
         # We skip third vial because it is transfered manually (MW SST)
         self.next_labware_pos(self.lw_dest) # to keep track of used labware positions
