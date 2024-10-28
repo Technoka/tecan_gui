@@ -32,11 +32,13 @@ class DLSMethod():
         self.sample_final_concentration = 5 # mg/mL, it is always like this
         self.sample_transfer_volume = 35 # uL, always like this, it is the same for sst and blank
 
+        self.dilution_lw_dest = "" # labware name where the sample dilution is done in case it is needed
+
         # Buffer parameters
         self.buffer_lw_origin = LabwareNames["GeneralBuffer"] # origin labware of buffer, hard coded for now
 
         # Standards parameters
-        self.blank_transfer_volume = 1000
+        self.sst_lw_origin = LabwareNames["Falcon15"]
 
 
     def next_labware_pos(self, labware_name:str):
@@ -107,17 +109,12 @@ class DLSMethod():
         csv_data_sample = []
         csv_data_buffer = []
 
-        # sample_volume = sample_dilution_data["injection_volume"]
-        # total_volume = self.sample_initial_concentration * sample_volume / sample_dilution_data["final_concentration"]
-        # buffer_volume = total_volume - sample_volume
-
         # labware dest is the same for samples and buffer: dilution done in only 1 step
-        LabDest, DestWell = dilution_position_def(self.lw_dest, self.next_labware_pos(self.lw_dest), self.n_samples)
-        total_volume = 1000
+        LabDest, DestWell = dilution_position_def(self.lw_dest, self.next_labware_pos(self.dilution_lw_dest), self.n_samples)
 
         # if samples have to be diluted
         if sample_dilution_data["sample_dilution_needed"] == True:
-            sample_volume, buffer_volume = calculate_dilution_parameter(self.sample_initial_concentration, sample_dilution_data["final_concentration"], None, total_volume)
+            sample_volume, buffer_volume = calculate_dilution_parameter(self.sample_initial_concentration, self.sample_final_concentration, None, self.total_volume)
 
             # buffer to dest labware - only if samples have to be diluted we add buffer
             for j in range(self.n_samples):
@@ -165,7 +162,7 @@ class DLSMethod():
 
         return DestWell
 
-    def calculate_pump_labware_positions(self):
+    def calculate_well_positions(self):
         """
         Calculate well positions of SST, blank and samples for the 384 well plate.
 
@@ -191,8 +188,6 @@ class DLSMethod():
         blank_pos.append(get_deep_well_pos(2, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate")) # always in second place
 
         # Sample positions
-        samples_per_block = 8 # fixed. number of triplicate vertical spaces in a 96 well plate.
-
         for sample in range(self.n_samples):
             sample_pos.append(get_deep_well_pos(2+sample, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate"))
 
@@ -211,44 +206,43 @@ class DLSMethod():
 
     def standards_transfer(self):
         """
-        Generates files for the transfer of blanks, reference material, detectability standard (if needed) and standards to the vials.
+        Generates files for the transfer of SST, blanks and samples to the 384 well plate.
 
         """
-
-        # We skip first vial because it is transfered manually (MW conditioning)
-        self.next_labware_pos(self.lw_dest) # to keep track of used labware positions
 
         # csv_number = 1 # # to name generated files sequentially
         csv_data_sample = []
         csv_data_buffer = []
 
-        # blank (just mobile phase)
-        LabDest, DestWell = dilution_position_def(LabwareNames[self.lw_dest], self.next_labware_pos(self.lw_dest), 1)
-        csv_data_buffer.append(
-            {
-                'LabSource': self.buffer_lw_origin,
-                'SourceWell': 1,
-                'LabDest': LabDest[0],
-                'DestWell': DestWell[0],
-                'Volume': self.blank_transfer_volume
-            })
-        
-        # We skip third vial because it is transfered manually (MW SST)
-        self.next_labware_pos(self.lw_dest) # to keep track of used labware positions
-
-        if self.has_detectability_standard:
-            detectability_standard_dest = self.next_labware_pos(self.lw_dest) # we save this position for later
-
-        # reference material (with dilution if needed)
-        PosCtrLabDest, PosCtrDestWell = self.pos_ctr_dilution()
-        
-        if self.has_detectability_standard:
-            self.detectability_standard_dilution(detectability_standard_dest, PosCtrLabDest, PosCtrDestWell)
-
-        
-        path = self.files_path + self.csv_filename + str(self.csv_number) + ".csv"
-        pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
+        # SST transfer
+        path = self.files_path + self.csv_filename + self.csv_number + ".gwl"
         self.csv_number += 1
+        LabSource, SourceWell = dilution_position_def(self.sst_lw_origin, self.next_labware_pos(self.sst_lw_origin), 1)
+        n_multi_dispense = 3
+        generate_reagent_distribution_gwl(path, "w", LabSource, self.lw_dest, SourceWell, SourceWell, self.reagents_pos["sst"][0], self.reagents_pos["sst"][-1], self.sample_volume_per_well, 1, n_multi_dispense)            
+        
+        # blank transfer
+        path = self.files_path + self.csv_filename + self.csv_number + ".gwl"
+        self.csv_number += 1
+        generate_reagent_distribution_gwl(path, "w", self.buffer_lw_origin, self.lw_dest, 1, 1, self.reagents_pos["blank"][0], self.reagents_pos["blank"][-1], self.sample_volume_per_well, 1, n_multi_dispense)            
+        
+        # samples transfer
+        for i, sample_triplicate in enumerate(self.reagents_pos["sample_pos"]):
+            path = self.files_path + self.csv_filename + self.csv_number + ".gwl"
+            self.csv_number += 1
+            generate_reagent_distribution_gwl(path, "w", self.buffer_lw_origin, self.lw_dest, 1, 1, self.reagents_pos["blank"][0], self.reagents_pos["blank"][-1], self.sample_volume_per_well, 1, n_multi_dispense)            
+
+
+    def sample_transfer(self):
+        """
+        Dilutes samples if needed, and then performs the sample trasnfer to 384 plate.
+        
+        """
+
+        if self.is_sample_dilution_needed():
+            self.sample_dilution()
+
+        # sample transfer
 
 
     def generate_config_file(self):
@@ -292,6 +286,9 @@ class DLSMethod():
         self.count_starting_lw_pos()
 
         ### Method functions
+        self.calculate_well_positions()
+
+        self.standards_transfer()
 
         self.generate_config_file()
         logger.info("Config file generated.")
