@@ -26,7 +26,7 @@ class ColorProjectDilutionsMethod():
         self.n_samples = 1 # amount of samples for the sample transfer
         self.initial_sample_volume = 50 # volume (uL) of solution to transfer to the first cuvette
         self.initial_diluent_volume = 1950 # volume (uL) of diluent to transfer to the first cuvette
-        # self.solution_volume_diff = 2 # volume (uL) difference between each solution transfer
+        self.solution_volume_diff = 2 # volume (uL) difference between each solution transfer
         self.n_replicates = 1 # number of replicates to do per solution transfer
 
         self.sample_lw_origin = "100ml_2" # origin labware of samples
@@ -229,7 +229,7 @@ class ColorProjectDilutionsMethod():
         logger.info("Config file generated.")
         self.count_starting_lw_pos()
 
-        sample_volumes, diluent_volumes = self.generate_volume_sequences(self.initial_sample_volume, self.initial_diluent_volume, self.n_samples)
+        sample_volumes, diluent_volumes = self.generate_volume_sequences(self.initial_sample_volume, self.initial_diluent_volume, self.n_samples, diff=self.solution_volume_diff)
         logger.debug(f"Volume sequences calculated. Sample volumes: {sample_volumes}.   Diluent volumes: {diluent_volumes}")
         print("Volumes generated.")
 
@@ -264,5 +264,6 @@ class ColorProjectDilutionsMethod():
         self.n_replicates = external.color_proj_n_replicates.get()
         self.sample_filename = external.color_proj_sample_filename.get()
         self.diluent_filename = external.color_proj_diluent_filename.get()
+        self.solution_volume_diff = int(external.color_proj_solution_volume_diff.get())
         
         
