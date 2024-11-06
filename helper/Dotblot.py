@@ -933,9 +933,32 @@ class DotblotMethod():
         """
 
         if self.has_2_coatings is False:
+            # max number of samples
             assert self.n_samples_main_dilution < self.max_sample_number_1_coating, "The maximum number of samples for 1 coating is 23."
+            
+            # volume of last step is > 300 uL (the vol needed for 3 wells in transfer to dotblot apparatus step)
+            sample_dil_last_step_vol = self.sample_dilution_data[0]["Assay buffer volume"][-1] + self.sample_dilution_data[0]["Sample volume"][-1]
+            assert sample_dil_last_step_vol > 330, f"The volume of 'sample dilution 1' last step is {sample_dil_last_step_vol}. It has to be at least 330uL"
+            
+            pos_control_dil_last_step_vol = self.pos_control_dilution_data[0]["Assay buffer volume"][-1] + self.pos_control_dilution_data[0]["Sample volume"][-1]
+            assert pos_control_dil_last_step_vol > 330, f"The volume of 'positive control dilution 1' last step is {pos_control_dil_last_step_vol}. It has to be at least 330uL"
+            
+            neg_control_dil_last_step_vol = self.neg_control_dilution_data[0]["Assay buffer volume"][-1] + self.neg_control_dilution_data[0]["Sample volume"][-1]
+            assert neg_control_dil_last_step_vol > 330, f"The volume of 'negative control dilution 1' last step is {neg_control_dil_last_step_vol}. It has to be at least 330uL"
+
         else:
             assert self.n_samples_main_dilution < self.max_sample_number_2_coatings, "The maximum number of samples for 2 coatings is 14."
+
+            # volume of last step is > 300 uL (the vol needed for 3 wells in transfer to dotblot apparatus step)
+            sample_dil_last_step_vol = self.sample_dilution_data[1]["Assay buffer volume"][-1] + self.sample_dilution_data[1]["Sample volume"][-1]
+            assert sample_dil_last_step_vol > 330, f"The volume of 'sample dilution 2' last step is {sample_dil_last_step_vol}. It has to be at least 330uL"
+
+            pos_control_dil_last_step_vol = self.pos_control_dilution_data[1]["Assay buffer volume"][-1] + self.pos_control_dilution_data[1]["Sample volume"][-1]
+            assert pos_control_dil_last_step_vol > 330, f"The volume of 'positive control dilution 1' last step is {pos_control_dil_last_step_vol}. It has to be at least 330uL"
+            
+            neg_control_dil_last_step_vol = self.neg_control_dilution_data[1]["Assay buffer volume"][-1] + self.neg_control_dilution_data[1]["Sample volume"][-1]
+            assert neg_control_dil_last_step_vol > 330, f"The volume of 'negative control dilution 1' last step is {neg_control_dil_last_step_vol}. It has to be at least 330uL"
+
 
 
 
