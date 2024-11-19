@@ -13,9 +13,11 @@ class GeneralDilution():
     Produces CSV files with all the steps to carry out a general dilution in the TECAN.
     """
 
-    def __init__(self):
+    def __init__(self, debug=False):
         # General parameters
-        self.csv_files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\5. General Dilution' # network path where all the CSV files will be saved in.
+        self.DEBUG = debug
+        
+        self.csv_files_path = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\0. Debug" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\5. General Dilution' # network path where all the CSV files will be saved in.
         self.last_eppendorf_pos = -1 # position of the last Eppendorf tube used. Useful so that methods don't use same tube twice.
         self.last_deep_well_pos = -1 # position of the last Deep well position used. Useful so that methods don't use same well twice.
         self.used_labware_pos = {lw: 0 for lw in utils.LabwareNames} # initialize labware positions 

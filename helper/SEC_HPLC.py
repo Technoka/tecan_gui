@@ -13,9 +13,11 @@ class sec_HPLCMethod():
     Produces CSV files with all the steps to carry out the Size Exclusion HPLC method in the TECAN.
     """
 
-    def __init__(self):
+    def __init__(self, debug=False):
         # General parameters
-        self.files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\9. SEC-HPLC' # network path where all the files will be saved in.
+        self.DEBUG = debug
+        
+        self.files_path = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\0. Debug" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\9. SEC-HPLC' # network path where all the files will be saved in.
         self.sample_dilution_filename = r"\sample_dilution - "
         self.sample_transfer_filename = r"\sample_transfer - "
         self.std_transfer_filename = r"\std_transfer - "
@@ -27,6 +29,8 @@ class sec_HPLCMethod():
         self.csv_number = 1 # to keep track of generated CSV files
 
         self.has_detectability_standard = False # only some products have it
+
+        self.total_volume = 500 # total volume to transfer to the vials
 
         # Sample transfer parameters
         self.n_samples = 1 # amount of samples for the sample transfer
@@ -45,7 +49,7 @@ class sec_HPLCMethod():
         self.buffer_lw_origin = LabwareNames["Mobile Phase"] # origin labware of buffer, hard coded for now
 
         # Standards parameters
-        self.blank_transfer_volume = 900
+        self.blank_transfer_volume = 500
 
 
     def next_labware_pos(self, labware_name:str):
@@ -147,11 +151,10 @@ class sec_HPLCMethod():
 
         # labware dest is the same for samples and buffer: dilution done in only 1 step
         LabDest, DestWell = dilution_position_def(LabwareNames[self.lw_dest], self.next_labware_pos(self.lw_dest), self.n_samples)
-        total_volume = 1000
-
+    
         # if samples have to be diluted
         if sample_dilution_data["sample_dilution_needed"] == True:
-            sample_volume, buffer_volume = calculate_dilution_parameter(self.sample_initial_concentration, sample_dilution_data["final_concentration"], None, total_volume)
+            sample_volume, buffer_volume = calculate_dilution_parameter(self.sample_initial_concentration, sample_dilution_data["final_concentration"], None, self.total_volume)
 
             # buffer to dest labware - only if samples have to be diluted we add buffer
             for j in range(self.n_samples):
@@ -180,7 +183,7 @@ class sec_HPLCMethod():
                 'SourceWell': SourceWell[j],
                 'LabDest': LabDest[j],
                 'DestWell': DestWell[j],
-                'Volume': sample_volume if sample_dilution_data["sample_dilution_needed"] else total_volume
+                'Volume': sample_volume if sample_dilution_data["sample_dilution_needed"] else self.total_volume
             })
 
             self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
@@ -217,8 +220,7 @@ class sec_HPLCMethod():
         csv_data_sample = []
         csv_data_buffer = []
 
-        total_volume = 1000 # 1000uL total volume 
-        sample_volume, buffer_volume = calculate_dilution_parameter(self.pos_ctr_initial_concentration, self.pos_ctr_final_concentration, None, total_volume)
+        sample_volume, buffer_volume = calculate_dilution_parameter(self.pos_ctr_initial_concentration, self.pos_ctr_final_concentration, None, self.total_volume)
 
         LabSource, SourceWell = dilution_position_def(LabwareNames[self.pos_ctr_lw_origin], self.next_labware_pos(self.pos_ctr_lw_origin), 1)
         LabDest, DestWell = dilution_position_def(LabwareNames[self.lw_dest], self.next_labware_pos(self.lw_dest), 1)
@@ -260,8 +262,9 @@ class sec_HPLCMethod():
         csv_data_sample = []
         csv_data_buffer = []
 
-        total_volume = 1000 # 1000uL total volume 
-        sample_volume, buffer_volume = calculate_dilution_parameter(self.pos_ctr_final_concentration, 0.1, None, total_volume)
+        sample_volume = 10 # to make sure that tecan uses the 200uL tip
+        buffer_volume = calculate_dilution_parameter(self.pos_ctr_final_concentration, 0.1, sample_volume)
+        assert buffer_volume < 1000, f"Calculated buffer volume for det. std. dilution is greater than 1000uL: {buffer_volume}"
 
         LabDest, DestWell = dilution_position_def(LabwareNames[self.lw_dest], detectability_standard_dest, 1)
         # LabDest, DestWell = self.lw_dest, detectability_standard_dest
@@ -310,7 +313,7 @@ class sec_HPLCMethod():
 
         # blank (just mobile phase)
         LabDest, DestWell = dilution_position_def(LabwareNames[self.lw_dest], self.next_labware_pos(self.lw_dest), 1)
-        for i in range(2): # add 2 times 950uL of blank
+        for i in range(1): # add 500uL of blank
             csv_data_buffer.append(
                 {
                     'LabSource': self.buffer_lw_origin,

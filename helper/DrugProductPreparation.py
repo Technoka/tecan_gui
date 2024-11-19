@@ -13,10 +13,12 @@ class DrugProductPreparationMethod():
     Produces CSV files with all the steps to carry out a general dilution in the TECAN.
     """
 
-    def __init__(self):
+    def __init__(self, debug=False):
 
         # General parameters
-        self.csv_files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\11. Drug Product Preparation' # network path where all the CSV files will be saved in.
+        self.DEBUG = debug
+        
+        self.csv_files_path = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\0. Debug" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\11. Drug Product Preparation' # network path where all the CSV files will be saved in.
         self.csv_filename = r"\dpp_step - "
         self.config_file_name = r"\config.txt"
         self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions

@@ -13,10 +13,13 @@ class DLSMethod():
     Produces CSV files with all the steps to carry out the Dynamic Light Scattering (DLS) method in the TECAN.
     """
 
-    def __init__(self):
+    def __init__(self, debug=False):
         # General parameters
-        self.files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\1. DLS' # network path where all the files will be saved in.
+        self.DEBUG = debug
+
+        self.files_path = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\0. Debug" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\1. DLS' # network path where all the files will be saved in.
         self.csv_filename = r"\transfer - "
+        self.sample_dil_csv_filename = r"\sample_dilution - "
         self.config_file_name = r"\config.txt"
         self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions
         self.csv_number = 1 # to keep track of generated CSV files
@@ -28,11 +31,10 @@ class DLSMethod():
         self.sample_lw_origin = "" # origin labware of samples
         self.lw_dest = LabwareNames["384_Well"]
         self.reagents_pos = {} # positions of 384 plate where the reagents end up
+        self.sample_dilution_lw = LabwareNames["Eppendorf"] # labware where the sample dilutions will be done in case they are needed.
 
         self.sample_final_concentration = 5 # mg/mL, it is always like this
         self.sample_transfer_volume = 35 # uL, always like this, it is the same for sst and blank
-
-        self.dilution_lw_dest = "" # labware name where the sample dilution is done in case it is needed
 
         # Buffer parameters
         self.buffer_lw_origin = LabwareNames["GeneralBuffer"] # origin labware of buffer, hard coded for now
@@ -93,14 +95,14 @@ class DLSMethod():
         """
 
         if self.sample_initial_concentration > self.sample_final_concentration:
-            logger.info(f"Sample dilution needed: True. From {self.sample_initial_concentration} mg/mL to {self.final_concentration} mg/mL.")
+            logger.info(f"Sample dilution needed: True. From {self.sample_initial_concentration} mg/mL to {self.sample_final_concentration} mg/mL.")
             return True
         else:
             logger.info(f"Sample dilution needed: False")
             return False
 
 
-    def sample_dilution(self, sample_dilution_data):
+    def sample_dilution(self):
         """
         Only called if samples need to be diluted. Generates the CSV files for the dilution and transfer (done in same step since there is only 1 dilution step).
         """
@@ -109,32 +111,16 @@ class DLSMethod():
         csv_data_sample = []
         csv_data_buffer = []
 
-        # labware dest is the same for samples and buffer: dilution done in only 1 step
-        LabDest, DestWell = dilution_position_def(self.lw_dest, self.next_labware_pos(self.dilution_lw_dest), self.n_samples)
+        total_volume = 500
 
         # if samples have to be diluted
-        if sample_dilution_data["sample_dilution_needed"] == True:
-            sample_volume, buffer_volume = calculate_dilution_parameter(self.sample_initial_concentration, self.sample_final_concentration, None, self.total_volume)
-
-            # buffer to dest labware - only if samples have to be diluted we add buffer
-            for j in range(self.n_samples):
-                csv_data_buffer.append(
-                {
-                    'LabSource': self.buffer_lw_origin,
-                    'SourceWell': 1,
-                    'LabDest': LabDest[j],
-                    'DestWell': DestWell[j],
-                    'Volume': buffer_volume
-                })
-                
-                # should be buffer in any case??? not sample? plus buffer is in 100mL reservoir so pos doesnt matter, it is always 1
-                # self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
+        sample_volume, buffer_volume = calculate_dilution_parameter(self.sample_initial_concentration, self.sample_final_concentration, None, total_volume)
 
         # sample to dest labware
         LabSource, SourceWell = dilution_position_def(self.sample_lw_origin, 1, self.n_samples) # samples are always placed in positions 1..n_samples
-
-        # if sample_dilution_data["sample_dilution_needed"] == False:
-        #     sample_volume = total_volume # as they don't have to be diluted, the volume transfered should be the total one
+        # labware dest is the same for samples and buffer: dilution done in only 1 step
+        LabDest, DestWell = dilution_position_def(self.sample_dilution_lw, self.next_labware_pos(self.sample_dilution_lw), self.n_samples)
+        
 
         for j in range(self.n_samples):
             csv_data_sample.append(
@@ -143,22 +129,25 @@ class DLSMethod():
                 'SourceWell': SourceWell[j],
                 'LabDest': LabDest[j],
                 'DestWell': DestWell[j],
-                'Volume': sample_volume if sample_dilution_data["sample_dilution_needed"] else total_volume
+                'Volume': sample_volume
             })
-
             self.next_labware_pos(self.sample_lw_origin) # to keep track of used labware positions
 
+            csv_data_buffer.append(
+            {
+                'LabSource': self.buffer_lw_origin,
+                'SourceWell': 1,
+                'LabDest': LabDest[j],
+                'DestWell': DestWell[j],
+                'Volume': buffer_volume
+            })
+            
 
-        path = self.files_path + self.csv_filename + str(self.csv_number) + ".csv"
+        path = self.files_path + self.sample_dil_csv_filename + str(1) + ".csv"
         pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
 
-        # if less than 3 dilutions steps are needed, blank out the remaining CSV files so that the Tecan ignores them basically
-        path = self.files_path + self.csv_filename + str(self.csv_number + 1) + ".csv"
-        if sample_dilution_data["sample_dilution_needed"] == True:
-            pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
-        else: # if dilution not needed, blank buffer csv so that Tecan ignores it
-            pd.DataFrame(list()).to_csv(path, index=False, header=False) # create empty dataframe and save it into an empty CSV
-        self.csv_number += 2
+        path = self.files_path + self.sample_dil_csv_filename + str(2) + ".csv"
+        pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
 
         return DestWell
 
@@ -182,7 +171,7 @@ class DLSMethod():
 
         sst_pos = []
         blank_pos = []
-        sample_pos = [[]]
+        sample_pos = []
         
         sst_pos.append(get_deep_well_pos(1, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate")) # always in first place
         blank_pos.append(get_deep_well_pos(2, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate")) # always in second place
@@ -191,9 +180,9 @@ class DLSMethod():
         for sample in range(self.n_samples):
             sample_pos.append(get_deep_well_pos(2+sample, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate"))
 
-        final_pos = {"pos_ctr_pos": sst_pos,
-                     "neg_ctr_pos": blank_pos,
-                     "samples_pos": sample_pos}
+        final_pos = {"sst": sst_pos,
+                     "blank": blank_pos,
+                     "sample": sample_pos}
 
         self.reagents_pos =  final_pos
 
@@ -210,27 +199,19 @@ class DLSMethod():
 
         """
 
-        # csv_number = 1 # # to name generated files sequentially
-        csv_data_sample = []
-        csv_data_buffer = []
-
         # SST transfer
-        path = self.files_path + self.csv_filename + self.csv_number + ".gwl"
-        self.csv_number += 1
+        path = self.files_path + self.csv_filename + str(self.csv_number) + ".gwl"
         LabSource, SourceWell = dilution_position_def(self.sst_lw_origin, self.next_labware_pos(self.sst_lw_origin), 1)
         n_multi_dispense = 3
-        generate_reagent_distribution_gwl(path, "w", LabSource, self.lw_dest, SourceWell, SourceWell, self.reagents_pos["sst"][0], self.reagents_pos["sst"][-1], self.sample_volume_per_well, 1, n_multi_dispense)            
+        (min_pos, max_pos, excluded_pos) = get_reag_dist_positions(self.reagents_pos["sst"][0])
+        generate_reagent_distribution_gwl(path, "w", LabSource[0], self.lw_dest, SourceWell[0], SourceWell[0], min_pos, max_pos, self.sample_volume_per_well, 1, n_multi_dispense, excluded_pos)    
+        self.csv_number += 1        
         
         # blank transfer
-        path = self.files_path + self.csv_filename + self.csv_number + ".gwl"
-        self.csv_number += 1
-        generate_reagent_distribution_gwl(path, "w", self.buffer_lw_origin, self.lw_dest, 1, 1, self.reagents_pos["blank"][0], self.reagents_pos["blank"][-1], self.sample_volume_per_well, 1, n_multi_dispense)            
-        
-        # samples transfer
-        for i, sample_triplicate in enumerate(self.reagents_pos["sample_pos"]):
-            path = self.files_path + self.csv_filename + self.csv_number + ".gwl"
-            self.csv_number += 1
-            generate_reagent_distribution_gwl(path, "w", self.buffer_lw_origin, self.lw_dest, 1, 1, self.reagents_pos["blank"][0], self.reagents_pos["blank"][-1], self.sample_volume_per_well, 1, n_multi_dispense)            
+        path = self.files_path + self.csv_filename + str(self.csv_number) + ".gwl"
+        (min_pos, max_pos, excluded_pos) = get_reag_dist_positions(self.reagents_pos["blank"][0])
+        generate_reagent_distribution_gwl(path, "w", self.buffer_lw_origin, self.lw_dest, 1, 1, min_pos, max_pos, self.sample_volume_per_well, 1, n_multi_dispense, excluded_pos)   
+        self.csv_number += 1                 
 
 
     def sample_transfer(self):
@@ -239,8 +220,26 @@ class DLSMethod():
         
         """
 
+        # default, if sample dilution not needed
+        LabSource = self.sample_lw_origin
+
         if self.is_sample_dilution_needed():
             self.sample_dilution()
+            LabSource = "1x24 Eppendorf Tube Runner no Tubes[001]" # if dilution needed, update parameter
+
+
+        n_multi_dispense = 3
+
+        # samples transfer
+        # for i, sample_triplicate in enumerate(self.reagents_pos["sample"]):
+        path = self.files_path + self.csv_filename + str(self.csv_number) + ".gwl"
+        (min_pos, max_pos, excluded_pos) = get_reag_dist_positions(flatten(self.reagents_pos["sample"]))
+        # mode = "w" if i == 0 else "a"
+        # generate_reagent_distribution_gwl(path, mode, LabSource, self.lw_dest, 1, self.n_samples, min_pos, max_pos, self.sample_volume_per_well, 1, n_multi_dispense, excluded_pos)  
+        generate_sample_transfer_gwl(path, "w", LabSource, self.lw_dest, 1, self.n_samples, min_pos, max_pos, self.sample_volume_per_well, 1, n_multi_dispense, self.n_samples, 3, 1, 1, excluded_pos)
+
+        self.csv_number += 1  
+
 
         # sample transfer
 
@@ -252,7 +251,8 @@ class DLSMethod():
 
         # If there are repeated keys in the dictionary, the last one and its value is the dominant one !!!
 
-        config_parameters = {"n_steps": self.csv_number - 1 # we remove 1 because it is already added beforehand
+        config_parameters = {"n_steps": self.csv_number - 1, # we remove 1 because it is already added beforehand
+                             "sample_dilution_needed": str(self.is_sample_dilution_needed())
                      }
 
         with open(self.files_path + self.config_file_name, 'w') as file:
@@ -289,6 +289,10 @@ class DLSMethod():
         self.calculate_well_positions()
 
         self.standards_transfer()
+        logger.info("Standards transfer done.")
+
+        self.sample_transfer()
+        logger.info("Sample transfer done.")
 
         self.generate_config_file()
         logger.info("Config file generated.")

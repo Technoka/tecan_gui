@@ -14,9 +14,11 @@ class nanoDSFMethod():
     Produces CSV files with all the steps to carry out the nano DSF method in the TECAN.
     """
 
-    def __init__(self):
+    def __init__(self, debug=False):
         # General parameters
-        self.files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\7. nanoDSF' # network path where all the files will be saved in.
+        self.DEBUG = debug
+        
+        self.files_path = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\0. Debug" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\7. nanoDSF' # network path where all the files will be saved in.
         self.gwl_sample_transfer = r"\sample_transfer"
         self.gwl_bsa_transfer = r"\bsa_transfer"
         self.used_labware_pos = {lw: 0 for lw in LabwareNames} # initialize labware positions 

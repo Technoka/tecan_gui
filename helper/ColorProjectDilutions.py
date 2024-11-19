@@ -14,9 +14,11 @@ class ColorProjectDilutionsMethod():
     Produces CSV files with all the steps to carry out dilutions for the Color Project for Rifat in the TECAN.
     """
 
-    def __init__(self):
+    def __init__(self, debug=False):
         # General parameters
-        self.files_path = r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\10. Color Project' # network path where all the files will be saved in.
+        self.DEBUG = debug
+        
+        self.files_path = r"L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\0. Debug" if self.DEBUG else r'L:\Departements\BTDS_AD\002_AFFS\Lab Automation\09. Tecan\01. Methods\10. Color Project' # network path where all the files will be saved in.
         self.sample_filename = r"\XX_solution_YY - "
         self.diluent_filename = r"\XX_diluent_YY - "
         self.config_file_name = r"\config.txt"
