@@ -137,11 +137,6 @@ class DotblotMethod():
         """
         Performs the dilutions to get the positive control final concentration.
 
-        Parameters
-        ----------
-        ``mix`` : bool
-            If True, a mixing step will be added after each dilution step.
-
         Outputs
         ----------
             CSV files containing instructions for the Tecan.
