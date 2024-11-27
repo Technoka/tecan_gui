@@ -29,7 +29,7 @@ class DLSMethod():
         self.sample_initial_concentration = 1
         self.sample_volume_per_well = 35 # volume (uL) to transfer to each well
         self.sample_lw_origin = "" # origin labware of samples
-        self.lw_dest = LabwareNames["384_Well"]
+        self.lw_dest = LabwareNames["384 Well DLS"]
         self.reagents_pos = {} # positions of 384 plate where the reagents end up
         self.sample_dilution_lw = LabwareNames["Eppendorf"] # labware where the sample dilutions will be done in case they are needed.
 
@@ -177,7 +177,7 @@ class DLSMethod():
         blank_pos.append(get_deep_well_pos(2, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate")) # always in second place
 
         # Sample positions
-        for sample in range(self.n_samples):
+        for sample in range(1, self.n_samples+1):
             sample_pos.append(get_deep_well_pos(2+sample, plate_type=384, sample_direction="horizontal", sample_transfer="triplicate"))
 
         final_pos = {"sst": sst_pos,
@@ -225,18 +225,26 @@ class DLSMethod():
 
         if self.is_sample_dilution_needed():
             self.sample_dilution()
-            LabSource = "1x24 Eppendorf Tube Runner no Tubes[001]" # if dilution needed, update parameter
+            if self.sample_lw_origin == "Eppendorf":
+                LabSource = "1x24 Eppendorf Tube Runner no Tubes[001]" # if dilution needed, update parameter
+            elif self.sample_lw_origin == "FakeFalcon15":
+                LabSource = "1x16 16mm Tube Runner No Tubes[001]" # if dilution needed, update parameter
+
 
 
         n_multi_dispense = 3
+        source_pos_start = 1
 
         # samples transfer
+        if self.sample_lw_origin == self.sample_dilution_lw: # if samples come in the same labwware type than the dilution labware, add to starting positions the n_samples
+            source_pos_start += self.n_samples
+
         # for i, sample_triplicate in enumerate(self.reagents_pos["sample"]):
         path = self.files_path + self.csv_filename + str(self.csv_number) + ".gwl"
         (min_pos, max_pos, excluded_pos) = get_reag_dist_positions(flatten(self.reagents_pos["sample"]))
         # mode = "w" if i == 0 else "a"
         # generate_reagent_distribution_gwl(path, mode, LabSource, self.lw_dest, 1, self.n_samples, min_pos, max_pos, self.sample_volume_per_well, 1, n_multi_dispense, excluded_pos)  
-        generate_sample_transfer_gwl(path, "w", LabSource, self.lw_dest, 1, self.n_samples, min_pos, max_pos, self.sample_volume_per_well, 1, n_multi_dispense, self.n_samples, 3, 1, 1, excluded_pos)
+        generate_sample_transfer_gwl(path, "w", LabSource, self.lw_dest, source_pos_start, source_pos_start + self.n_samples-1, min_pos, max_pos, self.sample_volume_per_well, 1, n_multi_dispense, self.n_samples, 3, 0, 1, excluded_pos)
 
         self.csv_number += 1  
 
