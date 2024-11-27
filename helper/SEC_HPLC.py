@@ -244,11 +244,15 @@ class sec_HPLCMethod():
             'Volume': buffer_volume
         })
 
-        path = self.files_path + self.csv_filename + str(self.csv_number) + ".csv"
-        pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
-        path = self.files_path + self.csv_filename + str(self.csv_number + 1) + ".csv"
-        pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
-        self.csv_number += 2
+        if csv_data_sample[0]["Volume"] != 0:
+            path = self.files_path + self.csv_filename + str(self.csv_number) + ".csv"
+            pd.DataFrame(csv_data_sample).to_csv(path, index=False, header=False)
+            self.csv_number += 1
+        
+        if csv_data_buffer[0]["Volume"] != 0:
+            path = self.files_path + self.csv_filename + str(self.csv_number) + ".csv"
+            pd.DataFrame(csv_data_buffer).to_csv(path, index=False, header=False)
+            self.csv_number += 1
 
         return LabDest, DestWell
 
