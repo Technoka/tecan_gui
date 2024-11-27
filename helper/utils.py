@@ -57,6 +57,7 @@ LabwareNames = {
     "DeepWell": "96 Deep Well 2ml[001]",
     "384_Well": "384 Well[001]",
     "384_Well_Tall": "384 Well Tall[001]",
+    "384 Well DLS": "384 Well Corning REF3540[001]",
     "2R Vial": "2R Vial holder[001]",
     "8R Vial": "8R_Vial",
     "8R_Vial neg_ctr": "8R_Vial_neg_ctr", # dotblot negative control vial
@@ -776,7 +777,7 @@ def generate_sample_transfer_gwl(output_file_path:str, open_mode:str, source_lw:
         Number of replicates per sample.
 
     ``sample_direction``: int
-        Direction of samples (0 for vertical, 1 for horizontal).
+        Direction of samples (0 for horizontal, 1 for vertical).
 
     ``replicate_direction``: int
         Direction of replicates (0 for vertical, 1 for horizontal).
@@ -1026,3 +1027,35 @@ def calculate_dilution_parameter(init_conc: float, final_conc: float, sample_vol
         assert sample_vol >= 0, f"Calculated sample volume was less than 0: {sample_vol}"
         assert buffer_vol >= 0, f"Calculated buffer volume was less than 0: {buffer_vol}"
         return (sample_vol, buffer_vol)
+
+
+def get_reag_dist_positions(pos: int | list[int]):
+    """
+    Calculates the min, max and excluded positions of the given array.
+    Used for the ``reagent distribution`` command in GWL format.
+
+    Parameters
+    ----------
+    ``pos``: int | list[int]
+        List of positions to be included in the command.
+
+
+    Returns
+    --------
+        tuple: (min_pos, max_pos, excluded_pos)
+
+            ``min_pos``: minimum position of the list.
+            
+            ``max_pos``: maximum position of the list.
+
+            ``excluded_pos``: excluded positions of the list.
+    
+    """
+
+    min_pos = np.min(pos)
+    max_pos = np.max(pos)
+    all_pos = np.arange(1, max_pos + 1) # list with all wells from 1 to the max pos
+    excluded_pos = list(set(all_pos) - set(pos)) # positions to exclude from pipetting in the reag. distrib. command
+
+    return (min_pos, max_pos, excluded_pos)
+            
