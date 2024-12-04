@@ -17,8 +17,11 @@ import helper.Dotblot as Dotblot
 import helper.nanoDSF as nanoDSF
 import helper.A280 as A280
 import helper.SEC_HPLC as SEC_HPLC
+import helper.DLS as DLS
+import helper.DrugProductPreparation as DrugProductPreparation
 import helper.GeneralDilution as GeneralDilution
 import helper.VolumeTransfer as VolumeTransfer
+import helper.ColorProjectDilutions as ColorProjectDilutions
 
 ctk.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 ctk.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -33,13 +36,15 @@ dotblot_method = Dotblot.DotblotMethod()
 nDSF_method = nanoDSF.nanoDSFMethod()
 a280_method = A280.A280Method()
 sec_hplc_method = SEC_HPLC.sec_HPLCMethod()
+dls_method = DLS.DLSMethod()
+dpp_method = DrugProductPreparation.DrugProductPreparationMethod()
 general_dilution = GeneralDilution.GeneralDilution()
 vol_tr = VolumeTransfer.VolumeTransfer()
+colorProjectDil = ColorProjectDilutions.ColorProjectDilutionsMethod()
 
+# %%
+from importlib import reload
 
-# %% [markdown]
-# ### GUI Classes
-# 
 
 # %%
 # Create JSON assays.json file if it doesn't exist already
@@ -52,8 +57,9 @@ file_path = os.path.join(assays_folder_name, assays_file_name)
 # Assay dictionary to write to the JSON file - UPDATED 08.10.24 !!!
 # Whole assays.json file in 1 line only
 # use json.dumps('multi line dict') and then print it to get a 1 line output to paste here
-assay_data_dict = {"assays": [{"method": "Dotblot", "product": "CD79bxCD20xCD3", "tmd": "TV-TMD-35372 v1.3", "title": "Test Method for Determining the Identity of JNJ-80948543 using the Dot Blot Assay", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "(LAVA) CD33xV\\u03b39\\u03b42", "tmd": "TV-TMD-38396 v1.0", "title": "Test Method for Determining the Identity of JNJ-89853413 using the Dot Blot Assay", "has_2_coating_proteins": "False", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Wait timer", "wait_timer": 7}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 7}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 7}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 7}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "GPRC5DxBCMAxCD3", "tmd": "TV-TMD-35312 v2.0", "title": "Test Method for the JNJ-79635322 (GPRC5DxBCMAxCD3) Dot Blot Identification Assay", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "VEGFR1", "tmd": "TV-TMD-35066 v1.0", "title": "Method to Determine Identity of JNJ-79032395 (Anti-VEGFR1) by Dot Blot", "has_2_coating_proteins": "False", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "CNTO 4424", "tmd": "TV-TMD-15652 v3.0", "title": "JNJ-61186372 Dot Blot Identification Assay Test Method", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 10}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "CALRmxCD3", "tmd": "TV-TMD-37123 v1.0", "title": "Dot Blot - JNJ-88549968 ID Test Method", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "EMR2xTRBV19", "tmd": "TV-TMD-38646 v2.0", "title": "Test Method for Determining the Identity of JNJ90189892 Using the Dot Blot Assay", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "Test product", "tmd": "No TMD.", "title": "Test Method with really small waiting times for test purposes in Tecan. Has 2 coatings.", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "Test product not all parts.", "tmd": "No TMD.", "title": "Test Method with only some pump steps for test purposes in Tecan. Has 2 coatings.", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein2"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 1}]}, {"method": "FIPA", "product": "CNTO4424", "tmd": "TV-TMD-32376 v1.0", "title": "Fluorescence Intensity Protein Aggregation Assay (FIPA) for the analysis of protein aggregates in JNJ-61186372 (CNTO4424) samples"}, {"method": "DLS", "product": "product???", "tmd": "TV-TEC-166007 v1.0", "title": "Dynamic Light Scattering (DLS) for the analysis of particle sizes"}, {"method": "nDSF", "product": "Any product", "tmd": "TV-TEC-112062 v1.0", "title": "Research method for sample characterization using nanoDSF"}, {"method": "A280 (soloVPE)", "product": "anti-CD79bxCD20xCD3", "tmd": "TV-TMD-35361 v1.0", "title": "Determination of Protein Concentration by UV Absorbance at 280 nm (Variable Pathlength) for JNJ-80948543 (anti-CD79bxCD20xCD3)"}, {"method": "SEC-HPLC", "product": "CNTO 4424", "tmd": "TV-TMD-30962 v5.0", "title": "Size Exclusion HPLC Test Method for Purity Determination of JNJ-61186372 (CNTO 4424)"}, {"method": "Color project", "product": "Model training tests", "tmd": "N/A", "title": "Perform dilutions to get data to train the model."}, {"method": "test_method", "product": "test_product", "tmd": "test_tmd", "title": "Test_title"}]}
-
+assay_data_dict = {"assays": 
+                   [{"method": "Dotblot", "product": "CD79bxCD20xCD3", "tmd": "TV-TMD-35372 v1.3", "title": "Test Method for Determining the Identity of JNJ-80948543 using the Dot Blot Assay", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "(LAVA) CD33xV\\u03b39\\u03b42", "tmd": "TV-TMD-38396 v1.0", "title": "Test Method for Determining the Identity of JNJ-89853413 using the Dot Blot Assay", "has_2_coating_proteins": "False", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Wait timer", "wait_timer": 7}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 7}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 7}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 7}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "GPRC5DxBCMAxCD3", "tmd": "TV-TMD-35312 v2.0", "title": "Test Method for the JNJ-79635322 (GPRC5DxBCMAxCD3) Dot Blot Identification Assay", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "VEGFR1", "tmd": "TV-TMD-35066 v1.0", "title": "Method to Determine Identity of JNJ-79032395 (Anti-VEGFR1) by Dot Blot", "has_2_coating_proteins": "False", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "CNTO 4424", "tmd": "TV-TMD-15652 v3.0", "title": "JNJ-61186372 Dot Blot Identification Assay Test Method", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 10}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 8}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "CALRmxCD3", "tmd": "TV-TMD-37123 v1.0", "title": "Dot Blot - JNJ-88549968 ID Test Method", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 6}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "EMR2xTRBV19", "tmd": "TV-TMD-38646 v2.0", "title": "Test Method for Determining the Identity of JNJ90189892 Using the Dot Blot Assay", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 12}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "Test product", "tmd": "No TMD.", "title": "Test Method with really small waiting times for test purposes in Tecan. Has 2 coatings.", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein 2"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "200", "liquid_type": "Blocking buffer"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Conjugate"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}, {"step_type": "Transfer volume to wells", "volume_amount": "300", "liquid_type": "DPBS"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Vacuum"}]}, {"method": "Dotblot", "product": "Test product not all parts.", "tmd": "No TMD.", "title": "Test Method with only some pump steps for test purposes in Tecan. Has 2 coatings.", "has_2_coating_proteins": "True", "step_types": [{"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Coating protein2"}, {"step_type": "Wait timer", "wait_timer": 1}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Pos/Neg control"}, {"step_type": "Transfer volume to wells", "volume_amount": "100", "liquid_type": "Samples"}, {"step_type": "Wait timer", "wait_timer": 1}]}, {"method": "FIPA", "product": "CNTO4424", "tmd": "TV-TMD-32376 v1.0", "title": "Fluorescence Intensity Protein Aggregation Assay (FIPA) for the analysis of protein aggregates in JNJ-61186372 (CNTO4424) samples"}, {"method": "DLS", "product": "Any product", "tmd": "TV-TEC-236370 v1.0", "title": "Dynamic Light Scattering (DLS) for the analysis of translational diffusion coefficients and hydrodynamic radii using the Wyatt Dyna Pro II plate reader"}, {"method": "nDSF", "product": "Any product", "tmd": "TV-TEC-112062 v1.0", "title": "Research method for sample characterization using nanoDSF"}, {"method": "A280 (soloVPE)", "product": "anti-CD79bxCD20xCD3", "tmd": "TV-TMD-35361 v1.0", "title": "Determination of Protein Concentration by UV Absorbance at 280 nm (Variable Pathlength) for JNJ-80948543 (anti-CD79bxCD20xCD3)"}, {"method": "SEC-HPLC", "product": "CNTO 4424", "tmd": "TV-TMD-30962 v5.0", "title": "Size Exclusion HPLC Test Method for Purity Determination of JNJ-61186372 (CNTO 4424)", "has_detectability_standard": "True"}, {"method": "SEC-HPLC", "product": "GPRC5DxCD3", "tmd": "TV-TMD-31384 v8.0", "title": "Method for the Determination of Purity and Impurities in JNJ-64407564 (GPRC5DxCD3) DS/DP Test Articles by Size Exclusion Chromatography (SE-HPLC)", "has_detectability_standard": "True"}, {"method": "Color Project", "product": "Model training tests", "tmd": "N/A", "title": "Perform dilutions to get data to train the model."}, {"method": "Drug Product Preparation", "product": "Daratumumab G2 IV", "tmd": "TV-TEC-79279 v2.0", "title": "DPFD Daratumumab G2 IV 100 mg and 400 mg FVP", "sample_initial_concentration": "120", "final_concentration": "20", "total_volume": "1000"}, {"method": "Drug Product Preparation", "product": "Simponi ARIA", "tmd": "TV-TEC-126936 v1.0", "title": "Simponi ARIA 50MG DPFD for Verification Fill", "sample_initial_concentration": "100", "final_concentration": "12.5", "total_volume": "1000"}]}
+                   
 # Check if the folder exists, if not create it
 if not os.path.exists(assays_folder_name):
     try:
@@ -121,7 +127,7 @@ class App(ctk.CTk):
         self.debug_text = tk.StringVar(value="Debug mode")
         self.debug_switch = ctk.CTkSwitch(self.sidebar_frame, text="Debug mode", variable=self.debug, command=self.debug_switch_changed)
         self.debug_switch.grid(row=9, column=0, padx=20, pady=(10, 0))
-        self.appearance_mode_label = ctk.CTkLabel(self.sidebar_frame, text="Tecan Interface v0.4.8b\nGenerated 08/10/2024", anchor="w", font=ctk.CTkFont(size=8))
+        self.appearance_mode_label = ctk.CTkLabel(self.sidebar_frame, text="Tecan Interface v0.5.0\nGenerated 13/11/2024", anchor="w", font=ctk.CTkFont(size=8))
         self.appearance_mode_label.grid(row=10, column=0, padx=20, pady=(10, 0))
 
 
@@ -162,6 +168,7 @@ class App(ctk.CTk):
         self.chosen_product = tk.StringVar(value="---")
         self.chosen_tmd = tk.StringVar(value="---")
         self.chosen_title = tk.StringVar(value="---")
+        self.tmd_index = tk.IntVar(value=-1) # index of chosen tmd in assays.json file
 
         self.confirm_check_assay = tk.BooleanVar(value=False)
 
@@ -219,6 +226,29 @@ class App(ctk.CTk):
         self.sec_HPLC_sample_initial_concentration = tk.StringVar(value="100")
         self.sec_HPLC_pos_ctr_lw_origin = tk.StringVar(value="---")
         self.sec_HPLC_pos_ctr_initial_concentration = tk.StringVar(value="10")
+        
+        # DLS
+        self.DLS_n_samples = tk.IntVar(value=1)
+        self.DLS_sample_lw_origin = tk.StringVar(value="---")
+        self.DLS_sample_initial_concentration = tk.StringVar(value="100")
+
+        # Drug Product Preparation
+        self.drug_prod_prep_n_samples = tk.IntVar(value=1)
+        self.drug_prod_prep_sample_lw_origin = tk.StringVar(value="---")
+        self.drug_prod_prep_lw_dest = tk.StringVar(value="---")
+        self.drug_prod_prep_sample_initial_concentration = tk.StringVar(value="100")
+        self.drug_prod_prep_sample_final_concentration = tk.StringVar(value="100")
+        self.drug_prod_prep_total_volume = tk.StringVar(value="1000")
+
+        # Color Project
+        self.color_proj_n_samples = tk.IntVar(value=1)
+        self.color_proj_starting_vol_sample = tk.StringVar(value="50")
+        self.color_proj_starting_vol_diluent = tk.StringVar(value="1950")
+        self.color_proj_n_replicates = tk.IntVar(value=1)
+        self.color_proj_sample_filename = tk.StringVar(value="testS")
+        self.color_proj_diluent_filename = tk.StringVar(value="testD")
+        self.color_proj_solution_volume_diff = tk.StringVar(value="10")
+
 
 
 # ========================================================================================================================000
@@ -295,7 +325,7 @@ class App(ctk.CTk):
         self.title_sample.pack(pady=(1, 6))
         self.label_1d = ctk.CTkLabel(self.tabview.tab("Vol. transfer"), text="Sample origin:", width=120, height=25, corner_radius=8)
         self.label_1d.pack(pady=(5, 1))
-        self.optionmenu_1_vt = ctk.CTkOptionMenu(self.tabview.tab("Vol. transfer"), dynamic_resizing=False, values=["Falcon15", "Falcon50", "2R Vial", "8R Vial", "Eppendorf"])
+        self.optionmenu_1_vt = ctk.CTkOptionMenu(self.tabview.tab("Vol. transfer"), dynamic_resizing=False, values=["Falcon15", "Falcon50", "2R Vial", "8R Vial", "Eppendorf", "100mL reservoir"])
         self.optionmenu_1_vt.pack(pady=(1, 10))
         self.label_slider2_vt = ctk.CTkLabel(self.tabview.tab("Vol. transfer"), text="Number of samples: 1", width=120, height=25,corner_radius=8)
         self.label_slider2_vt.pack(pady=(1, 1))
@@ -308,7 +338,7 @@ class App(ctk.CTk):
         self.vt_volume.pack(pady=(1, 10))
         self.label_slider3_vt = ctk.CTkLabel(self.tabview.tab("Vol. transfer"), text="Repetitions at destination: 1", width=120, height=25,corner_radius=8)
         self.label_slider3_vt.pack(pady=(1, 1))
-        self.entry_slider3_vt = ctk.CTkSlider(self.tabview.tab("Vol. transfer"), from_=1, to=5, number_of_steps=4, command=self.vt_repetition_slider)
+        self.entry_slider3_vt = ctk.CTkSlider(self.tabview.tab("Vol. transfer"), from_=1, to=25, number_of_steps=24, command=self.vt_repetition_slider)
         self.entry_slider3_vt.set(1) # set initial value
         self.entry_slider3_vt.pack(pady=(1, 5)) 
         self.label_1d = ctk.CTkLabel(self.tabview.tab("Vol. transfer"), text="Sample destination:", width=120, height=25, corner_radius=8)
@@ -481,11 +511,11 @@ class App(ctk.CTk):
 
             self.title_sample = ctk.CTkLabel(self.assay_method_frame, text="Configuration parameters", font=ctk.CTkFont(size=16, weight="bold"))
             self.title_sample.pack(pady=(1, 6))
-            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Pos. Ctr. origin:", width=120, height=25, corner_radius=8)
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Ref. Mat. origin:", width=120, height=25, corner_radius=8)
             self.label_1d.pack(pady=(5, 1))
             self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, variable=self.sec_HPLC_pos_ctr_lw_origin, values=["Falcon15", "FakeFalcon15", "Eppendorf"])
             self.optionmenu_1.pack(pady=(1, 5))
-            self.label_pos_ctr_conc_hplc = ctk.CTkLabel(self.assay_method_frame, text="Pos. Ctr. concentration (mg/mL):", width=120, height=25, corner_radius=8)
+            self.label_pos_ctr_conc_hplc = ctk.CTkLabel(self.assay_method_frame, text="Ref. Mat. concentration (mg/mL):", width=120, height=25, corner_radius=8)
             self.label_pos_ctr_conc_hplc.pack(padx=20, pady=(5, 1))
             self.slider_pos_ctr_conc_hplc = ctk.CTkEntry(self.assay_method_frame,placeholder_text="100", validate="all", validatecommand=(self.register(self.validate_input), "%P"), textvariable=self.sec_HPLC_pos_ctr_initial_concentration)
             self.slider_pos_ctr_conc_hplc.pack(pady=(1, 5))
@@ -514,9 +544,97 @@ class App(ctk.CTk):
             # Confirm button
             self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
             self.separator.pack(fill='x', pady=(10, 10))
-            self._check_a280 = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.confirm_check_assay)
-            self._check_a280.pack(padx=0, pady=(20, 10))
+            self._check_sec_HPLC = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.confirm_check_assay)
+            self._check_sec_HPLC.pack(padx=0, pady=(20, 10))
+
+            
+        elif self.chosen_method.get() == "DLS":
+
+            self.title_sample = ctk.CTkLabel(self.assay_method_frame, text="Configuration parameters", font=ctk.CTkFont(size=16, weight="bold"))
+            self.title_sample.pack(pady=(1, 6))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Sample origin:", width=120, height=25, corner_radius=8)
+            self.label_1d.pack(pady=(5, 1))
+            self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, variable=self.DLS_sample_lw_origin, values=["Falcon15", "FakeFalcon15", "Eppendorf"])
+            self.optionmenu_1.pack(pady=(1, 10))
+            self.label_slider_DLS = ctk.CTkLabel(self.assay_method_frame, text="Number of samples: " + str(self.DLS_n_samples.get()), width=120, height=25,corner_radius=8)
+            self.label_slider_DLS.pack(pady=(1, 1))
+            self.entry_slider2 = ctk.CTkSlider(self.assay_method_frame, from_=1, to=25, number_of_steps=24, command=self.DLS_sample_slider, variable=self.DLS_n_samples)
+            self.entry_slider2.set(1) # set initial value
+            self.entry_slider2.pack(pady=(1, 5))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Sample concentration (mg/mL):", width=120, height=25, corner_radius=8)
+            self.label_1d.pack(padx=20, pady=(5, 1))
+            self.volume = ctk.CTkEntry(self.assay_method_frame,placeholder_text="5", validate="all", validatecommand=(self.register(self.validate_input), "%P"), textvariable=self.DLS_sample_initial_concentration)
+            self.volume.pack(pady=(1, 10))
+
+            # Confirm button
+            self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
+            self.separator.pack(fill='x', pady=(10, 10))
+            self._check_sec_HPLC = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.confirm_check_assay)
+            self._check_sec_HPLC.pack(padx=0, pady=(20, 10))
+
+        
+        elif self.chosen_method.get() == "Drug Product Preparation":
+
+            self.title_sample = ctk.CTkLabel(self.assay_method_frame, text="Configuration parameters", font=ctk.CTkFont(size=16, weight="bold"))
+            self.title_sample.pack(pady=(1, 6))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Sample origin:", width=120, height=25, corner_radius=8)
+            self.label_1d.pack(pady=(5, 1))
+            self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, variable=self.drug_prod_prep_sample_lw_origin, values=["Eppendorf", "Orange cap small vial"])
+            self.optionmenu_1.pack(pady=(1, 10))
+            self.label_1d = ctk.CTkLabel(self.assay_method_frame, text="Sample destination:", width=120, height=25, corner_radius=8)
+            self.label_1d.pack(pady=(5, 1))
+            self.optionmenu_1 = ctk.CTkOptionMenu(self.assay_method_frame, dynamic_resizing=False, variable=self.drug_prod_prep_lw_dest, values=["Falcon15", "Eppendorf 1.5mL", "Eppendorf 2mL"])
+            self.optionmenu_1.pack(pady=(1, 10))
+
+            # Confirm button
+            self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
+            self.separator.pack(fill='x', pady=(10, 10))
+            self._check_sec_HPLC = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.confirm_check_assay)
+            self._check_sec_HPLC.pack(padx=0, pady=(20, 10))
     
+
+        elif self.chosen_method.get() == "Color Project":
+
+            self.title_sample = ctk.CTkLabel(self.assay_method_frame, text="Configuration parameters", font=ctk.CTkFont(size=16, weight="bold"))
+            self.title_sample.pack(pady=(1, 6))
+            self.label_slider_color_proj = ctk.CTkLabel(self.assay_method_frame, text="Number of samples: " + str(self.color_proj_n_samples.get()), width=120, height=25,corner_radius=8)
+            self.label_slider_color_proj.pack(pady=(1, 1))
+            self.entry_slider_color_proj = ctk.CTkSlider(self.assay_method_frame, from_=1, to=40, number_of_steps=39, command=self.color_proj_sample_slider, variable=self.color_proj_n_samples)
+            self.entry_slider_color_proj.set(1) # set initial value
+            self.entry_slider_color_proj.pack(pady=(1, 5))
+            self.label_sample_start_vol_color_proj = ctk.CTkLabel(self.assay_method_frame, text="Sample starting volume (uL):", width=120, height=25, corner_radius=8)
+            self.label_sample_start_vol_color_proj.pack(padx=20, pady=(5, 1))
+            self.slider_sample_start_vol_color_proj = ctk.CTkEntry(self.assay_method_frame,placeholder_text=self.color_proj_starting_vol_sample.get(), validate="all", textvariable=self.color_proj_starting_vol_sample)
+            self.slider_sample_start_vol_color_proj.pack(pady=(1, 5))
+            self.label_diluent_start_vol_color_proj = ctk.CTkLabel(self.assay_method_frame, text="Diluent starting volume (uL):", width=120, height=25, corner_radius=8)
+            self.label_diluent_start_vol_color_proj.pack(padx=20, pady=(5, 1))
+            self.slider_diluent_start_vol_color_proj = ctk.CTkEntry(self.assay_method_frame,placeholder_text=self.color_proj_starting_vol_diluent.get(), validate="all", textvariable=self.color_proj_starting_vol_diluent)
+            self.slider_diluent_start_vol_color_proj.pack(pady=(1, 5))
+            self.label_solution_volume_diff_color_proj = ctk.CTkLabel(self.assay_method_frame, text="Volume difference between samples (uL):", width=120, height=25, corner_radius=8)
+            self.label_solution_volume_diff_color_proj.pack(padx=20, pady=(5, 1))
+            self.slider_sample_start_vol_color_proj = ctk.CTkEntry(self.assay_method_frame,placeholder_text=self.color_proj_solution_volume_diff.get(), validate="all", textvariable=self.color_proj_solution_volume_diff)
+            self.slider_sample_start_vol_color_proj.pack(pady=(1, 5))
+            self.label_slider_color_proj_replicate = ctk.CTkLabel(self.assay_method_frame, text="Number of replicates: " + str(self.color_proj_n_replicates.get()), width=120, height=25,corner_radius=8)
+            self.label_slider_color_proj_replicate.pack(pady=(1, 1))
+            self.entry_slider_color_proj_replicate = ctk.CTkSlider(self.assay_method_frame, from_=1, to=25, number_of_steps=24, command=self.color_proj_replicate_slider, variable=self.color_proj_n_replicates)
+            self.entry_slider_color_proj_replicate.set(1) # set initial value
+            self.entry_slider_color_proj_replicate.pack(pady=(1, 5))
+            self.label_sample_filename_color_proj = ctk.CTkLabel(self.assay_method_frame, text="Sample filename:", width=120, height=25, corner_radius=8)
+            self.label_sample_filename_color_proj.pack(padx=20, pady=(5, 1))
+            self.slider_sample_filename_color_proj = ctk.CTkEntry(self.assay_method_frame,placeholder_text=self.color_proj_sample_filename.get(), textvariable=self.color_proj_sample_filename)
+            self.slider_sample_filename_color_proj.pack(pady=(1, 5))
+            self.label_diluent_filename_color_proj = ctk.CTkLabel(self.assay_method_frame, text="Diluent filename:", width=120, height=25, corner_radius=8)
+            self.label_diluent_filename_color_proj.pack(padx=20, pady=(5, 1))
+            self.slider_diluent_filename_color_proj = ctk.CTkEntry(self.assay_method_frame,placeholder_text=self.color_proj_diluent_filename.get(), textvariable=self.color_proj_diluent_filename)
+            self.slider_diluent_filename_color_proj.pack(pady=(1, 5))
+
+
+
+            # Confirm button
+            self.separator = ttk.Separator(self.assay_method_frame, orient='horizontal')
+            self.separator.pack(fill='x', pady=(10, 10))
+            self._check_color_proj = ctk.CTkCheckBox(self.assay_method_frame, text="Confirm", variable=self.confirm_check_assay)
+            self._check_color_proj.pack(padx=0, pady=(20, 10))
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------- #
@@ -548,7 +666,7 @@ class App(ctk.CTk):
                 file_path = initial_dir + r"\DotBlot automation dilution data.xlsx"
                 self.add_label(1, "info",  custom_message="Opening Excel for Dotblot with 1 coating...")
 
-        except:
+        except: # if parameter "has_2_coating_proteins" is not found, it means that it has only 1 coating
             file_path = initial_dir + r"\DotBlot automation dilution data.xlsx"
             self.add_label(1, "info",  custom_message="Opening Excel for Dotblot with 1 coating...")
 
@@ -584,19 +702,23 @@ class App(ctk.CTk):
         
         self.reset_reagent_volumes()
 
-    
-    def assay_changed(self, event): # DEPRECATED
-
+    def update_tmd_index(self):
         # get index of TMD inside JSON file
         index = 0
         for _index, tmd in enumerate(RAW_ASSAYS_DATA["assays"]):
             
             if self.var_assay_tmd.get() == list(tmd.keys())[0]:
                 index = _index
+                self.tmd_index.set(index)
                 break
+        print(f"tmd index: {index}")
+        return index
+
+    def assay_changed(self, event): # DEPRECATED
+        self.update_tmd_index()
 
         self.label_assay.configure(text="Assay code: " + self.var_assay_tmd.get())
-        self.label_assay_type.configure(text="Assay type: " + RAW_ASSAYS_DATA["assays"][index][self.var_assay_tmd.get()]["type"])
+        self.label_assay_type.configure(text="Assay type: " + RAW_ASSAYS_DATA["assays"][self.tmd_index.get()][self.var_assay_tmd.get()]["type"])
 
         self.reset_reagent_volumes()
 
@@ -610,6 +732,12 @@ class App(ctk.CTk):
             self._check_add_BSA.configure(state=tk.DISABLED)
             self._check_add_BSA.deselect()
 
+    def color_proj_replicate_slider(self, event):
+        self.label_slider_color_proj_replicate.configure(text="Number of replicates: " + str(int(self.entry_slider_color_proj_replicate.get())))
+
+    def color_proj_sample_slider(self, event):
+        self.label_slider_color_proj.configure(text="Number of samples: " + str(int(self.entry_slider_color_proj.get())))
+
     def sample_initial_volume_slider(self, event):
         self.label_slider3.configure(text="Initial volume transfer: " + str(int(self.entry_slider3.get())) + " uL")
 
@@ -621,6 +749,9 @@ class App(ctk.CTk):
             return
 
         self.calculate_volumes_dotblot()
+
+    def DLS_sample_slider(self, event):
+        self.label_slider_DLS.configure(text="Number of samples: " + str(self.DLS_n_samples.get()))
 
     def sec_HPLC_sample_slider(self, event):
         self.label_slider_sec_HPLC.configure(text="Number of samples: " + str(self.sec_HPLC_n_samples.get()))
@@ -728,7 +859,11 @@ class App(ctk.CTk):
         self.reset_reagent_volumes()
 
         # add default label to middle frame
-        self.middle_frame_default_label = ctk.CTkLabel(self.middle_frame, text="Import an Excel dilutions file, \nselect the correct options \nand press Generate CSV files.\nAs easy as that.", font=ctk.CTkFont(size=16, weight="bold"))
+        if self.chosen_method.get() == "Dotblot":
+            self.middle_frame_default_label = ctk.CTkLabel(self.middle_frame, text="Import an Excel dilutions file, \nselect the correct options \nand press Generate CSV files.\nAs easy as that.", font=ctk.CTkFont(size=16, weight="bold"))
+        else:
+            self.middle_frame_default_label = ctk.CTkLabel(self.middle_frame, text="Useful information regarding\nthe method might be displayed here.", font=ctk.CTkFont(size=16, weight="bold"))
+
         self.middle_frame_default_label.pack()
 
         if self.tabview.get() == "Assay":
@@ -765,7 +900,6 @@ class App(ctk.CTk):
             result_text = container + ", " + str(round(volume + utils.LABWARE_VOLUMES[container][0], 1)) + " mL needed\n"
 
         return result_text
-
 
 
     def calculate_volumes_dotblot(self):
@@ -1027,7 +1161,7 @@ class App(ctk.CTk):
     Samples: " + str(sample_eppendorf_positions) + "\n")
                 
 
-                if self.chosen_method.get() == "nDSF": # nanoDSF
+                elif self.chosen_method.get() == "nDSF": # nanoDSF
                     # execute nDSF method
 
                     nDSF_method.set_all_parameters(self)
@@ -1035,7 +1169,7 @@ class App(ctk.CTk):
                     messagebox.showinfo("Information", "nanoDSF files generated correctly!")
 
 
-                if self.chosen_method.get() == "A280 (soloVPE)":
+                elif self.chosen_method.get() == "A280 (soloVPE)":
                     # execute a280 method
 
                     a280_method.set_all_parameters(self)
@@ -1043,12 +1177,47 @@ class App(ctk.CTk):
                     messagebox.showinfo("Information", "A280 files generated correctly!")
                     
 
-                if self.chosen_method.get() == "SEC-HPLC":
-                    # execute a280 method
-
+                elif self.chosen_method.get() == "SEC-HPLC":
+                    # execute sec-hplc method
+                    indices = utils.get_assay_indices(RAW_ASSAYS_DATA, self.chosen_method.get(), self.chosen_product.get())
+                    sec_hplc_method.has_detectability_standard = bool(RAW_ASSAYS_DATA[indices[0]]["has_detectability_standard"])
                     sec_hplc_method.set_all_parameters(self)
                     sec_hplc_method.sec_HPLC()
                     messagebox.showinfo("Information", "SEC-HPLC files generated correctly!")
+                    
+
+                elif self.chosen_method.get() == "DLS":
+                    # execute DLS method
+                    indices = utils.get_assay_indices(RAW_ASSAYS_DATA, self.chosen_method.get(), self.chosen_product.get())
+                    dls_method.set_all_parameters(self)
+                    dls_method.DLS()
+                    messagebox.showinfo("Information", "DLS files generated correctly!")
+
+
+                elif self.chosen_method.get() == "Color Project":
+                    # execute color project dilutions
+
+                    colorProjectDil.set_all_parameters(self)
+                    colorProjectDil.color_project_dilutions()
+                    messagebox.showinfo("Information", "Color Project files generated correctly!")
+                    
+
+                elif self.chosen_method.get() == "Drug Product Preparation":
+                    # execute drug product preparation dilution
+
+                    # get params from assays.json
+                    indices = utils.get_assay_indices(RAW_ASSAYS_DATA, self.chosen_method.get(), self.chosen_product.get())
+                    dpp_method.sample_initial_concentration = float(RAW_ASSAYS_DATA[indices[0]]["sample_initial_concentration"])
+                    dpp_method.final_concentration = float(RAW_ASSAYS_DATA[indices[0]]["final_concentration"])
+                    dpp_method.total_volume = float(RAW_ASSAYS_DATA[indices[0]]["total_volume"])
+
+                    dpp_method.set_all_parameters(self)
+                    dpp_method.DrugProductPreparation()
+                    messagebox.showinfo("Information", "Drug Product Preparation files generated correctly!")
+
+                else:
+                    messagebox.showerror("Error", f"No if statement found for method: {self.chosen_method.get()}")
+
 
 
             elif self.tabview.get() == "General dilution": # if GENRAL DILUTION confirm check is pressed
@@ -1071,14 +1240,37 @@ class App(ctk.CTk):
                 messagebox.showinfo("Information", "CSV files generated correctly!\n\n\
     Final positions in " + str(self.vt_dest.get()) + ":\n\
     " + str(vt_dest_positions) + "\n")
+                
+            
             else:
                 self.add_label(1, "info")
+
+        except OSError as e:
+            # Check if the error is related to the network drive
+            if "Errno 22" in str(e):
+                messagebox.showerror("Error", "It appears the PC is not connected to the company network.\nPlease check your connection.")
+            else:
+                messagebox.showerror("Error", f"{e}")
+
+        
+        except PermissionError as e:
+            # Check if the error is related to the network drive
+            if "Errno 13" in str(e):
+                messagebox.showerror("Error", f"{e}\nTrying again might fix the error automatically.")
+            else:
+                messagebox.showerror("Error", f"{e}")
+        
+        except AssertionError as e:
+            messagebox.showerror("Error", e)
+        
 
         except Exception as e:
             if len(str(e)) == 0: # if exception has no message attached, show general error message
                 self.add_label(3, "error")
             else:
                 self.add_label(1, "error",  custom_message= utils.divide_string_into_lines(str(e), 80))
+                
+            messagebox.showerror("Error", e)
             print(e)
             utils.logger.error("Method failed.", exc_info=True)
             
@@ -1090,4 +1282,3 @@ if __name__ == "__main__":
     app.DEBUG = True
 
     app.mainloop()
-

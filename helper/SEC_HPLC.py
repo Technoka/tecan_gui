@@ -51,6 +51,8 @@ class sec_HPLCMethod():
         # Standards parameters
         self.blank_transfer_volume = 500
 
+        # dilution parameters
+        self.dilution_labware = "DeepWell"
 
     def next_labware_pos(self, labware_name:str):
         """

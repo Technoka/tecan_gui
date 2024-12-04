@@ -6,6 +6,8 @@ import os
 import json
 import logging
 from datetime import datetime
+import time
+from pygame import mixer
 
 
 
@@ -1059,3 +1061,75 @@ def get_reag_dist_positions(pos: int | list[int]):
 
     return (min_pos, max_pos, excluded_pos)
             
+
+def monitor_file(filename: str, check_interval: int = 30, alert_sound: str = "alert-sound.mp3", ):
+    """
+    Continuously monitors a file for changes, and plays a sound if so.
+
+
+    Parameters
+    ----------
+    ``filename``: str:
+    The path to the file to be monitored.
+
+    ``check_interval``: int:
+    The time interval (in seconds) between checks for file updates.
+    Default: 30.
+
+    ``alert_sound``: str:
+    The path to an audio file (e.g., .mp3) that will be played as an alert sound when a change is detected.
+
+    """
+
+    # Initialize pygame mixer to play sound
+    mixer.init()
+
+    # Read the file and track the last line's content
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+        previous_last_line = lines[-1] if lines else ""  # Handle empty files
+
+    while True:
+        # Wait for the specified interval
+        time.sleep(check_interval)
+        
+        # Open the file again and read current lines
+        with open(filename, 'r') as file:
+            lines = file.readlines()
+            # print("lines: ", lines)
+            current_last_line = lines[-1] if lines else ""
+
+        # Exit if "END" is detected
+        if current_last_line.strip() == "END":
+            mixer.music.load(alert_sound)
+            mixer.music.play()
+            # raise an exception to catch it and know that the assay has finished
+            raise EOFError("File monitoring finished by 'END' command.")
+            # return "File monitoring finished by 'END' command."
+
+        # Check if the last line's length has changed
+        if len(current_last_line) != len(previous_last_line):
+            print("Last line changed!")
+            print(f"len(current): {len(current_last_line)}, len(previous): {len(previous_last_line)}")
+            
+            # Play the alert sound using pygame
+            mixer.music.load(alert_sound)
+            mixer.music.play()
+            
+            # Append a new empty line to the file
+            with open(filename, 'a') as file:
+                file.write("\n")
+            with open(filename, 'r') as file:
+                lines = file.readlines()
+                previous_last_line = lines[-1] # update previous last line
+
+
+def get_running_method_name(filename: str = "assay_updates.txt"):
+    # Open the file again and read current lines
+    with open(filename, 'r') as file:
+        lines = file.readlines()
+
+        if len(lines) == 0:
+            return "No assay running."
+        else:
+            return lines[0].removesuffix("\n")

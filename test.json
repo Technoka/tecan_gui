@@ -1,0 +1,101 @@
+{
+    {
+        "Data": {
+            "Version": {
+                "Major": 1,
+                "Minor": 0
+            },
+            "AspirateSpeed": 7,
+            "DispenseSpeed": 7,
+            "RepeatedBlowOut": false,
+            "Mixing": {
+                "PreAspiration": false,
+                "PostDispensing": false,
+                "Mode": 0,
+                "Volume": 0
+            },
+            "FirstVolume": 1,
+            "SecondVolume": 1,
+            "AirGapVolume": 0.5
+        },
+        "Adj": {},
+        "Preset": {},
+        "Mode": "DILUTING"
+    },
+    {
+        "T": 1707296928,
+        "A": "D a a a b"
+    },
+    {
+        "Data": {
+            "Version": {
+                "Major": 1,
+                "Minor": 0
+            },
+            "AspirateSpeed": 4,
+            "DispenseSpeed": 6,
+            "Volume": 2,
+            "RepeatedBlowOut": false},
+            "Mixing": {
+                "PreAspiration": false,
+                "PostDispensing": false,
+                "Mode": 0,"Volume:7.5},"Counter": {
+                    "Enabled": false,
+                    "Value": 0
+                },
+                "Tracker": {
+                    "Enabled": false,
+                    "Mode": "DISABLED",
+                    "Value": {
+                        "Index": 0,
+                        "Plate": "96",
+                        "Direction": "ROWS",
+                        "Channels": 1
+                    }
+                }
+            },
+            "Adj": {},
+            "Preset": {},
+            "Mode": "PIPETTING"
+        },
+        {
+            "T": 1707554598,
+            "A": "P a b"
+        },
+        {
+            "T": 1707554608,
+            "A": "P a b": {
+                "Tracker": {
+                    "Enabled": true,
+                    "Mode": "ROWS_96"
+                }
+            },
+            "Mode": "PIPETTING"
+        },
+        {
+            "T": 1707554625,
+            "A": "P a b"
+        },
+        {
+            "T": 1707554628,
+            "A": "P a b"
+        },
+        {
+            "T": 1707554631,
+            "A": "P a b"
+        },
+        {
+            "Data": {
+                "Tracker": {
+                    "Value": {
+                        "Index": 3
+                    }
+                }
+            },
+            "Mode": "PIPETTING"
+        },
+        {
+            "T": 1707554744,
+            "A": "P a b"
+        }
+    }
